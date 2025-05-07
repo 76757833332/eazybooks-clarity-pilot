@@ -70,23 +70,27 @@ const Dashboard = () => {
         const userId = (await supabase.auth.getUser()).data.user?.id;
         
         // Get recent invoices
-        const { data: invoices } = await supabase
+        const { data: invoicesData, error: invoicesError } = await supabase
           .from('invoices')
           .select('*, customers(name)')
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(3);
         
+        if (invoicesError) throw invoicesError;
+        
         // Get recent expenses
-        const { data: expenses } = await supabase
+        const { data: expenses, error: expensesError } = await supabase
           .from('expenses')
           .select('*')
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(3);
         
+        if (expensesError) throw expensesError;
+        
         // Format transactions for display
-        const formattedInvoices = invoices?.map(invoice => ({
+        const formattedInvoices = invoicesData?.map(invoice => ({
           id: invoice.id,
           type: 'invoice',
           description: `Invoice #${invoice.invoice_number}`,

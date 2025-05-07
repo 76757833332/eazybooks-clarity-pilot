@@ -60,7 +60,8 @@ export const invoiceService = {
     if (items.length > 0) {
       const formattedItems = items.map(item => ({
         ...item,
-        invoice_id: newInvoice.id
+        invoice_id: newInvoice.id,
+        description: item.description || "Item" // Ensure description is never undefined
       }));
       
       const { error: itemsError } = await supabase
@@ -96,12 +97,14 @@ export const invoiceService = {
       // Insert new items
       const formattedItems = items.map(item => ({
         ...item,
-        invoice_id: id
+        invoice_id: id,
+        description: item.description || "Item" // Ensure description is never undefined
       }));
       
+      // Using .upsert() to properly handle inserts
       const { error: itemsError } = await supabase
         .from("invoice_items")
-        .insert(formattedItems);
+        .upsert(formattedItems);
         
       if (itemsError) throw itemsError;
     }
