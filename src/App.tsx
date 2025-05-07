@@ -12,6 +12,9 @@ import NotFound from "./pages/NotFound";
 import InvoicesPage from "./pages/invoices/InvoicesPage";
 import CreateInvoice from "./pages/invoices/CreateInvoice";
 import InvoiceDetails from "./pages/invoices/InvoiceDetails";
+import ExpensesPage from "./pages/expenses/ExpensesPage";
+import CreateExpense from "./pages/expenses/CreateExpense";
+import ExpenseDetails from "./pages/expenses/ExpenseDetails";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +32,9 @@ const App = () => (
           <Route path="/invoices" element={<InvoicesPage />} />
           <Route path="/invoices/create" element={<CreateInvoice />} />
           <Route path="/invoices/:id" element={<InvoiceDetails />} />
+          <Route path="/expenses" element={<ExpensesPage />} />
+          <Route path="/expenses/create" element={<CreateExpense />} />
+          <Route path="/expenses/:id" element={<ExpenseDetails />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

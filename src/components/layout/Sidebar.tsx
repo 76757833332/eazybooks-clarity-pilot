@@ -3,7 +3,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Home,
-  Building2, // Replace Bank with Building2 which is available in lucide-react
+  Building2,
   FileText,
   FileDown,
   Users,
@@ -18,7 +18,7 @@ import Logo from "@/components/Logo";
 
 const sidebarLinks = [
   { icon: Home, label: "Dashboard", path: "/dashboard" },
-  { icon: Building2, label: "Bank", path: "/bank" }, // Updated icon here
+  { icon: Building2, label: "Bank", path: "/bank" },
   { icon: FileDown, label: "Income", path: "/income" },
   { icon: FileText, label: "Expenses", path: "/expenses" },
   { icon: Users, label: "Customers", path: "/customers" },
@@ -49,7 +49,7 @@ const Sidebar = () => {
             to={link.path}
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-eazybooks-purple/10",
-              location.pathname === link.path
+              location.pathname === link.path || location.pathname.startsWith(`${link.path}/`)
                 ? "bg-eazybooks-purple/20 text-eazybooks-purple font-medium"
                 : "text-muted-foreground"
             )}
