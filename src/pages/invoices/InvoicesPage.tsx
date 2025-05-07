@@ -49,7 +49,7 @@ const InvoicesPage: React.FC = () => {
         throw new Error(error.message);
       }
       
-      return data as Invoice[];
+      return data as unknown as Invoice[];
     },
   });
 

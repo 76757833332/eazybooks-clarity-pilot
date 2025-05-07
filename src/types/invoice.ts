@@ -22,7 +22,7 @@ export type Invoice = {
   notes?: string;
   created_at: string;
   updated_at: string;
-  customer?: Customer;
+  customer?: Customer | null;
 };
 
 export type InvoiceItem = {

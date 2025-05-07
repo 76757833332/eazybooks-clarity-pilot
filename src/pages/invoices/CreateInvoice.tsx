@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "@/components/ui/use-toast";
 import { Plus, Trash2, Save } from "lucide-react";
@@ -85,7 +85,11 @@ const CreateInvoice: React.FC = () => {
     },
   });
 
-  const { fields, append, remove } = form.watch("items");
+  // Add useFieldArray for managing the items array
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "items"
+  });
 
   // Calculate totals
   const calculateItemAmount = (quantity: number, price: number) => {
@@ -260,8 +264,8 @@ const CreateInvoice: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                {form.getValues("items").map((_, index) => (
-                  <div key={index} className="grid grid-cols-12 gap-2 items-end">
+                {fields.map((field, index) => (
+                  <div key={field.id} className="grid grid-cols-12 gap-2 items-end">
                     <div className="col-span-5">
                       <FormField
                         control={form.control}
@@ -330,7 +334,7 @@ const CreateInvoice: React.FC = () => {
                       </div>
                     </div>
                     <div className="col-span-1 pb-1">
-                      {form.getValues("items").length > 1 && (
+                      {fields.length > 1 && (
                         <Button
                           type="button"
                           variant="ghost"

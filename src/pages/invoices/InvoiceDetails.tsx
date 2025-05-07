@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -48,7 +47,7 @@ const InvoiceDetails: React.FC = () => {
         throw new Error(error.message);
       }
       
-      return data as Invoice;
+      return data as unknown as Invoice;
     },
   });
 
