@@ -18,7 +18,18 @@ import {
 import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
 
-const sidebarLinks = [
+type SidebarLinkType = {
+  icon: React.ElementType;
+  label: string;
+  path: string;
+  subItems?: {
+    label: string;
+    path: string;
+    icon?: React.ElementType;
+  }[];
+};
+
+const sidebarLinks: SidebarLinkType[] = [
   { icon: Home, label: "Dashboard", path: "/dashboard" },
   { icon: Building2, label: "Bank", path: "/bank" },
   { icon: FileDown, label: "Income", path: "/income" },

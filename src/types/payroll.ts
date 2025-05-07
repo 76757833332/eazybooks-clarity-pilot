@@ -1,4 +1,6 @@
 
+import { Employee } from './employee';
+
 export type DeductionType = {
   id: string;
   user_id: string;

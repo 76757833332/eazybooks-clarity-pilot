@@ -1,26 +1,18 @@
-
-import { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { CalendarIcon } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { NewEmployee } from "@/types/employee";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -29,25 +21,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { toast } from "@/components/ui/use-toast";
-import { NewEmployee } from "@/types/employee";
-import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
 
 const formSchema = z.object({
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().optional(),
-  hire_date: z.date(),
   position: z.string().min(1, "Position is required"),
   department: z.string().optional(),
-  salary: z.number().min(0, "Salary must be a positive number"),
-  hourly_rate: z.number().min(0, "Hourly rate must be a positive number").optional(),
+  hireDate: z.date({
+    required_error: "Hire date is required",
+  }),
+  salary: z.string().refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+    message: "Salary must be a positive number",
+  }),
+  hourlyRate: z.string().optional(),
   status: z.enum(["active", "inactive", "on_leave", "terminated"]),
 });
 
@@ -55,68 +56,75 @@ type FormValues = z.infer<typeof formSchema>;
 
 const CreateEmployee = () => {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const userId = "user-123"; // Replace with actual user ID from auth context
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      first_name: "",
-      last_name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       phone: "",
-      hire_date: new Date(),
       position: "",
       department: "",
-      salary: 0,
-      hourly_rate: undefined,
+      salary: "",
+      hourlyRate: "",
       status: "active",
     },
   });
 
-  const createEmployeeMutation = useMutation({
-    mutationFn: async (newEmployee: NewEmployee) => {
-      const { data, error } = await supabase.from("employees").insert(newEmployee).select();
-      if (error) throw error;
-      return data[0];
-    },
+  const createEmployee = async (employee: NewEmployee) => {
+    // Replace with actual API call
+    console.log("Creating employee:", employee);
+    return { id: "emp-123", ...employee };
+  };
+
+  const mutation = useMutation({
+    mutationFn: createEmployee,
     onSuccess: () => {
       toast({
         title: "Employee created",
-        description: "The employee has been successfully added to your directory.",
+        description: "The employee has been created successfully.",
       });
       navigate("/payroll/employees");
     },
     onError: (error) => {
       toast({
-        title: "Error creating employee",
-        description: error.message,
+        title: "Error",
+        description: "Failed to create employee. Please try again.",
         variant: "destructive",
       });
-      setIsSubmitting(false);
+      console.error("Error creating employee:", error);
     },
   });
 
-  const onSubmit = async (values: FormValues) => {
-    setIsSubmitting(true);
-    
+  const onSubmit = (values: FormValues) => {
     const newEmployee: NewEmployee = {
-      ...values,
-      hire_date: format(values.hire_date, "yyyy-MM-dd"),
-      user_id: (await supabase.auth.getUser()).data.user?.id as string,
+      first_name: values.firstName,
+      last_name: values.lastName,
+      email: values.email,
+      phone: values.phone,
+      position: values.position,
+      department: values.department,
+      hire_date: format(values.hireDate, "yyyy-MM-dd"),
+      salary: parseFloat(values.salary),
+      hourly_rate: values.hourlyRate ? parseFloat(values.hourlyRate) : undefined,
+      status: values.status || 'active',
+      user_id: userId
     };
-    
-    createEmployeeMutation.mutate(newEmployee);
+
+    mutation.mutate(newEmployee);
   };
 
   return (
-    <AppLayout title="Add Employee">
-      <div className="mx-auto max-w-4xl">
+    <AppLayout title="Add New Employee">
+      <div className="mx-auto max-w-3xl">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
-                name="first_name"
+                name="firstName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>First Name</FormLabel>
@@ -127,9 +135,10 @@ const CreateEmployee = () => {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="last_name"
+                name="lastName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Last Name</FormLabel>
@@ -140,9 +149,7 @@ const CreateEmployee = () => {
                   </FormItem>
                 )}
               />
-            </div>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="email"
@@ -150,12 +157,17 @@ const CreateEmployee = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="john.doe@example.com" {...field} />
+                      <Input
+                        type="email"
+                        placeholder="john.doe@example.com"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="phone"
@@ -163,18 +175,44 @@ const CreateEmployee = () => {
                   <FormItem>
                     <FormLabel>Phone (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="(555) 123-4567" {...field} />
+                      <Input placeholder="+1 (555) 123-4567" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
-                name="hire_date"
+                name="position"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Position</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Software Engineer" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="department"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Department (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Engineering" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="hireDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Hire Date</FormLabel>
@@ -213,6 +251,7 @@ const CreateEmployee = () => {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="status"
@@ -239,79 +278,45 @@ const CreateEmployee = () => {
                   </FormItem>
                 )}
               />
-            </div>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="position"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Position</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Software Developer" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="department"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Department (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Engineering" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="salary"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Annual Salary</FormLabel>
+                    <FormLabel>Annual Salary ($)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         placeholder="50000"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
                       />
                     </FormControl>
-                    <FormDescription>Annual salary in USD</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="hourly_rate"
+                name="hourlyRate"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Hourly Rate (Optional)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="25"
-                        value={field.value ?? ""}
-                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        placeholder="25.00"
+                        {...field}
                       />
                     </FormControl>
-                    <FormDescription>Hourly rate in USD (if applicable)</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
 
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -319,8 +324,8 @@ const CreateEmployee = () => {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create Employee"}
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? "Creating..." : "Create Employee"}
               </Button>
             </div>
           </form>

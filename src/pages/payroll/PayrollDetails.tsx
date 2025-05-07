@@ -1,165 +1,144 @@
-
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React from "react";
+import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Edit, Trash2, AlertCircle } from "lucide-react";
-import AppLayout from "@/components/layout/AppLayout";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
-import { Payroll, PayrollDeduction } from "@/types/payroll";
-import { Employee } from "@/types/employee";
-import { supabase } from "@/integrations/supabase/client";
-
-const fetchPayroll = async (id: string) => {
-  const { data, error } = await supabase
-    .from("payrolls")
-    .select(`
-      *,
-      employee:employees(id, first_name, last_name, email, position, department),
-      payroll_deductions:payroll_deductions(
-        id,
-        amount,
-        deduction_type:deduction_types(id, name, description, is_percentage, rate)
-      )
-    `)
-    .eq("id", id)
-    .single();
-
-  if (error) throw error;
-  return data as Payroll & { 
-    employee: Pick<Employee, "id" | "first_name" | "last_name" | "email" | "position" | "department">,
-    payroll_deductions: Array<PayrollDeduction & { 
-      deduction_type: { 
-        id: string;
-        name: string;
-        description?: string;
-        is_percentage: boolean;
-        rate?: number;
-      } 
-    }>
-  };
-};
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
-};
-
-const statusColors: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-800",
-  processed: "bg-blue-100 text-blue-800",
-  paid: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
-};
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import AppLayout from "@/components/layout/AppLayout";
+import { Payroll } from "@/types/payroll";
 
 const PayrollDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [status, setStatus] = useState<"pending" | "processed" | "paid" | "cancelled">("pending");
+
+  const fetchPayroll = async (): Promise<Payroll> => {
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    
+    return {
+      id: id || "1",
+      user_id: "user123",
+      employee_id: "emp456",
+      pay_period_start: "2023-05-01",
+      pay_period_end: "2023-05-15",
+      payment_date: "2023-05-20",
+      gross_amount: 2500,
+      net_amount: 1875.5,
+      taxes: 500,
+      deductions: 124.5,
+      status: "paid",
+      notes: "Regular bi-weekly payroll",
+      created_at: "2023-05-16T10:00:00Z",
+      updated_at: "2023-05-16T10:00:00Z",
+      employee: {
+        id: "emp456",
+        user_id: "user123",
+        first_name: "Jane",
+        last_name: "Smith",
+        email: "jane.smith@example.com",
+        phone: "555-123-4567",
+        hire_date: "2022-01-15",
+        position: "Marketing Specialist",
+        department: "Marketing",
+        salary: 60000,
+        status: "active",
+        created_at: "2022-01-15T09:00:00Z",
+        updated_at: "2022-01-15T09:00:00Z",
+      },
+      payroll_deductions: [
+        {
+          id: "ded1",
+          payroll_id: id || "1",
+          deduction_type_id: "dt1",
+          amount: 75,
+          created_at: "2023-05-16T10:00:00Z",
+          deduction_type: {
+            id: "dt1",
+            user_id: "user123",
+            name: "Health Insurance",
+            description: "Employee health insurance premium",
+            is_percentage: false,
+            created_at: "2022-01-01T00:00:00Z",
+            updated_at: "2022-01-01T00:00:00Z",
+          },
+        },
+        {
+          id: "ded2",
+          payroll_id: id || "1",
+          deduction_type_id: "dt2",
+          amount: 49.5,
+          created_at: "2023-05-16T10:00:00Z",
+          deduction_type: {
+            id: "dt2",
+            user_id: "user123",
+            name: "401(k)",
+            description: "Retirement contribution",
+            is_percentage: true,
+            rate: 3,
+            created_at: "2022-01-01T00:00:00Z",
+            updated_at: "2022-01-01T00:00:00Z",
+          },
+        },
+      ],
+    };
+  };
 
   const { data: payroll, isLoading, error } = useQuery({
-    queryKey: ["payroll", id],
-    queryFn: () => fetchPayroll(id!),
-    onSuccess: (data) => {
-      setStatus(data.status as "pending" | "processed" | "paid" | "cancelled");
-    },
+    queryKey: ['payroll', id],
+    queryFn: fetchPayroll,
+    meta: {
+      onSuccess: (data) => {
+        console.log('Payroll data loaded:', data);
+      }
+    }
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase
-        .from("payrolls")
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq("id", id);
-      
-      if (error) throw error;
-      return { id, status };
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["payroll", id] });
-      queryClient.invalidateQueries({ queryKey: ["payrolls"] });
-      toast({
-        title: "Status updated",
-        description: `Payroll status has been updated to ${status}.`,
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error updating status",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deletePayrollMutation = useMutation({
-    mutationFn: async (id: string) => {
-      setIsDeleting(true);
-      const { error } = await supabase.from("payrolls").delete().eq("id", id);
-      if (error) throw error;
-      return id;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["payrolls"] });
-      toast({
-        title: "Payroll deleted",
-        description: "The payroll record has been successfully deleted.",
-      });
-      navigate("/payroll");
-    },
-    onError: (error) => {
-      toast({
-        title: "Error deleting payroll",
-        description: error.message,
-        variant: "destructive",
-      });
-      setIsDeleting(false);
-    },
-  });
-
-  const handleStatusChange = (newStatus: string) => {
-    const validStatus = newStatus as "pending" | "processed" | "paid" | "cancelled";
-    setStatus(validStatus);
-    updateStatusMutation.mutate({ id: id!, status: validStatus });
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-500/20 text-yellow-600";
+      case "processed":
+        return "bg-blue-500/20 text-blue-600";
+      case "paid":
+        return "bg-green-500/20 text-green-600";
+      case "cancelled":
+        return "bg-red-500/20 text-red-600";
+      default:
+        return "bg-gray-500/20 text-gray-600";
+    }
   };
 
   if (isLoading) {
     return (
       <AppLayout title="Payroll Details">
-        <div className="flex justify-center py-12">Loading payroll details...</div>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-9 w-24" />
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-5 w-32" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-6 w-24" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-32 w-full" />
+            </CardContent>
+          </Card>
+        </div>
       </AppLayout>
     );
   }
@@ -167,204 +146,192 @@ const PayrollDetails = () => {
   if (error || !payroll) {
     return (
       <AppLayout title="Payroll Details">
-        <div className="flex flex-col items-center justify-center py-12">
-          <AlertCircle className="mb-4 h-12 w-12 text-destructive" />
-          <h2 className="mb-2 text-xl font-bold">Error Loading Payroll</h2>
-          <p className="mb-4 text-muted-foreground">
-            {error instanceof Error ? error.message : "Payroll record not found"}
-          </p>
-          <Button onClick={() => navigate("/payroll")}>
-            Back to Payroll
-          </Button>
+        <div className="flex h-[50vh] items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold">Error loading payroll details</h2>
+            <p className="text-muted-foreground">
+              {error instanceof Error ? error.message : "Failed to load payroll data"}
+            </p>
+          </div>
         </div>
       </AppLayout>
     );
   }
 
   return (
-    <AppLayout title={`Payroll - ${payroll.employee ? `${payroll.employee.first_name} ${payroll.employee.last_name}` : 'Unknown Employee'}`}>
-      <div className="mb-6 flex items-center justify-end gap-4">
-        <Button variant="outline" onClick={() => navigate("/payroll")}>
-          Back to Payroll
-        </Button>
-        <Button onClick={() => navigate(`/payroll/${id}/edit`)}>
-          <Edit className="mr-2 h-4 w-4" />
-          Edit
-        </Button>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the
-                payroll record from your database.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => deletePayrollMutation.mutate(id!)}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                disabled={isDeleting}
-              >
-                {isDeleting ? "Deleting..." : "Delete"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+    <AppLayout title="Payroll Details">
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Payroll #{payroll.id.slice(0, 8)}
+            </h1>
+            <p className="text-muted-foreground">
+              {payroll.employee?.first_name} {payroll.employee?.last_name} • 
+              {format(new Date(payroll.payment_date), " MMMM d, yyyy")}
+            </p>
+          </div>
+          <Badge className={getStatusColor(payroll.status)}>
+            {payroll.status.charAt(0).toUpperCase() + payroll.status.slice(1)}
+          </Badge>
+        </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div className="md:col-span-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Payroll Details</CardTitle>
-                  <CardDescription>Payment information and deductions</CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Select value={status} onValueChange={handleStatusChange}>
-                    <SelectTrigger className="w-[140px]">
-                      <Badge className={statusColors[status]} variant="outline">
-                        {status}
-                      </Badge>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="processed">Processed</SelectItem>
-                      <SelectItem value="paid">Paid</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Gross Amount
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <h3 className="mb-2 font-medium">Employee Information</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="text-sm text-muted-foreground">Name</div>
-                      <div>
-                        {payroll.employee ? (
-                          <span>{payroll.employee.first_name} {payroll.employee.last_name}</span>
-                        ) : (
-                          <span className="text-muted-foreground">Unknown Employee</span>
-                        )}
-                      </div>
-                    </div>
-                    {payroll.employee?.email && (
-                      <div>
-                        <div className="text-sm text-muted-foreground">Email</div>
-                        <div>{payroll.employee.email}</div>
-                      </div>
-                    )}
-                    {payroll.employee?.position && (
-                      <div>
-                        <div className="text-sm text-muted-foreground">Position</div>
-                        <div>{payroll.employee.position}</div>
-                      </div>
-                    )}
-                    {payroll.employee?.department && (
-                      <div>
-                        <div className="text-sm text-muted-foreground">Department</div>
-                        <div>{payroll.employee.department}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="mb-2 font-medium">Payment Period</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="text-sm text-muted-foreground">Pay Period</div>
-                      <div>
-                        {format(new Date(payroll.pay_period_start), "MMMM d, yyyy")} - {format(new Date(payroll.pay_period_end), "MMMM d, yyyy")}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">Payment Date</div>
-                      <div>
-                        {format(new Date(payroll.payment_date), "MMMM d, yyyy")}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <Separator className="my-6" />
-
-              <div>
-                <h3 className="mb-2 font-medium">Deductions</h3>
-                {!payroll.payroll_deductions || payroll.payroll_deductions.length === 0 ? (
-                  <div className="text-muted-foreground">No deductions applied to this payroll</div>
-                ) : (
-                  <div className="space-y-2">
-                    {payroll.payroll_deductions.map((deduction) => (
-                      <div key={deduction.id} className="flex items-center justify-between rounded-md border p-3">
-                        <div>
-                          <div className="font-medium">{deduction.deduction_type?.name || "Unknown Deduction"}</div>
-                          {deduction.deduction_type?.description && (
-                            <div className="text-sm text-muted-foreground">{deduction.deduction_type.description}</div>
-                          )}
-                        </div>
-                        <div className="font-medium">
-                          {formatCurrency(deduction.amount)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {payroll.notes && (
-                <>
-                  <Separator className="my-6" />
-                  <div>
-                    <h3 className="mb-2 font-medium">Notes</h3>
-                    <div className="rounded-md bg-muted p-4 text-sm">
-                      {payroll.notes}
-                    </div>
-                  </div>
-                </>
-              )}
+              <div className="text-2xl font-bold">${payroll.gross_amount.toFixed(2)}</div>
             </CardContent>
-            <CardFooter className="flex justify-between border-t p-6">
-              <div className="text-sm text-muted-foreground">
-                Created on {format(new Date(payroll.created_at), "MMMM d, yyyy")}
-                <br />
-                Last updated on {format(new Date(payroll.updated_at), "MMMM d, yyyy")}
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Net Amount
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${payroll.net_amount.toFixed(2)}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Taxes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${payroll.taxes.toFixed(2)}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Deductions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${payroll.deductions.toFixed(2)}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Pay Period
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-md font-medium">
+                {format(new Date(payroll.pay_period_start), "MMM d")} - {format(new Date(payroll.pay_period_end), "MMM d, yyyy")}
               </div>
-              <div className="text-right">
-                <div className="mb-1">
-                  <span className="mr-2 text-sm text-muted-foreground">Gross Amount:</span>
-                  <span className="font-medium">{formatCurrency(payroll.gross_amount)}</span>
-                </div>
-                <div className="mb-1">
-                  <span className="mr-2 text-sm text-muted-foreground">Taxes:</span>
-                  <span className="font-medium">-{formatCurrency(payroll.taxes)}</span>
-                </div>
-                <div className="mb-1">
-                  <span className="mr-2 text-sm text-muted-foreground">Deductions:</span>
-                  <span className="font-medium">-{formatCurrency(payroll.deductions)}</span>
-                </div>
-                <div className="mt-2">
-                  <span className="mr-2 font-medium">Net Amount:</span>
-                  <span className="text-lg font-bold">{formatCurrency(payroll.net_amount)}</span>
-                </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Payment Date
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-md font-medium">
+                {format(new Date(payroll.payment_date), "MMMM d, yyyy")}
               </div>
-            </CardFooter>
+            </CardContent>
           </Card>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Employee Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Name</p>
+                <p className="text-md font-medium">
+                  {payroll.employee?.first_name} {payroll.employee?.last_name}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Email</p>
+                <p className="text-md font-medium">{payroll.employee?.email}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Position</p>
+                <p className="text-md font-medium">{payroll.employee?.position}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Department</p>
+                <p className="text-md font-medium">{payroll.employee?.department || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Hire Date</p>
+                <p className="text-md font-medium">
+                  {payroll.employee?.hire_date ? format(new Date(payroll.employee.hire_date), "MMMM d, yyyy") : "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Annual Salary</p>
+                <p className="text-md font-medium">${payroll.employee?.salary.toLocaleString()}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {payroll.payroll_deductions && payroll.payroll_deductions.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Deductions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {payroll.payroll_deductions.map((deduction) => (
+                    <TableRow key={deduction.id}>
+                      <TableCell className="font-medium">
+                        {deduction.deduction_type?.name}
+                      </TableCell>
+                      <TableCell>
+                        {deduction.deduction_type?.is_percentage ? "Percentage" : "Fixed"}
+                        {deduction.deduction_type?.rate && ` (${deduction.deduction_type.rate}%)`}
+                      </TableCell>
+                      <TableCell className="text-right">${deduction.amount.toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TableCell colSpan={2} className="font-bold">
+                      Total Deductions
+                    </TableCell>
+                    <TableCell className="text-right font-bold">
+                      ${payroll.deductions.toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
+
+        {payroll.notes && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Notes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>{payroll.notes}</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </AppLayout>
   );
