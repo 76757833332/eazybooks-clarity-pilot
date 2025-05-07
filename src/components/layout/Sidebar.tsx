@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -14,7 +13,8 @@ import {
   Settings,
   DollarSign,
   UserRound,
-  LogOut
+  LogOut,
+  CalendarDays
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
@@ -49,6 +49,7 @@ const sidebarLinks: SidebarLinkType[] = [
       { label: "Employees", path: "/payroll/employees" },
     ]
   },
+  { icon: CalendarDays, label: "Leave", path: "/leaves" },
   { icon: BarChart3, label: "Reports", path: "/reports" },
 ];
 

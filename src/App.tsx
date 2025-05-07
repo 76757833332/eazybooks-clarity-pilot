@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -23,6 +22,8 @@ import CreateEmployee from "./pages/payroll/CreateEmployee";
 import EmployeeDetails from "./pages/payroll/EmployeeDetails";
 import CreatePayroll from "./pages/payroll/CreatePayroll";
 import PayrollDetails from "./pages/payroll/PayrollDetails";
+import LeavesPage from "./pages/leaves/LeavesPage";
+import ApplyForLeave from "./pages/leaves/ApplyForLeave";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -157,6 +158,19 @@ const App = () => {
             <Route path="/payroll/employees/:id" element={
               <ProtectedRoute>
                 <EmployeeDetails />
+              </ProtectedRoute>
+            } />
+            
+            {/* Leave Application Routes */}
+            <Route path="/leaves" element={
+              <ProtectedRoute>
+                <LeavesPage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/leaves/apply" element={
+              <ProtectedRoute>
+                <ApplyForLeave />
               </ProtectedRoute>
             } />
             

@@ -1,12 +1,14 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   PlusCircle, 
   ArrowDownLeft, 
   ArrowUpRight, 
   Receipt, 
   FileText, 
-  CreditCard 
+  CreditCard,
+  CalendarDays
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -35,10 +37,12 @@ const ActionButton: React.FC<ActionButtonProps> = ({ icon, label, onClick, class
 };
 
 const QuickActions: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-secondary/40 rounded-lg p-4">
       <h3 className="text-sm font-medium mb-4">Quick Actions</h3>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
         <ActionButton
           icon={<PlusCircle size={20} />}
           label="New Transaction"
@@ -52,12 +56,12 @@ const QuickActions: React.FC = () => {
         <ActionButton
           icon={<ArrowUpRight size={20} />}
           label="Record Expense"
-          onClick={() => console.log("Record Expense")}
+          onClick={() => navigate("/expenses/create")}
         />
         <ActionButton
           icon={<Receipt size={20} />}
           label="Create Invoice"
-          onClick={() => console.log("Create Invoice")}
+          onClick={() => navigate("/invoices/create")}
         />
         <ActionButton
           icon={<FileText size={20} />}
@@ -68,6 +72,11 @@ const QuickActions: React.FC = () => {
           icon={<CreditCard size={20} />}
           label="Pay Taxes"
           onClick={() => console.log("Pay Taxes")}
+        />
+        <ActionButton
+          icon={<CalendarDays size={20} />}
+          label="Apply for Leave"
+          onClick={() => navigate("/leaves/apply")}
         />
       </div>
     </div>
