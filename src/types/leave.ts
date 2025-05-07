@@ -16,4 +16,11 @@ export type LeaveApplication = {
   updated_at: string;
 };
 
-export type NewLeaveApplication = Omit<LeaveApplication, 'id' | 'status' | 'created_at' | 'updated_at'>;
+export type NewLeaveApplication = {
+  employee_id: string;
+  user_id: string;
+  start_date: string;
+  end_date: string;
+  leave_type: string;
+  reason?: string;
+};

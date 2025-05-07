@@ -84,10 +84,17 @@ const ApplyForLeave: React.FC = () => {
         return;
       }
       
-      await createLeaveApplication({
-        ...values,
+      // Make sure all required fields are provided with non-optional values
+      const leaveApplication = {
         user_id: user.user.id,
-      });
+        employee_id: values.employee_id,
+        start_date: values.start_date,
+        end_date: values.end_date,
+        leave_type: values.leave_type,
+        reason: values.reason || undefined,
+      };
+      
+      await createLeaveApplication(leaveApplication);
       
       toast({
         title: "Success",
