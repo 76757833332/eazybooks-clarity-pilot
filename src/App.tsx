@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -23,7 +24,14 @@ import EmployeeDetails from "./pages/payroll/EmployeeDetails";
 import CreatePayroll from "./pages/payroll/CreatePayroll";
 import PayrollDetails from "./pages/payroll/PayrollDetails";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
 
 const App = () => {
   const [session, setSession] = useState<any>(null);
@@ -64,96 +72,98 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Toaster />
-        <Sonner />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          
-          {/* Protected routes */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/invoices" element={
-            <ProtectedRoute>
-              <InvoicesPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/invoices/create" element={
-            <ProtectedRoute>
-              <CreateInvoice />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/invoices/:id" element={
-            <ProtectedRoute>
-              <InvoiceDetails />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/expenses" element={
-            <ProtectedRoute>
-              <ExpensesPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/expenses/create" element={
-            <ProtectedRoute>
-              <CreateExpense />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/expenses/:id" element={
-            <ProtectedRoute>
-              <ExpenseDetails />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/payroll" element={
-            <ProtectedRoute>
-              <PayrollPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/payroll/create" element={
-            <ProtectedRoute>
-              <CreatePayroll />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/payroll/:id" element={
-            <ProtectedRoute>
-              <PayrollDetails />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/payroll/employees" element={
-            <ProtectedRoute>
-              <EmployeesPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/payroll/employees/create" element={
-            <ProtectedRoute>
-              <CreateEmployee />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/payroll/employees/:id" element={
-            <ProtectedRoute>
-              <EmployeeDetails />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            
+            {/* Protected routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/invoices" element={
+              <ProtectedRoute>
+                <InvoicesPage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/invoices/create" element={
+              <ProtectedRoute>
+                <CreateInvoice />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/invoices/:id" element={
+              <ProtectedRoute>
+                <InvoiceDetails />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/expenses" element={
+              <ProtectedRoute>
+                <ExpensesPage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/expenses/create" element={
+              <ProtectedRoute>
+                <CreateExpense />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/expenses/:id" element={
+              <ProtectedRoute>
+                <ExpenseDetails />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/payroll" element={
+              <ProtectedRoute>
+                <PayrollPage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/payroll/create" element={
+              <ProtectedRoute>
+                <CreatePayroll />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/payroll/:id" element={
+              <ProtectedRoute>
+                <PayrollDetails />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/payroll/employees" element={
+              <ProtectedRoute>
+                <EmployeesPage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/payroll/employees/create" element={
+              <ProtectedRoute>
+                <CreateEmployee />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/payroll/employees/:id" element={
+              <ProtectedRoute>
+                <EmployeeDetails />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

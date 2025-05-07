@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
   Building2,
@@ -14,9 +14,12 @@ import {
   Settings,
   DollarSign,
   UserRound,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 type SidebarLinkType = {
   icon: React.ElementType;
@@ -51,6 +54,8 @@ const sidebarLinks: SidebarLinkType[] = [
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut, user } = useAuth();
   const [expandedItems, setExpandedItems] = React.useState<Record<string, boolean>>({
     "/payroll": true, // Default expanded state
   });
@@ -60,6 +65,18 @@ const Sidebar = () => {
       ...prev,
       [path]: !prev[path],
     }));
+  };
+  
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
+  // Get user initials for avatar
+  const getInitials = () => {
+    if (!user?.email) return "?";
+    const email = user.email;
+    return email.substring(0, 2).toUpperCase();
   };
 
   return (
@@ -156,15 +173,30 @@ const Sidebar = () => {
       <div className="border-t border-border p-3">
         <div className="flex items-center gap-3 rounded-lg px-3 py-2">
           <div className="h-8 w-8 rounded-full bg-eazybooks-gray-dark flex items-center justify-center text-xs text-white font-medium">
-            JD
+            {getInitials()}
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium">John Doe</span>
+            <span className="text-sm font-medium">{user?.email || 'User'}</span>
             <span className="text-xs text-muted-foreground">Business account</span>
           </div>
-          <button className="ml-auto rounded-md p-1 text-muted-foreground hover:bg-secondary hover:text-foreground">
-            <Settings size={16} />
-          </button>
+          <div className="ml-auto flex gap-1">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-muted-foreground hover:bg-secondary hover:text-foreground"
+              onClick={() => navigate('/settings')}
+            >
+              <Settings size={16} />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-muted-foreground hover:bg-red-500/10 hover:text-red-500"
+              onClick={handleSignOut}
+            >
+              <LogOut size={16} />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
