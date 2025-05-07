@@ -2,7 +2,9 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -23,32 +25,137 @@ import PayrollDetails from "./pages/payroll/PayrollDetails";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <Toaster />
-      <Sonner />
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/invoices" element={<InvoicesPage />} />
-        <Route path="/invoices/create" element={<CreateInvoice />} />
-        <Route path="/invoices/:id" element={<InvoiceDetails />} />
-        <Route path="/expenses" element={<ExpensesPage />} />
-        <Route path="/expenses/create" element={<CreateExpense />} />
-        <Route path="/expenses/:id" element={<ExpenseDetails />} />
-        <Route path="/payroll" element={<PayrollPage />} />
-        <Route path="/payroll/create" element={<CreatePayroll />} />
-        <Route path="/payroll/:id" element={<PayrollDetails />} />
-        <Route path="/payroll/employees" element={<EmployeesPage />} />
-        <Route path="/payroll/employees/create" element={<CreateEmployee />} />
-        <Route path="/payroll/employees/:id" element={<EmployeeDetails />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        setSession(currentSession);
+        setLoading(false);
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Authenticated route wrapper component
+  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    if (loading) {
+      return <div className="flex h-screen items-center justify-center">Loading...</div>;
+    }
+    
+    if (!session) {
+      return <Navigate to="/login" />;
+    }
+    
+    return <>{children}</>;
+  };
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Toaster />
+        <Sonner />
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          
+          {/* Protected routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/invoices" element={
+            <ProtectedRoute>
+              <InvoicesPage />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/invoices/create" element={
+            <ProtectedRoute>
+              <CreateInvoice />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/invoices/:id" element={
+            <ProtectedRoute>
+              <InvoiceDetails />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/expenses" element={
+            <ProtectedRoute>
+              <ExpensesPage />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/expenses/create" element={
+            <ProtectedRoute>
+              <CreateExpense />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/expenses/:id" element={
+            <ProtectedRoute>
+              <ExpenseDetails />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/payroll" element={
+            <ProtectedRoute>
+              <PayrollPage />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/payroll/create" element={
+            <ProtectedRoute>
+              <CreatePayroll />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/payroll/:id" element={
+            <ProtectedRoute>
+              <PayrollDetails />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/payroll/employees" element={
+            <ProtectedRoute>
+              <EmployeesPage />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/payroll/employees/create" element={
+            <ProtectedRoute>
+              <CreateEmployee />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/payroll/employees/:id" element={
+            <ProtectedRoute>
+              <EmployeeDetails />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

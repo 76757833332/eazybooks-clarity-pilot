@@ -1,19 +1,68 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import Logo from "@/components/Logo";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Successfully logged in!");
-    navigate("/dashboard");
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        setError(error.message);
+        toast.error(error.message);
+      } else {
+        toast.success("Successfully logged in!");
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      toast.error("An error occurred during login");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        }
+      });
+
+      if (error) {
+        setError(error.message);
+        toast.error(error.message);
+      }
+    } catch (err) {
+      console.error("Google login error:", err);
+      toast.error("An error occurred during Google login");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -27,7 +76,11 @@ const Login = () => {
           </p>
         </div>
 
-        <button className="mb-4 flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-secondary/20 py-2.5 px-4 text-sm font-medium hover:bg-secondary/40">
+        <button 
+          onClick={handleGoogleLogin}
+          disabled={isLoading}
+          className="mb-4 flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-secondary/20 py-2.5 px-4 text-sm font-medium hover:bg-secondary/40 disabled:opacity-70 disabled:cursor-not-allowed"
+        >
           <svg
             width="18"
             height="18"
@@ -62,7 +115,13 @@ const Login = () => {
           </span>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="mb-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleEmailLogin} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
               Email
@@ -70,6 +129,8 @@ const Login = () => {
             <Input
               id="email"
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="name@company.com"
               required
               className="bg-secondary/20 border-border"
@@ -91,6 +152,8 @@ const Login = () => {
             <Input
               id="password"
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
               className="bg-secondary/20 border-border"
@@ -109,9 +172,10 @@ const Login = () => {
 
           <Button
             type="submit"
+            disabled={isLoading}
             className="w-full bg-eazybooks-purple text-white hover:bg-eazybooks-purple-secondary"
           >
-            Log in
+            {isLoading ? "Logging in..." : "Log in"}
           </Button>
         </form>
 

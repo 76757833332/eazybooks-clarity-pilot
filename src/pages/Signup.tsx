@@ -5,19 +5,93 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Logo from "@/components/Logo";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Signup = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<"details" | "account-type">("details");
+  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStep("account-type");
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Basic password validation
+      if (password.length < 8) {
+        setError("Password must be at least 8 characters long");
+        setIsLoading(false);
+        return;
+      }
+      
+      setStep("account-type");
+    } catch (err) {
+      console.error("Form error:", err);
+      toast.error("An error occurred");
+      setIsLoading(false);
+    }
   };
 
-  const handleAccountTypeSelection = (type: string) => {
-    toast.success(`Account created as ${type}!`);
-    navigate("/dashboard");
+  const handleGoogleSignup = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        }
+      });
+
+      if (error) {
+        setError(error.message);
+        toast.error(error.message);
+      }
+    } catch (err) {
+      console.error("Google signup error:", err);
+      toast.error("An error occurred during Google signup");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAccountTypeSelection = async (type: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            account_type: type
+          }
+        }
+      });
+
+      if (error) {
+        setError(error.message);
+        toast.error(error.message);
+        setStep("details");
+      } else {
+        toast.success(`Account created as ${type}!`);
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      console.error("Signup error:", err);
+      toast.error("An error occurred during signup");
+      setStep("details");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (step === "account-type") {
@@ -32,10 +106,17 @@ const Signup = () => {
             </p>
           </div>
 
+          {error && (
+            <div className="mb-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-3">
             <button 
               onClick={() => handleAccountTypeSelection("Student")}
-              className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-border bg-secondary/20 p-3 transition-colors hover:bg-secondary/40"
+              disabled={isLoading}
+              className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-border bg-secondary/20 p-3 transition-colors hover:bg-secondary/40 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-eazybooks-purple bg-opacity-20 text-eazybooks-purple">
                 <svg 
@@ -64,7 +145,8 @@ const Signup = () => {
 
             <button 
               onClick={() => handleAccountTypeSelection("Individual")}
-              className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-eazybooks-purple bg-eazybooks-purple/20 p-3 transition-colors hover:bg-eazybooks-purple/30"
+              disabled={isLoading}
+              className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-eazybooks-purple bg-eazybooks-purple/20 p-3 transition-colors hover:bg-eazybooks-purple/30 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-eazybooks-purple bg-opacity-20 text-eazybooks-purple">
                 <svg 
@@ -93,7 +175,8 @@ const Signup = () => {
 
             <button 
               onClick={() => handleAccountTypeSelection("Business")}
-              className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-border bg-secondary/20 p-3 transition-colors hover:bg-secondary/40"
+              disabled={isLoading}
+              className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-border bg-secondary/20 p-3 transition-colors hover:bg-secondary/40 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-eazybooks-purple bg-opacity-20 text-eazybooks-purple">
                 <svg 
@@ -143,7 +226,11 @@ const Signup = () => {
           </p>
         </div>
 
-        <button className="mb-4 flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-secondary/20 py-2.5 px-4 text-sm font-medium hover:bg-secondary/40">
+        <button 
+          onClick={handleGoogleSignup}
+          disabled={isLoading}
+          className="mb-4 flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-secondary/20 py-2.5 px-4 text-sm font-medium hover:bg-secondary/40 disabled:opacity-70 disabled:cursor-not-allowed"
+        >
           <svg
             width="18"
             height="18"
@@ -178,7 +265,13 @@ const Signup = () => {
           </span>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="mb-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleEmailSignup} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="firstName" className="text-sm font-medium">
@@ -187,6 +280,8 @@ const Signup = () => {
               <Input
                 id="firstName"
                 type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 placeholder="John"
                 required
                 className="bg-secondary/20 border-border"
@@ -199,6 +294,8 @@ const Signup = () => {
               <Input
                 id="lastName"
                 type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
                 placeholder="Doe"
                 required
                 className="bg-secondary/20 border-border"
@@ -213,6 +310,8 @@ const Signup = () => {
             <Input
               id="email"
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="name@company.com"
               required
               className="bg-secondary/20 border-border"
@@ -226,6 +325,8 @@ const Signup = () => {
             <Input
               id="password"
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
               className="bg-secondary/20 border-border"
@@ -237,9 +338,10 @@ const Signup = () => {
 
           <Button
             type="submit"
+            disabled={isLoading}
             className="w-full bg-eazybooks-purple text-white hover:bg-eazybooks-purple-secondary"
           >
-            Next
+            {isLoading ? "Processing..." : "Next"}
           </Button>
         </form>
 
