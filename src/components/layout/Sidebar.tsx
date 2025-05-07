@@ -3,7 +3,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Home,
-  Bank,
+  Building2, // Replace Bank with Building2 which is available in lucide-react
   FileText,
   FileDown,
   Users,
@@ -18,7 +18,7 @@ import Logo from "@/components/Logo";
 
 const sidebarLinks = [
   { icon: Home, label: "Dashboard", path: "/dashboard" },
-  { icon: Bank, label: "Bank", path: "/bank" },
+  { icon: Building2, label: "Bank", path: "/bank" }, // Updated icon here
   { icon: FileDown, label: "Income", path: "/income" },
   { icon: FileText, label: "Expenses", path: "/expenses" },
   { icon: Users, label: "Customers", path: "/customers" },
