@@ -69,15 +69,44 @@ const Dashboard = () => {
       try {
         const userId = (await supabase.auth.getUser()).data.user?.id;
         
-        // Get recent invoices
+        // Get recent invoices - Fetch customers separately to avoid relation error
         const { data: invoicesData, error: invoicesError } = await supabase
           .from('invoices')
-          .select('*, customers(name)')
+          .select('*')
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(3);
         
         if (invoicesError) throw invoicesError;
+        
+        // Format invoices and get customer info if needed
+        const formattedInvoices = [];
+        for (const invoice of invoicesData || []) {
+          let customerName = 'Unknown Customer';
+          
+          // If there's a customer_id, fetch the customer name
+          if (invoice.customer_id) {
+            const { data: customer } = await supabase
+              .from('customers')
+              .select('name')
+              .eq('id', invoice.customer_id)
+              .single();
+              
+            if (customer) {
+              customerName = customer.name;
+            }
+          }
+          
+          formattedInvoices.push({
+            id: invoice.id,
+            type: 'invoice',
+            description: `Invoice #${invoice.invoice_number}`,
+            amount: Number(invoice.total_amount),
+            date: new Date(invoice.issue_date),
+            status: invoice.status,
+            entity: customerName
+          });
+        }
         
         // Get recent expenses
         const { data: expenses, error: expensesError } = await supabase
@@ -88,17 +117,6 @@ const Dashboard = () => {
           .limit(3);
         
         if (expensesError) throw expensesError;
-        
-        // Format transactions for display
-        const formattedInvoices = invoicesData?.map(invoice => ({
-          id: invoice.id,
-          type: 'invoice',
-          description: `Invoice #${invoice.invoice_number}`,
-          amount: Number(invoice.total_amount),
-          date: new Date(invoice.issue_date),
-          status: invoice.status,
-          entity: invoice.customers?.name || 'Unknown Customer'
-        })) || [];
         
         const formattedExpenses = expenses?.map(expense => ({
           id: expense.id,
