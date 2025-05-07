@@ -42,6 +42,90 @@ export type Database = {
         }
         Relationships: []
       }
+      deduction_types: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_percentage: boolean
+          name: string
+          rate: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_percentage?: boolean
+          name: string
+          rate?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_percentage?: boolean
+          name?: string
+          rate?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      employees: {
+        Row: {
+          created_at: string
+          department: string | null
+          email: string
+          first_name: string
+          hire_date: string
+          hourly_rate: number | null
+          id: string
+          last_name: string
+          phone: string | null
+          position: string
+          salary: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          department?: string | null
+          email: string
+          first_name: string
+          hire_date?: string
+          hourly_rate?: number | null
+          id?: string
+          last_name: string
+          phone?: string | null
+          position: string
+          salary: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          department?: string | null
+          email?: string
+          first_name?: string
+          hire_date?: string
+          hourly_rate?: number | null
+          id?: string
+          last_name?: string
+          phone?: string | null
+          position?: string
+          salary?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       expense_categories: {
         Row: {
           created_at: string
@@ -193,6 +277,104 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      payroll_deductions: {
+        Row: {
+          amount: number
+          created_at: string
+          deduction_type_id: string
+          id: string
+          payroll_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          deduction_type_id: string
+          id?: string
+          payroll_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          deduction_type_id?: string
+          id?: string
+          payroll_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_deductions_deduction_type_id_fkey"
+            columns: ["deduction_type_id"]
+            isOneToOne: false
+            referencedRelation: "deduction_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_deductions_payroll_id_fkey"
+            columns: ["payroll_id"]
+            isOneToOne: false
+            referencedRelation: "payrolls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payrolls: {
+        Row: {
+          created_at: string
+          deductions: number
+          employee_id: string
+          gross_amount: number
+          id: string
+          net_amount: number
+          notes: string | null
+          pay_period_end: string
+          pay_period_start: string
+          payment_date: string
+          status: string
+          taxes: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deductions?: number
+          employee_id: string
+          gross_amount: number
+          id?: string
+          net_amount: number
+          notes?: string | null
+          pay_period_end: string
+          pay_period_start: string
+          payment_date?: string
+          status?: string
+          taxes?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deductions?: number
+          employee_id?: string
+          gross_amount?: number
+          id?: string
+          net_amount?: number
+          notes?: string | null
+          pay_period_end?: string
+          pay_period_start?: string
+          payment_date?: string
+          status?: string
+          taxes?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payrolls_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

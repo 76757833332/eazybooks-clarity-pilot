@@ -12,6 +12,8 @@ import {
   CalendarClock,
   BarChart3,
   Settings,
+  DollarSign,
+  UserRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
@@ -24,12 +26,30 @@ const sidebarLinks = [
   { icon: Users, label: "Customers", path: "/customers" },
   { icon: Receipt, label: "Invoices", path: "/invoices" },
   { icon: CreditCard, label: "Taxes", path: "/taxes" },
-  { icon: CalendarClock, label: "Payroll", path: "/payroll" },
+  { 
+    icon: CalendarClock, 
+    label: "Payroll", 
+    path: "/payroll",
+    subItems: [
+      { label: "Payroll Records", path: "/payroll" },
+      { label: "Employees", path: "/payroll/employees" },
+    ]
+  },
   { icon: BarChart3, label: "Reports", path: "/reports" },
 ];
 
 const Sidebar = () => {
   const location = useLocation();
+  const [expandedItems, setExpandedItems] = React.useState<Record<string, boolean>>({
+    "/payroll": true, // Default expanded state
+  });
+
+  const toggleExpand = (path: string) => {
+    setExpandedItems((prev) => ({
+      ...prev,
+      [path]: !prev[path],
+    }));
+  };
 
   return (
     <div className="flex h-screen w-64 flex-col border-r border-border bg-black/80 backdrop-blur-md">
@@ -43,21 +63,71 @@ const Sidebar = () => {
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-3">
-        {sidebarLinks.map((link) => (
-          <Link
-            key={link.path}
-            to={link.path}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-eazybooks-purple/10",
-              location.pathname === link.path || location.pathname.startsWith(`${link.path}/`)
-                ? "bg-eazybooks-purple/20 text-eazybooks-purple font-medium"
-                : "text-muted-foreground"
-            )}
-          >
-            <link.icon size={18} />
-            <span>{link.label}</span>
-          </Link>
-        ))}
+        {sidebarLinks.map((link) => {
+          const isActive = location.pathname === link.path || location.pathname.startsWith(`${link.path}/`);
+          const hasSubItems = link.subItems && link.subItems.length > 0;
+          const isExpanded = expandedItems[link.path];
+          const showSubItems = hasSubItems && isExpanded;
+          
+          return (
+            <React.Fragment key={link.path}>
+              {hasSubItems ? (
+                <button
+                  className={cn(
+                    "w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-eazybooks-purple/10",
+                    isActive
+                      ? "bg-eazybooks-purple/20 text-eazybooks-purple font-medium"
+                      : "text-muted-foreground"
+                  )}
+                  onClick={() => toggleExpand(link.path)}
+                >
+                  <div className="flex items-center gap-3">
+                    <link.icon size={18} />
+                    <span>{link.label}</span>
+                  </div>
+                  <span className="text-xs">{isExpanded ? "▼" : "▶"}</span>
+                </button>
+              ) : (
+                <Link
+                  to={link.path}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-eazybooks-purple/10",
+                    isActive
+                      ? "bg-eazybooks-purple/20 text-eazybooks-purple font-medium"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  <link.icon size={18} />
+                  <span>{link.label}</span>
+                </Link>
+              )}
+              
+              {showSubItems && (
+                <div className="ml-7 mt-1 space-y-1 border-l border-border pl-3">
+                  {link.subItems?.map((subItem) => {
+                    const isSubActive = location.pathname === subItem.path || location.pathname.startsWith(`${subItem.path}/`);
+                    
+                    return (
+                      <Link
+                        key={subItem.path}
+                        to={subItem.path}
+                        className={cn(
+                          "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-all hover:bg-eazybooks-purple/10",
+                          isSubActive
+                            ? "bg-eazybooks-purple/10 text-eazybooks-purple font-medium"
+                            : "text-muted-foreground"
+                        )}
+                      >
+                        {subItem.icon && <subItem.icon size={16} />}
+                        <span>{subItem.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
       </nav>
 
       <div className="mx-3 mb-3 rounded-lg bg-eazybooks-purple bg-opacity-20 p-4">
