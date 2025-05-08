@@ -1,238 +1,147 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { lazy, Suspense } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { Toaster } from "@/components/ui/toaster";
+
+// Auth & layout
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+
+// Pages
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
-import InvoicesPage from "./pages/invoices/InvoicesPage";
-import CreateInvoice from "./pages/invoices/CreateInvoice";
-import InvoiceDetails from "./pages/invoices/InvoiceDetails";
-import ExpensesPage from "./pages/expenses/ExpensesPage";
-import CreateExpense from "./pages/expenses/CreateExpense";
-import ExpenseDetails from "./pages/expenses/ExpenseDetails";
-import PayrollPage from "./pages/payroll/PayrollPage";
-import EmployeesPage from "./pages/payroll/EmployeesPage";
-import CreateEmployee from "./pages/payroll/CreateEmployee";
-import EmployeeDetails from "./pages/payroll/EmployeeDetails";
-import CreatePayroll from "./pages/payroll/CreatePayroll";
-import PayrollDetails from "./pages/payroll/PayrollDetails";
-import LeavesPage from "./pages/leaves/LeavesPage";
-import ApplyForLeave from "./pages/leaves/ApplyForLeave";
+
+// Bank
 import BankPage from "./pages/bank/BankPage";
+
+// Income
 import IncomePage from "./pages/income/IncomePage";
 import CreateIncome from "./pages/income/CreateIncome";
 import IncomeDetails from "./pages/income/IncomeDetails";
+
+// Expenses
+import ExpensesPage from "./pages/expenses/ExpensesPage";
+import CreateExpense from "./pages/expenses/CreateExpense";
+import ExpenseDetails from "./pages/expenses/ExpenseDetails";
+
+// Customers
 import CustomersPage from "./pages/customers/CustomersPage";
 import CreateCustomer from "./pages/customers/CreateCustomer";
 import CustomerDetails from "./pages/customers/CustomerDetails";
+
+// Invoices
+import InvoicesPage from "./pages/invoices/InvoicesPage";
+import CreateInvoice from "./pages/invoices/CreateInvoice";
+import InvoiceDetails from "./pages/invoices/InvoiceDetails";
+
+// Taxes
+import TaxesPage from "./pages/taxes/TaxesPage";
+import CreateTax from "./pages/taxes/CreateTax";
+import TaxDetails from "./pages/taxes/TaxDetails";
+import EditTax from "./pages/taxes/EditTax";
+
+// Payroll
+import PayrollPage from "./pages/payroll/PayrollPage";
+import CreatePayroll from "./pages/payroll/CreatePayroll";
+import PayrollDetails from "./pages/payroll/PayrollDetails";
+import EmployeesPage from "./pages/payroll/EmployeesPage";
+import CreateEmployee from "./pages/payroll/CreateEmployee";
+import EmployeeDetails from "./pages/payroll/EmployeeDetails";
+
+// Leaves
+import LeavesPage from "./pages/leaves/LeavesPage";
+import ApplyForLeave from "./pages/leaves/ApplyForLeave";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
     },
   },
 });
 
-const App = () => {
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        setSession(currentSession);
-        setLoading(false);
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Authenticated route wrapper component
-  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    if (loading) {
-      return <div className="flex h-screen items-center justify-center">Loading...</div>;
-    }
-    
-    if (!session) {
-      return <Navigate to="/login" />;
-    }
-    
-    return <>{children}</>;
-  };
-
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <BrowserRouter>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          
+          {/* Protected Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
             
-            {/* Protected routes */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
+            {/* Bank */}
+            <Route path="/bank" element={<BankPage />} />
             
-            <Route path="/bank" element={
-              <ProtectedRoute>
-                <BankPage />
-              </ProtectedRoute>
-            } />
+            {/* Income */}
+            <Route path="/income">
+              <Route index element={<IncomePage />} />
+              <Route path="create" element={<CreateIncome />} />
+              <Route path=":id" element={<IncomeDetails />} />
+            </Route>
             
-            {/* Income routes */}
-            <Route path="/income" element={
-              <ProtectedRoute>
-                <IncomePage />
-              </ProtectedRoute>
-            } />
+            {/* Expenses */}
+            <Route path="/expenses">
+              <Route index element={<ExpensesPage />} />
+              <Route path="create" element={<CreateExpense />} />
+              <Route path=":id" element={<ExpenseDetails />} />
+            </Route>
             
-            <Route path="/income/create" element={
-              <ProtectedRoute>
-                <CreateIncome />
-              </ProtectedRoute>
-            } />
+            {/* Customers */}
+            <Route path="/customers">
+              <Route index element={<CustomersPage />} />
+              <Route path="create" element={<CreateCustomer />} />
+              <Route path=":id" element={<CustomerDetails />} />
+            </Route>
             
-            <Route path="/income/:id" element={
-              <ProtectedRoute>
-                <IncomeDetails />
-              </ProtectedRoute>
-            } />
+            {/* Invoices */}
+            <Route path="/invoices">
+              <Route index element={<InvoicesPage />} />
+              <Route path="create" element={<CreateInvoice />} />
+              <Route path=":id" element={<InvoiceDetails />} />
+            </Route>
             
-            {/* Customers routes */}
-            <Route path="/customers" element={
-              <ProtectedRoute>
-                <CustomersPage />
-              </ProtectedRoute>
-            } />
+            {/* Taxes */}
+            <Route path="/taxes">
+              <Route index element={<TaxesPage />} />
+              <Route path="create" element={<CreateTax />} />
+              <Route path=":id" element={<TaxDetails />} />
+              <Route path="edit/:id" element={<EditTax />} />
+            </Route>
             
-            <Route path="/customers/create" element={
-              <ProtectedRoute>
-                <CreateCustomer />
-              </ProtectedRoute>
-            } />
+            {/* Payroll */}
+            <Route path="/payroll">
+              <Route index element={<PayrollPage />} />
+              <Route path="create" element={<CreatePayroll />} />
+              <Route path=":id" element={<PayrollDetails />} />
+              <Route path="employees" element={<EmployeesPage />} />
+              <Route path="employees/create" element={<CreateEmployee />} />
+              <Route path="employees/:id" element={<EmployeeDetails />} />
+            </Route>
             
-            <Route path="/customers/:id" element={
-              <ProtectedRoute>
-                <CustomerDetails />
-              </ProtectedRoute>
-            } />
-            
-            {/* Invoice routes */}
-            <Route path="/invoices" element={
-              <ProtectedRoute>
-                <InvoicesPage />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/invoices/create" element={
-              <ProtectedRoute>
-                <CreateInvoice />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/invoices/:id" element={
-              <ProtectedRoute>
-                <InvoiceDetails />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/expenses" element={
-              <ProtectedRoute>
-                <ExpensesPage />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/expenses/create" element={
-              <ProtectedRoute>
-                <CreateExpense />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/expenses/:id" element={
-              <ProtectedRoute>
-                <ExpenseDetails />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/payroll" element={
-              <ProtectedRoute>
-                <PayrollPage />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/payroll/create" element={
-              <ProtectedRoute>
-                <CreatePayroll />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/payroll/:id" element={
-              <ProtectedRoute>
-                <PayrollDetails />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/payroll/employees" element={
-              <ProtectedRoute>
-                <EmployeesPage />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/payroll/employees/create" element={
-              <ProtectedRoute>
-                <CreateEmployee />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/payroll/employees/:id" element={
-              <ProtectedRoute>
-                <EmployeeDetails />
-              </ProtectedRoute>
-            } />
-            
-            {/* Leave Application Routes */}
-            <Route path="/leaves" element={
-              <ProtectedRoute>
-                <LeavesPage />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/leaves/apply" element={
-              <ProtectedRoute>
-                <ApplyForLeave />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+            {/* Leaves */}
+            <Route path="/leaves">
+              <Route index element={<LeavesPage />} />
+              <Route path="apply" element={<ApplyForLeave />} />
+            </Route>
+          </Route>
+          
+          {/* 404 Not Found */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Toaster />
       </AuthProvider>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;
