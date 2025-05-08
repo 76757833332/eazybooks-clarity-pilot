@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
-import { taxService } from "@/services/taxService";
+import { taxService, CreateTaxInput } from "@/services/taxService";
 import { TaxCategory, TaxStatus } from "@/types/tax";
 
 const taxSchema = z.object({
@@ -70,7 +70,7 @@ const CreateTax = () => {
     mutationFn: (data: TaxFormValues) => taxService.createTax({
       ...data,
       amount: Number(data.amount),
-    }),
+    } as CreateTaxInput),
     onSuccess: () => {
       toast({
         title: "Tax record created",

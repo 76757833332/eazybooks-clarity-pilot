@@ -1,7 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Tax, NewTax } from "@/types/tax";
+import { Tax, NewTax, TaxCategory, TaxStatus } from "@/types/tax";
 import { formatCurrency } from "@/lib/utils";
+
+// Type for tax creation that doesn't require user_id
+export type CreateTaxInput = Omit<NewTax, "user_id">;
 
 export const taxService = {
   // Get all taxes for the current user
@@ -32,7 +35,7 @@ export const taxService = {
   },
   
   // Create a new tax record
-  createTax: async (tax: Omit<NewTax, "user_id">) => {
+  createTax: async (tax: CreateTaxInput) => {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error("User not authenticated");
     

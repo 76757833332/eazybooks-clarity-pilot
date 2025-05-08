@@ -423,6 +423,60 @@ export type Database = {
           },
         ]
       }
+      taxes: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          due_date: string
+          id: string
+          name: string
+          notes: string | null
+          payment_date: string | null
+          period_end: string | null
+          period_start: string | null
+          status: string
+          tax_authority: string | null
+          tax_id_number: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          due_date: string
+          id?: string
+          name: string
+          notes?: string | null
+          payment_date?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status: string
+          tax_authority?: string | null
+          tax_id_number?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          payment_date?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          tax_authority?: string | null
+          tax_id_number?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
