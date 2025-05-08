@@ -25,6 +25,9 @@ import PayrollDetails from "./pages/payroll/PayrollDetails";
 import LeavesPage from "./pages/leaves/LeavesPage";
 import ApplyForLeave from "./pages/leaves/ApplyForLeave";
 import BankPage from "./pages/bank/BankPage";
+import IncomePage from "./pages/income/IncomePage";
+import CreateIncome from "./pages/income/CreateIncome";
+import IncomeDetails from "./pages/income/IncomeDetails";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -96,6 +99,26 @@ const App = () => {
               </ProtectedRoute>
             } />
             
+            {/* Income routes */}
+            <Route path="/income" element={
+              <ProtectedRoute>
+                <IncomePage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/income/create" element={
+              <ProtectedRoute>
+                <CreateIncome />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/income/:id" element={
+              <ProtectedRoute>
+                <IncomeDetails />
+              </ProtectedRoute>
+            } />
+            
+            {/* Protected routes */}
             <Route path="/invoices" element={
               <ProtectedRoute>
                 <InvoicesPage />
