@@ -24,6 +24,7 @@ import CreatePayroll from "./pages/payroll/CreatePayroll";
 import PayrollDetails from "./pages/payroll/PayrollDetails";
 import LeavesPage from "./pages/leaves/LeavesPage";
 import ApplyForLeave from "./pages/leaves/ApplyForLeave";
+import BankPage from "./pages/bank/BankPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -86,6 +87,12 @@ const App = () => {
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/bank" element={
+              <ProtectedRoute>
+                <BankPage />
               </ProtectedRoute>
             } />
             
