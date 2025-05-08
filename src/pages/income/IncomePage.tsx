@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -51,9 +50,13 @@ const IncomePage: React.FC = () => {
   let topAmount = 0;
   
   Object.entries(incomeBySource).forEach(([source, amount]) => {
-    if (amount > topAmount) {
-      topSource = source as IncomeSource;
-      topAmount = amount;
+    // Fix: Cast source to IncomeSource type and ensure amount is treated as number
+    const typedSource = source as IncomeSource;
+    const typedAmount = amount as number;
+    
+    if (typedAmount > topAmount) {
+      topSource = typedSource;
+      topAmount = typedAmount;
     }
   });
 
