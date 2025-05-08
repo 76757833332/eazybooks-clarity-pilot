@@ -56,6 +56,9 @@ import EmployeeDetails from "./pages/payroll/EmployeeDetails";
 import LeavesPage from "./pages/leaves/LeavesPage";
 import ApplyForLeave from "./pages/leaves/ApplyForLeave";
 
+// Reports
+import ReportsPage from "./pages/reports/ReportsPage";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -133,6 +136,9 @@ function App() {
               <Route index element={<LeavesPage />} />
               <Route path="apply" element={<ApplyForLeave />} />
             </Route>
+            
+            {/* Reports - New */}
+            <Route path="/reports" element={<ReportsPage />} />
           </Route>
           
           {/* 404 Not Found */}
