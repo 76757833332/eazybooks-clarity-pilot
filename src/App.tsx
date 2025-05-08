@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -28,6 +29,9 @@ import BankPage from "./pages/bank/BankPage";
 import IncomePage from "./pages/income/IncomePage";
 import CreateIncome from "./pages/income/CreateIncome";
 import IncomeDetails from "./pages/income/IncomeDetails";
+import CustomersPage from "./pages/customers/CustomersPage";
+import CreateCustomer from "./pages/customers/CreateCustomer";
+import CustomerDetails from "./pages/customers/CustomerDetails";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -118,7 +122,26 @@ const App = () => {
               </ProtectedRoute>
             } />
             
-            {/* Protected routes */}
+            {/* Customers routes */}
+            <Route path="/customers" element={
+              <ProtectedRoute>
+                <CustomersPage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/customers/create" element={
+              <ProtectedRoute>
+                <CreateCustomer />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/customers/:id" element={
+              <ProtectedRoute>
+                <CustomerDetails />
+              </ProtectedRoute>
+            } />
+            
+            {/* Invoice routes */}
             <Route path="/invoices" element={
               <ProtectedRoute>
                 <InvoicesPage />
