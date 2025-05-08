@@ -2,6 +2,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Customer } from "@/types/invoice";
 
+// Define a type for creating a new customer without requiring user_id
+export type CreateCustomerInput = Omit<Customer, "id" | "created_at" | "updated_at" | "user_id">;
+
 export const customerService = {
   // Get all customers for the current user
   getCustomers: async () => {
@@ -30,8 +33,8 @@ export const customerService = {
     return data as Customer;
   },
   
-  // Create a new customer
-  createCustomer: async (customer: Omit<Customer, "id" | "created_at" | "updated_at">) => {
+  // Create a new customer - updated to use the new type
+  createCustomer: async (customer: CreateCustomerInput) => {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error("User not authenticated");
     

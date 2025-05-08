@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
-import { customerService } from "@/services/customerService";
+import { customerService, CreateCustomerInput } from "@/services/customerService";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,7 +45,7 @@ const CreateCustomer = () => {
   });
 
   const createCustomerMutation = useMutation({
-    mutationFn: (data: CustomerFormValues) => customerService.createCustomer(data),
+    mutationFn: (data: CustomerFormValues) => customerService.createCustomer(data as CreateCustomerInput),
     onSuccess: () => {
       toast({
         title: "Customer created",
