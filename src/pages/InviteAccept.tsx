@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -24,12 +23,12 @@ const InviteAccept = () => {
       if (!token) return;
 
       try {
-        // Use type casting to bypass TypeScript errors
-        const { data, error } = await (supabase
-          .from('invites') as any)
+        // Use any type to bypass TypeScript errors
+        const { data, error } = await supabase
+          .from('invites')
           .select('*')
           .eq('token', token)
-          .single();
+          .single() as any;
 
         if (error) {
           throw error;
@@ -45,7 +44,7 @@ const InviteAccept = () => {
           } else if (data.status !== 'pending') {
             setError("This invitation has already been used");
           } else {
-            setInvite(data as Invite);
+            setInvite(data as unknown as Invite);
           }
         } else {
           setError("Invalid invitation");
@@ -98,10 +97,10 @@ const InviteAccept = () => {
       }
 
       // Update the invite status
-      const { error: updateError } = await (supabase
-        .from('invites') as any)
+      const { error: updateError } = await supabase
+        .from('invites')
         .update({ status: 'accepted' })
-        .eq('id', invite.id);
+        .eq('id', invite.id) as any;
 
       if (updateError) {
         throw updateError;
@@ -109,13 +108,13 @@ const InviteAccept = () => {
 
       // If it's an employee, create employee record
       if (invite.role === 'employee' && invite.employee_role) {
-        const { error: employeeError } = await (supabase
-          .from('employees') as any)
+        const { error: employeeError } = await supabase
+          .from('employees')
           .insert([{
             user_id: userData.user.id,
             business_id: invite.business_id,
             employee_role: invite.employee_role,
-          }]);
+          }]) as any;
 
         if (employeeError) {
           console.error("Error creating employee record:", employeeError);
@@ -125,12 +124,12 @@ const InviteAccept = () => {
 
       // If it's a client, create client-business relationship
       if (invite.role === 'client') {
-        const { error: clientError } = await (supabase
-          .from('client_businesses') as any)
+        const { error: clientError } = await supabase
+          .from('client_businesses')
           .insert([{
             client_id: userData.user.id,
             business_id: invite.business_id,
-          }]);
+          }]) as any;
 
         if (clientError) {
           console.error("Error creating client-business record:", clientError);

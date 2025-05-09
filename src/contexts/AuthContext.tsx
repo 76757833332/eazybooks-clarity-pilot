@@ -20,12 +20,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Fetch user profile
   const fetchUserProfile = async (userId: string) => {
     try {
-      // Using type casting with 'any' to bypass TypeScript's strict checking
-      const { data, error } = await (supabase
-        .from('profiles') as any)
+      // Use any type to bypass TypeScript's strict checking
+      const { data, error } = await supabase
+        .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .single() as any;
 
       if (error) {
         console.error('Error fetching user profile:', error);
@@ -36,12 +36,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setProfile(data as unknown as Profile);
 
       // If user has a business, fetch it
-      if ((data as any).belongs_to_business_id) {
-        fetchUserBusiness((data as any).belongs_to_business_id);
+      if (data?.belongs_to_business_id) {
+        fetchUserBusiness(data.belongs_to_business_id);
       }
 
       // Check if onboarding is not completed
-      if (!(data as any).onboarding_completed) {
+      if (!data?.onboarding_completed) {
         // Redirect to onboarding flow
         navigate('/onboarding');
       }
@@ -53,12 +53,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Fetch user business
   const fetchUserBusiness = async (businessId: string) => {
     try {
-      // Using type casting with 'any' to bypass TypeScript's strict checking
-      const { data, error } = await (supabase
-        .from('businesses') as any)
+      // Use any type to bypass TypeScript's strict checking
+      const { data, error } = await supabase
+        .from('businesses')
         .select('*')
         .eq('id', businessId)
-        .single();
+        .single() as any;
 
       if (error) {
         console.error('Error fetching business:', error);
@@ -183,11 +183,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Using type casting with 'any' to bypass TypeScript's strict checking
-      const { error } = await (supabase
-        .from('profiles') as any)
-        .update(updatedProfile as any)
-        .eq('id', user.id);
+      // Use any type to bypass TypeScript's strict checking
+      const { error } = await supabase
+        .from('profiles')
+        .update(updatedProfile)
+        .eq('id', user.id) as any;
       
       if (error) {
         toast.error(error.message);
@@ -207,11 +207,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Using type casting with 'any' to bypass TypeScript's strict checking
-      const { error } = await (supabase
-        .from('profiles') as any)
-        .update({ onboarding_step: step } as any)
-        .eq('id', user.id);
+      // Use any type to bypass TypeScript's strict checking
+      const { error } = await supabase
+        .from('profiles')
+        .update({ onboarding_step: step })
+        .eq('id', user.id) as any;
       
       if (error) {
         toast.error(error.message);
@@ -230,11 +230,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Using type casting with 'any' to bypass TypeScript's strict checking
-      const { error } = await (supabase
-        .from('profiles') as any)
-        .update({ onboarding_completed: true } as any)
-        .eq('id', user.id);
+      // Use any type to bypass TypeScript's strict checking
+      const { error } = await supabase
+        .from('profiles')
+        .update({ onboarding_completed: true })
+        .eq('id', user.id) as any;
       
       if (error) {
         toast.error(error.message);
@@ -254,12 +254,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Using type casting with 'any' to bypass TypeScript's strict checking
-      const { data, error } = await (supabase
-        .from('businesses') as any)
-        .insert([{ ...businessData, owner_id: user.id } as any])
+      // Use any type to bypass TypeScript's strict checking
+      const { data, error } = await supabase
+        .from('businesses')
+        .insert([{ ...businessData, owner_id: user.id }])
         .select()
-        .single();
+        .single() as any;
       
       if (error) {
         toast.error(error.message);
@@ -290,9 +290,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 48);
       
-      // Using type casting with 'any' to bypass TypeScript's strict checking
-      const { error } = await (supabase
-        .from('invites') as any)
+      // Use any type to bypass TypeScript's strict checking
+      const { error } = await supabase
+        .from('invites')
         .insert([{
           email,
           business_id: business.id,
@@ -301,7 +301,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           employee_role: employeeRole,
           token,
           expires_at: expiresAt.toISOString()
-        } as any]);
+        }]) as any;
       
       if (error) {
         toast.error(error.message);
