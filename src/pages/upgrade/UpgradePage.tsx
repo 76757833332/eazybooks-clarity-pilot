@@ -71,8 +71,8 @@ const UpgradePage = () => {
       ],
       buttonText: "Upgrade Now",
       popular: true,
-      productId: "12345", // Replace with your actual LemonSqueezy product ID
-      variantId: "67890", // Replace with your actual LemonSqueezy variant ID
+      productId: "510706", // Updated with real LemonSqueezy product ID
+      variantId: "795950", // Updated with real LemonSqueezy variant ID
     },
     {
       name: "Enterprise",
@@ -91,8 +91,8 @@ const UpgradePage = () => {
         { name: "Team management", included: true },
       ],
       buttonText: "Upgrade Now",
-      productId: "12346", // Replace with your actual LemonSqueezy product ID
-      variantId: "67891", // Replace with your actual LemonSqueezy variant ID
+      productId: "510704", // Updated with real LemonSqueezy product ID
+      variantId: "795952", // Updated with real LemonSqueezy variant ID
     },
   ];
 
