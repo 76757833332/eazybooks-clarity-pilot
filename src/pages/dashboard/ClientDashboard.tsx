@@ -1,5 +1,6 @@
+
 import React from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import AppLayout from "@/components/layout/AppLayout";
 import MetricCard from "@/components/dashboard/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

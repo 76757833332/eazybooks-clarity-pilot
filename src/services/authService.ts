@@ -17,7 +17,7 @@ export async function fetchUserProfile(userId: string): Promise<Profile | null> 
       return null;
     }
 
-    return data as Profile;
+    return data as unknown as Profile;
   } catch (error) {
     console.error('Failed to fetch user profile:', error);
     return null;
@@ -37,7 +37,7 @@ export async function fetchUserBusiness(businessId: string): Promise<Business | 
       return null;
     }
 
-    return data as Business;
+    return data as unknown as Business;
   } catch (error) {
     console.error('Failed to fetch business:', error);
     return null;
@@ -195,7 +195,7 @@ export async function createBusiness(userId: string, businessData: Partial<Busin
     const newBusiness = Array.isArray(data) && data.length > 0 ? data[0] : data;
     toast.success('Business created successfully!');
     
-    return newBusiness as Business;
+    return newBusiness as unknown as Business;
   } catch (error) {
     console.error('Create business error:', error);
     throw error;

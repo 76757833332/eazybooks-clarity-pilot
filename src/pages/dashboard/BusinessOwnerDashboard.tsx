@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import AppLayout from "@/components/layout/AppLayout";
 import MetricCard from "@/components/dashboard/MetricCard";
 import PerformanceChart from "@/components/dashboard/PerformanceChart";

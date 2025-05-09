@@ -1,6 +1,6 @@
 
 import React from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import BusinessOwnerDashboard from "@/pages/dashboard/BusinessOwnerDashboard";
 import EmployeeDashboard from "@/pages/dashboard/EmployeeDashboard";
 import ClientDashboard from "@/pages/dashboard/ClientDashboard";
