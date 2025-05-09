@@ -24,6 +24,7 @@ const InviteAccept = () => {
       if (!token) return;
 
       try {
+        // Use type casting to bypass TypeScript errors
         const { data, error } = await (supabase
           .from('invites') as any)
           .select('*')

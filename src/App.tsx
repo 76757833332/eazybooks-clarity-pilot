@@ -1,4 +1,3 @@
-
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -17,6 +16,7 @@ import Onboarding from "./pages/Onboarding";
 import InviteAccept from "./pages/InviteAccept";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import Settings from "./pages/settings/Settings";
 
 // Bank
 import BankPage from "./pages/bank/BankPage";
@@ -181,6 +181,9 @@ function App() {
             
             {/* Reports */}
             <Route path="/reports" element={<ReportsPage />} />
+
+            {/* Settings */}
+            <Route path="/settings" element={<Settings />} />
           </Route>
           
           {/* 404 Not Found */}
