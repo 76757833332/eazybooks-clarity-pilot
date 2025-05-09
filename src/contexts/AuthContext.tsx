@@ -20,8 +20,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Fetch user profile
   const fetchUserProfile = async (userId: string) => {
     try {
-      // Use RPC to get user profile instead of direct table access
-      const { data, error } = await supabase.rpc('get_user_profile', { user_id_param: userId }) as any;
+      // Use direct table access with type casting to bypass TypeScript errors
+      const { data, error } = await (supabase.from('profiles') as any)
+        .select('*')
+        .eq('id', userId)
+        .single();
 
       if (error) {
         console.error('Error fetching user profile:', error);
@@ -29,7 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Type assertion to convert the generic data to our Profile type
-      setProfile(data as unknown as Profile);
+      setProfile(data as Profile);
 
       // If user has a business, fetch it
       if (data?.belongs_to_business_id) {
@@ -49,8 +52,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Fetch user business
   const fetchUserBusiness = async (businessId: string) => {
     try {
-      // Use RPC to get business details
-      const { data, error } = await supabase.rpc('get_business_by_id', { business_id_param: businessId }) as any;
+      // Use direct table access with type casting
+      const { data, error } = await (supabase.from('businesses') as any)
+        .select('*')
+        .eq('id', businessId)
+        .single();
 
       if (error) {
         console.error('Error fetching business:', error);
@@ -58,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Type assertion to convert the generic data to our Business type
-      setBusiness(data as unknown as Business);
+      setBusiness(data as Business);
     } catch (error) {
       console.error('Failed to fetch business:', error);
     }
@@ -175,11 +181,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Use RPC function to update profile
-      const { error } = await supabase.rpc('update_user_profile', {
-        user_id_param: user.id,
-        profile_data: updatedProfile
-      }) as any;
+      // Use direct table access with type casting
+      const { error } = await (supabase.from('profiles') as any)
+        .update(updatedProfile)
+        .eq('id', user.id);
       
       if (error) {
         toast.error(error.message);
@@ -199,11 +204,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Use RPC function to update onboarding step
-      const { error } = await supabase.rpc('update_onboarding_step', {
-        user_id_param: user.id,
-        step_param: step
-      }) as any;
+      // Use direct table access with type casting
+      const { error } = await (supabase.from('profiles') as any)
+        .update({ onboarding_step: step })
+        .eq('id', user.id);
       
       if (error) {
         toast.error(error.message);
@@ -222,10 +226,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Use RPC function to complete onboarding
-      const { error } = await supabase.rpc('complete_onboarding', {
-        user_id_param: user.id
-      }) as any;
+      // Use direct table access with type casting
+      const { error } = await (supabase.from('profiles') as any)
+        .update({ onboarding_completed: true })
+        .eq('id', user.id);
       
       if (error) {
         toast.error(error.message);
@@ -245,11 +249,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Use RPC function to create business
-      const { data, error } = await supabase.rpc('create_business', {
-        owner_id_param: user.id,
-        business_data: { ...businessData }
-      }) as any;
+      // Use direct table access with type casting
+      const { data, error } = await (supabase.from('businesses') as any)
+        .insert({
+          ...businessData,
+          owner_id: user.id
+        })
+        .select()
+        .single();
       
       if (error) {
         toast.error(error.message);
@@ -257,7 +264,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       // Update local state
-      setBusiness(data as unknown as Business);
+      setBusiness(data as Business);
       toast.success('Business created successfully!');
       
       // After business creation, update user profile
@@ -280,16 +287,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 48);
       
-      // Use RPC function to create invite
-      const { error } = await supabase.rpc('create_user_invite', {
-        email_param: email,
-        business_id_param: business.id,
-        invited_by_param: user.id,
-        role_param: role,
-        employee_role_param: employeeRole,
-        token_param: token,
-        expires_at_param: expiresAt.toISOString()
-      }) as any;
+      // Use direct table access with type casting
+      const { error } = await (supabase.from('invites') as any)
+        .insert({
+          email,
+          business_id: business.id,
+          invited_by: user.id,
+          role,
+          employee_role: employeeRole,
+          token,
+          expires_at: expiresAt.toISOString()
+        });
       
       if (error) {
         toast.error(error.message);

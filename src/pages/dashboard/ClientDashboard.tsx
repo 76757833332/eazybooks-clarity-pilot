@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/layout/AppLayout";
@@ -64,23 +63,23 @@ const ClientDashboard = () => {
         <MetricCard
           title="Active Projects"
           value="2"
-          change=""
-          positive={true}
-          duration=""
+          changeValue=""
+          changeDirection="up"
+          latestDate=""
         />
         <MetricCard
           title="Pending Invoices"
           value="$1,800"
-          change=""
-          positive={true}
-          duration=""
+          changeValue=""
+          changeDirection="up"
+          latestDate=""
         />
         <MetricCard
           title="Completed Projects"
           value="3"
-          change=""
-          positive={true}
-          duration=""
+          changeValue=""
+          changeDirection="up"
+          latestDate=""
         />
       </div>
 

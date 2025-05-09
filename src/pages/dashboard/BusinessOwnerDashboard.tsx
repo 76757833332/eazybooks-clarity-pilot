@@ -14,6 +14,31 @@ const BusinessOwnerDashboard = () => {
   const { user, profile, business } = useAuth();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
+  // Sample transactions
+  const transactions = [
+    {
+      id: '1',
+      name: 'Client Payment',
+      date: 'Today, 2:30 PM',
+      amount: 1250.00,
+      type: 'income' as const
+    },
+    {
+      id: '2',
+      name: 'Software Subscription',
+      date: 'Today, 10:15 AM',
+      amount: 49.99,
+      type: 'expense' as const
+    },
+    {
+      id: '3',
+      name: 'Consulting Fee',
+      date: 'Yesterday',
+      amount: 750.00,
+      type: 'income' as const
+    }
+  ];
+
   return (
     <AppLayout title="Business Dashboard">
       <div className="mb-6 flex flex-col gap-1">
@@ -41,23 +66,23 @@ const BusinessOwnerDashboard = () => {
         <MetricCard
           title="Total Revenue"
           value="$24,320.50"
-          change="+12.5%"
-          positive={true}
-          duration="this month"
+          changeValue="+12.5%"
+          changeDirection="up"
+          latestDate="this month"
         />
         <MetricCard
           title="Outstanding Invoices"
           value="$8,540.25"
-          change="+5.2%"
-          positive={false}
-          duration="since last month"
+          changeValue="+5.2%"
+          changeDirection="down"
+          latestDate="since last month"
         />
         <MetricCard
           title="Team Members"
           value="12"
-          change="+2"
-          positive={true}
-          duration="this month"
+          changeValue="+2"
+          changeDirection="up"
+          latestDate="this month"
         />
       </div>
 
@@ -67,7 +92,7 @@ const BusinessOwnerDashboard = () => {
         </div>
         <div className="space-y-6">
           <QuickActions />
-          <RecentTransactions />
+          <RecentTransactions transactions={transactions} />
         </div>
       </div>
 

@@ -51,23 +51,23 @@ const EmployeeDashboard = () => {
         <MetricCard
           title="Tasks Completed"
           value="12"
-          change="+3"
-          positive={true}
-          duration="this week"
+          changeValue="+3"
+          changeDirection="up"
+          latestDate="this week"
         />
         <MetricCard
           title="Hours Logged"
           value="32.5"
-          change="+5.5"
-          positive={true}
-          duration="this week"
+          changeValue="+5.5"
+          changeDirection="up"
+          latestDate="this week"
         />
         <MetricCard
           title="Pending Approvals"
           value="3"
-          change="-1"
-          positive={true}
-          duration="since yesterday"
+          changeValue="-1"
+          changeDirection="down"
+          latestDate="since yesterday"
         />
       </div>
 
