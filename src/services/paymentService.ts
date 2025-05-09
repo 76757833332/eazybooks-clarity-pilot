@@ -17,6 +17,8 @@ export const createCheckout = async (
   try {
     const storeId = "176510"; // Set the store ID provided by the user
     
+    console.log(`Initiating checkout for product: ${productId}, variant: ${variantId}, plan: ${planName}`);
+    
     const { data, error } = await supabase.functions.invoke('lemon-squeezy', {
       body: {
         action: 'create-checkout',
@@ -30,23 +32,33 @@ export const createCheckout = async (
     });
 
     if (error) {
-      console.error('Error creating checkout:', error);
+      console.error('Error invoking lemon-squeezy edge function:', error);
       toast.error('Failed to create checkout. Please try again.');
-      return { success: false, error: error.message };
+      return { success: false, error: `Edge function error: ${error.message}` };
+    }
+
+    console.log('Edge function response:', data);
+
+    // Check if there's an error in the response
+    if (data?.error) {
+      console.error('Edge function reported error:', data.error, data?.details);
+      toast.error(`Checkout error: ${data.error}`);
+      return { success: false, error: `API error: ${data.error}` };
     }
 
     // Extract the checkout URL from the response
     const checkoutUrl = data?.data?.attributes?.url;
     
     if (!checkoutUrl) {
+      console.error('Invalid checkout response - missing URL:', data);
       toast.error('Invalid checkout response. Please try again.');
-      return { success: false, error: 'Invalid checkout response' };
+      return { success: false, error: 'Invalid checkout response - missing URL' };
     }
 
     return { success: true, url: checkoutUrl };
   } catch (error) {
-    console.error('Error in createCheckout:', error);
+    console.error('Exception in createCheckout:', error);
     toast.error('An unexpected error occurred. Please try again.');
-    return { success: false, error: error.message };
+    return { success: false, error: `Exception: ${error.message}` };
   }
 };

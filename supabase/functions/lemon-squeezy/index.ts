@@ -21,6 +21,7 @@ serve(async (req) => {
     const apiKey = Deno.env.get("LEMON_SQUEEZY_API_KEY");
     
     if (!apiKey) {
+      console.error("LemonSqueezy API key is not configured");
       return new Response(
         JSON.stringify({ error: "LemonSqueezy API key is not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -34,13 +35,14 @@ serve(async (req) => {
       const { productId, variantId, customerEmail, planName, storeId } = await req.json();
       
       if (!productId || !variantId) {
+        console.error("Missing required parameters:", { productId, variantId });
         return new Response(
           JSON.stringify({ error: "Product ID and variant ID are required" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      console.log(`Creating checkout for store: ${storeId}, product: ${productId}, variant: ${variantId}`);
+      console.log(`Creating checkout for store: ${storeId}, product: ${productId}, variant: ${variantId}, email: ${customerEmail || 'not provided'}`);
       
       // Create a checkout in LemonSqueezy
       const checkoutResponse = await fetch(`${LEMON_SQUEEZY_API}/checkouts`, {
@@ -82,10 +84,15 @@ serve(async (req) => {
         );
       }
       
+      console.log("Checkout created successfully", { 
+        url: checkoutData?.data?.attributes?.url,
+        status: checkoutResponse.status
+      });
+
       return new Response(
         JSON.stringify(checkoutData),
         { 
-          status: checkoutResponse.status, 
+          status: 200, // Explicitly set to 200 for successful responses
           headers: { ...corsHeaders, "Content-Type": "application/json" } 
         }
       );
@@ -143,10 +150,10 @@ serve(async (req) => {
       { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error in lemon-squeezy edge function:", error.message);
+    console.error("Error in lemon-squeezy edge function:", error.message, error.stack);
     
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message, stack: error.stack }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/auth";
 import { createCheckout } from "@/services/paymentService";
 import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface PricingFeature {
   name: string;
@@ -31,6 +32,7 @@ const UpgradePage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   const pricingPlans: PricingPlan[] = [
     {
@@ -99,6 +101,8 @@ const UpgradePage = () => {
   const handleUpgrade = async (plan: PricingPlan) => {
     if (plan.name === "Free") return;
     
+    setCheckoutError(null);
+    
     try {
       setLoadingPlan(plan.name);
       
@@ -122,11 +126,13 @@ const UpgradePage = () => {
         window.location.href = result.url;
       } else {
         console.error("Checkout failed:", result.error);
+        setCheckoutError(`${result.error || "Unknown error"}`);
         toast.error(`Checkout failed: ${result.error || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error initiating checkout:", error);
       toast.error("Failed to create checkout. Please try again.");
+      setCheckoutError(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setLoadingPlan(null);
     }
@@ -141,6 +147,15 @@ const UpgradePage = () => {
             Scale your financial management as your business grows
           </p>
         </div>
+
+        {checkoutError && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertTitle>Checkout Error</AlertTitle>
+            <AlertDescription>
+              {checkoutError}. Please try again or contact support if the issue persists.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {pricingPlans.map((plan) => (
