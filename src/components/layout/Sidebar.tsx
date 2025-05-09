@@ -16,7 +16,8 @@ import {
   Briefcase,
   ListTodo,
   FileEdit,
-  ClipboardList
+  ClipboardList,
+  TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
@@ -65,6 +66,7 @@ const sidebarLinks: SidebarLinkType[] = [
     ]
   },
   { icon: BarChart3, label: "Reports", path: "/reports" },
+  { icon: TrendingUp, label: "Upgrade", path: "/upgrade" },
 ];
 
 const Sidebar = () => {
@@ -142,6 +144,11 @@ const Sidebar = () => {
                 >
                   <link.icon size={18} />
                   <span>{link.label}</span>
+                  {link.label === "Upgrade" && (
+                    <span className="ml-auto bg-eazybooks-purple text-white text-xs px-1.5 py-0.5 rounded-full">
+                      New
+                    </span>
+                  )}
                 </Link>
               )}
               
@@ -180,7 +187,9 @@ const Sidebar = () => {
         <p className="mb-3 text-xs text-muted-foreground">
           Unlock premium features including payroll, advanced reporting and AI insights
         </p>
-        <button className="w-full rounded-lg bg-eazybooks-purple px-3 py-1.5 text-sm font-medium text-white transition-all hover:bg-eazybooks-purple-secondary">
+        <button 
+          onClick={() => navigate('/upgrade')}
+          className="w-full rounded-lg bg-eazybooks-purple px-3 py-1.5 text-sm font-medium text-white transition-all hover:bg-eazybooks-purple-secondary">
           Upgrade now
         </button>
       </div>

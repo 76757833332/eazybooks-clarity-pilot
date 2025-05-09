@@ -1,0 +1,204 @@
+
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { Check } from "lucide-react";
+import AppLayout from "@/components/layout/AppLayout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/auth";
+
+interface PricingFeature {
+  name: string;
+  included: boolean;
+}
+
+interface PricingPlan {
+  name: string;
+  price: string;
+  interval: string;
+  description: string;
+  features: PricingFeature[];
+  buttonText: string;
+  popular?: boolean;
+}
+
+const UpgradePage = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const pricingPlans: PricingPlan[] = [
+    {
+      name: "Free",
+      price: "$0",
+      interval: "forever",
+      description: "Perfect for individuals and small businesses just starting out",
+      features: [
+        { name: "Single user access", included: true },
+        { name: "Income & expense tracking", included: true },
+        { name: "Basic invoice management", included: true },
+        { name: "Up to 10 customers", included: true },
+        { name: "Basic reporting", included: true },
+        { name: "Bank integration", included: false },
+        { name: "Payroll management", included: false },
+        { name: "Project management", included: false },
+        { name: "Team management", included: false },
+      ],
+      buttonText: "Current Plan",
+    },
+    {
+      name: "Professional",
+      price: "$19",
+      interval: "per month",
+      description: "For growing businesses and teams",
+      features: [
+        { name: "Up to 5 team members", included: true },
+        { name: "Income & expense tracking", included: true },
+        { name: "Full invoice management", included: true },
+        { name: "Unlimited customers", included: true },
+        { name: "Advanced reporting", included: true },
+        { name: "Bank integration", included: true },
+        { name: "Payroll management", included: true },
+        { name: "Project management", included: false },
+        { name: "Team management", included: false },
+      ],
+      buttonText: "Upgrade Now",
+      popular: true,
+    },
+    {
+      name: "Enterprise",
+      price: "$49",
+      interval: "per month",
+      description: "Complete solution for businesses of all sizes",
+      features: [
+        { name: "Unlimited team members", included: true },
+        { name: "Income & expense tracking", included: true },
+        { name: "Full invoice management", included: true },
+        { name: "Unlimited customers", included: true },
+        { name: "Advanced reporting with AI insights", included: true },
+        { name: "Bank integration", included: true },
+        { name: "Payroll management", included: true },
+        { name: "Project management", included: true },
+        { name: "Team management", included: true },
+      ],
+      buttonText: "Upgrade Now",
+    },
+  ];
+
+  const handleUpgrade = (plan: string) => {
+    // For now, just show a notification - this would connect to a payment processor in a real app
+    alert(`You selected the ${plan} plan. Payment integration would go here.`);
+    // navigate('/subscription-confirmation');
+  };
+
+  return (
+    <AppLayout title="Upgrade Your Plan">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-bold">Choose the Right Plan for Your Business</h1>
+          <p className="text-muted-foreground mt-2">
+            Scale your financial management as your business grows
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {pricingPlans.map((plan) => (
+            <Card 
+              key={plan.name}
+              className={`flex flex-col ${
+                plan.popular 
+                  ? "border-eazybooks-purple shadow-lg shadow-eazybooks-purple/20" 
+                  : "border-border"
+              }`}
+            >
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-xl">{plan.name}</CardTitle>
+                  {plan.popular && (
+                    <Badge className="bg-eazybooks-purple text-white">Popular</Badge>
+                  )}
+                </div>
+                <div className="mt-2">
+                  <span className="text-3xl font-bold">{plan.price}</span>
+                  <span className="text-muted-foreground ml-1">{plan.interval}</span>
+                </div>
+                <CardDescription className="mt-2">{plan.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <ul className="space-y-2">
+                  {plan.features.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      {feature.included ? (
+                        <Check className="h-5 w-5 text-eazybooks-purple shrink-0 mt-0.5" />
+                      ) : (
+                        <Check className="h-5 w-5 text-muted-foreground opacity-30 shrink-0 mt-0.5" />
+                      )}
+                      <span className={!feature.included ? "text-muted-foreground" : ""}>
+                        {feature.name}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  className={`w-full ${
+                    plan.name === "Free"
+                      ? "bg-secondary text-foreground hover:bg-secondary/80"
+                      : "bg-eazybooks-purple hover:bg-eazybooks-purple-secondary"
+                  }`}
+                  onClick={() => handleUpgrade(plan.name)}
+                  disabled={plan.name === "Free"}
+                >
+                  {plan.buttonText}
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+
+        <div className="text-center mt-10">
+          <h2 className="text-xl font-semibold mb-2">Need a custom solution?</h2>
+          <p className="text-muted-foreground mb-4">
+            Contact our sales team for a tailored package that fits your specific business needs.
+          </p>
+          <Button variant="outline" className="border-eazybooks-purple text-eazybooks-purple">
+            Contact Sales
+          </Button>
+        </div>
+
+        <div className="mt-16 border-t border-border pt-8">
+          <h2 className="text-xl font-semibold mb-4">Frequently Asked Questions</h2>
+          <div className="space-y-6">
+            <div>
+              <h3 className="font-medium mb-1">Can I upgrade or downgrade at any time?</h3>
+              <p className="text-muted-foreground text-sm">
+                Yes, you can change your subscription at any time. Changes will be effective at the start of your next billing cycle.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-medium mb-1">How does billing work?</h3>
+              <p className="text-muted-foreground text-sm">
+                We bill monthly or annually based on your preference. You'll be charged automatically on the same date each month/year.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-medium mb-1">What payment methods do you accept?</h3>
+              <p className="text-muted-foreground text-sm">
+                We accept all major credit cards, PayPal, and bank transfers for annual plans.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-medium mb-1">Is there a refund policy?</h3>
+              <p className="text-muted-foreground text-sm">
+                We offer a 30-day money-back guarantee for all new subscriptions.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </AppLayout>
+  );
+};
+
+export default UpgradePage;

@@ -17,6 +17,7 @@ import InviteAccept from "./pages/InviteAccept";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import Settings from "./pages/settings/Settings";
+import UpgradePage from "./pages/upgrade/UpgradePage";
 
 // Bank
 import BankPage from "./pages/bank/BankPage";
@@ -100,6 +101,7 @@ function App() {
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/upgrade" element={<UpgradePage />} />
             
             {/* Bank */}
             <Route path="/bank" element={<BankPage />} />
