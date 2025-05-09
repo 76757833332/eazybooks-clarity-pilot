@@ -1,3 +1,4 @@
+
 import React, { ReactNode, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
@@ -29,12 +30,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // If user has a business, fetch it
       if (profileData.belongs_to_business_id) {
         fetchUserBusiness(profileData.belongs_to_business_id);
-      }
-
-      // Check if onboarding is not completed
-      if (!profileData.onboarding_completed) {
-        // Redirect to onboarding flow
-        navigate('/onboarding');
       }
     }
   };
@@ -115,22 +110,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setBusiness(prev => prev ? { ...prev, ...updatedBusiness } : null);
   };
 
-  const updateOnboardingStep = async (step: number) => {
-    if (!user) return;
-    
-    await authService.updateOnboardingStep(user.id, step);
-    // Update local state
-    setProfile(prev => prev ? { ...prev, onboarding_step: step } : null);
-  };
-
-  const completeOnboarding = async () => {
-    if (!user) return;
-    
-    await authService.completeOnboarding(user.id);
-    // Update local state
-    setProfile(prev => prev ? { ...prev, onboarding_completed: true } : null);
-  };
-
   const createBusiness = async (businessData: Partial<Business>) => {
     if (!user) return;
     
@@ -165,8 +144,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     signOut,
     updateProfile,
     updateBusiness,
-    updateOnboardingStep,
-    completeOnboarding,
     createBusiness,
     inviteUser
   };

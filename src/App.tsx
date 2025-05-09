@@ -13,7 +13,6 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import RoleSelection from "./pages/RoleSelection";
-import Onboarding from "./pages/Onboarding";
 import InviteAccept from "./pages/InviteAccept";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
@@ -97,13 +96,6 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/select-role" element={<RoleSelection />} />
           <Route path="/invite/:token" element={<InviteAccept />} />
-          
-          {/* Onboarding Route - Protected but not requiring completed onboarding */}
-          <Route path="/onboarding" element={
-            <ProtectedRoute>
-              <Onboarding />
-            </ProtectedRoute>
-          } />
           
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>

@@ -22,8 +22,6 @@ export async function fetchUserProfile(userId: string): Promise<Profile | null> 
       first_name: user.user?.user_metadata?.first_name || '',
       last_name: user.user?.user_metadata?.last_name || '',
       role: (user.user?.user_metadata?.role as UserRole) || 'business_owner',
-      onboarding_completed: user.user?.user_metadata?.onboarding_completed || false,
-      onboarding_step: user.user?.user_metadata?.onboarding_step || 1,
       belongs_to_business_id: user.user?.user_metadata?.belongs_to_business_id || null,
       created_at: user.user?.created_at || new Date().toISOString(),
       updated_at: user.user?.updated_at || new Date().toISOString(),
@@ -178,42 +176,6 @@ export async function updateBusiness(businessId: string, updatedBusiness: Partia
     toast.success('Business information updated successfully');
   } catch (error) {
     console.error('Update business error:', error);
-    throw error;
-  }
-}
-
-export async function updateOnboardingStep(userId: string, step: number): Promise<void> {
-  try {
-    const { error } = await supabase
-      .from('profiles' as any)
-      .update({ onboarding_step: step })
-      .eq('id', userId);
-    
-    if (error) {
-      toast.error(error.message);
-      throw error;
-    }
-  } catch (error) {
-    console.error('Update onboarding step error:', error);
-    throw error;
-  }
-}
-
-export async function completeOnboarding(userId: string): Promise<void> {
-  try {
-    const { error } = await supabase
-      .from('profiles' as any)
-      .update({ onboarding_completed: true })
-      .eq('id', userId);
-    
-    if (error) {
-      toast.error(error.message);
-      throw error;
-    }
-    
-    toast.success('Onboarding completed!');
-  } catch (error) {
-    console.error('Complete onboarding error:', error);
     throw error;
   }
 }

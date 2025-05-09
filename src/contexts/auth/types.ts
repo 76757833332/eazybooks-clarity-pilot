@@ -11,8 +11,6 @@ export interface Profile {
   last_name: string;
   role: UserRole;
   avatar_url?: string;
-  onboarding_completed: boolean;
-  onboarding_step: number;
   belongs_to_business_id?: string;
   created_at: string;
   updated_at: string;
@@ -21,25 +19,25 @@ export interface Profile {
 export interface Business {
   id: string;
   name: string;
-  legal_name?: string;
   owner_id: string;
-  tax_id?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  postal_code?: string;
-  country?: string;
-  phone?: string;
-  email?: string;
-  website?: string;
-  industry?: string;
-  type?: string;
-  description?: string;
-  logo_url?: string;
-  business_type?: string;
-  currency?: string;
-  default_invoice_terms?: string;
-  default_tax_percentage?: number;
+  legal_name: string;
+  tax_id: string;
+  address: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+  phone: string;
+  email: string;
+  website: string;
+  industry: string;
+  type: string;
+  description: string;
+  logo_url: string;
+  business_type: string;
+  currency: string;
+  default_invoice_terms: string;
+  default_tax_percentage: number;
   created_at: string;
   updated_at: string;
 }
@@ -56,8 +54,6 @@ export interface AuthContextType {
   signOut: () => Promise<void>;
   updateProfile: (profile: Partial<Profile>) => Promise<void>;
   updateBusiness: (business: Partial<Business>) => Promise<void>;
-  updateOnboardingStep: (step: number) => Promise<void>;
-  completeOnboarding: () => Promise<void>;
   createBusiness: (business: Partial<Business>) => Promise<void>;
   inviteUser: (email: string, role: UserRole, employeeRole?: EmployeeRole) => Promise<void>;
 }
