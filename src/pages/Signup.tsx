@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Eye as EyeIcon, EyeOff as EyeOffIcon } from "lucide-react"; 
+import { Eye, EyeOff } from "lucide-react"; 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,9 +98,9 @@ const Signup = () => {
                 className="absolute right-2 top-1/2 transform -translate-y-1/2"
               >
                 {isPasswordVisible ? (
-                  <EyeOffIcon className="h-5 w-5" />
+                  <EyeOff className="h-5 w-5" />
                 ) : (
-                  <EyeIcon className="h-5 w-5" />
+                  <Eye className="h-5 w-5" />
                 )}
               </Button>
             </div>
