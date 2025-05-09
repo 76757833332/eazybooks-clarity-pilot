@@ -13,6 +13,11 @@ const SidebarPromo = () => {
   const isPremium = false; // This will be replaced with actual subscription logic later
   
   if (isPremium) return null; // Don't show promo to premium users
+
+  const handleUpgradeClick = () => {
+    // Direct link to Professional plan checkout
+    window.location.href = "https://eazybooks.lemonsqueezy.com/buy/0e97cccf-68b2-4e16-8af9-92ddb21c904f";
+  };
   
   return (
     <div className="mx-3 mb-3 rounded-lg bg-eazybooks-purple bg-opacity-20 p-4">
@@ -24,7 +29,7 @@ const SidebarPromo = () => {
         Unlock premium features including payroll, advanced reporting and AI insights
       </p>
       <button 
-        onClick={() => navigate('/upgrade')}
+        onClick={handleUpgradeClick}
         className="flex w-full items-center justify-center gap-2 rounded-lg bg-eazybooks-purple px-3 py-1.5 text-sm font-medium text-white transition-all hover:bg-eazybooks-purple-secondary">
         Upgrade now
       </button>

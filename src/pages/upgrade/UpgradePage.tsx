@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/auth";
-import { createCheckout } from "@/services/paymentService";
-import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface PricingFeature {
@@ -24,15 +22,13 @@ interface PricingPlan {
   features: PricingFeature[];
   buttonText: string;
   popular?: boolean;
-  productId: string;
-  variantId: string;
+  checkoutUrl?: string;
 }
 
 const UpgradePage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   const pricingPlans: PricingPlan[] = [
     {
@@ -51,9 +47,7 @@ const UpgradePage = () => {
         { name: "Project management", included: false },
         { name: "Team management", included: false },
       ],
-      buttonText: "Current Plan",
-      productId: "",
-      variantId: "",
+      buttonText: "Current Plan"
     },
     {
       name: "Professional",
@@ -73,8 +67,7 @@ const UpgradePage = () => {
       ],
       buttonText: "Upgrade Now",
       popular: true,
-      productId: "510706", // Updated with real LemonSqueezy product ID
-      variantId: "795950", // Updated with real LemonSqueezy variant ID
+      checkoutUrl: "https://eazybooks.lemonsqueezy.com/buy/0e97cccf-68b2-4e16-8af9-92ddb21c904f"
     },
     {
       name: "Enterprise",
@@ -93,46 +86,26 @@ const UpgradePage = () => {
         { name: "Team management", included: true },
       ],
       buttonText: "Upgrade Now",
-      productId: "510704", // Updated with real LemonSqueezy product ID
-      variantId: "795952", // Updated with real LemonSqueezy variant ID
+      checkoutUrl: "https://eazybooks.lemonsqueezy.com/buy/0e97cccf-68b2-4e16-8af9-92ddb21c904f"
     },
   ];
 
   const handleUpgrade = async (plan: PricingPlan) => {
     if (plan.name === "Free") return;
     
-    setCheckoutError(null);
-    
     try {
       setLoadingPlan(plan.name);
       
-      if (!user?.email) {
-        toast.error("You need to be logged in with an email to upgrade.");
+      if (!plan.checkoutUrl) {
+        console.error("No checkout URL available for this plan");
         return;
       }
       
-      console.log(`Starting checkout for plan: ${plan.name}, product: ${plan.productId}, variant: ${plan.variantId}`);
+      // Redirect to direct Lemon Squeezy checkout URL
+      window.location.href = plan.checkoutUrl;
       
-      const result = await createCheckout(
-        plan.productId, 
-        plan.variantId,
-        plan.name,
-        user.email
-      );
-      
-      if (result.success && result.url) {
-        console.log(`Redirecting to checkout URL: ${result.url}`);
-        // Redirect to LemonSqueezy checkout
-        window.location.href = result.url;
-      } else {
-        console.error("Checkout failed:", result.error);
-        setCheckoutError(`${result.error || "Unknown error"}`);
-        toast.error(`Checkout failed: ${result.error || "Unknown error"}`);
-      }
     } catch (error) {
-      console.error("Error initiating checkout:", error);
-      toast.error("Failed to create checkout. Please try again.");
-      setCheckoutError(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
+      console.error("Error navigating to checkout:", error);
     } finally {
       setLoadingPlan(null);
     }
@@ -147,15 +120,6 @@ const UpgradePage = () => {
             Scale your financial management as your business grows
           </p>
         </div>
-
-        {checkoutError && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertTitle>Checkout Error</AlertTitle>
-            <AlertDescription>
-              {checkoutError}. Please try again or contact support if the issue persists.
-            </AlertDescription>
-          </Alert>
-        )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {pricingPlans.map((plan) => (
