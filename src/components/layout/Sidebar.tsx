@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -97,7 +98,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="flex h-screen w-64 flex-col border-r border-border bg-black/80 backdrop-blur-md">
+    <div className="flex h-screen w-64 flex-col border-r border-border bg-black/80 backdrop-blur-md overflow-hidden">
       <div className="flex items-center gap-2 p-6">
         <Logo size="md" />
       </div>
@@ -107,7 +108,7 @@ const Sidebar = () => {
         <span className="ml-auto text-xs text-muted-foreground">⌘ S</span>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-3">
+      <nav className="flex-1 space-y-1 px-3 py-3 overflow-y-auto">
         {sidebarLinks.map((link) => {
           const isActive = location.pathname === link.path || location.pathname.startsWith(`${link.path}/`);
           const hasSubItems = link.subItems && link.subItems.length > 0;
