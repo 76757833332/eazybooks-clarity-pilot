@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Profile, Business, UserRole, EmployeeRole } from '@/types/auth';
@@ -136,6 +135,25 @@ export async function updateProfile(userId: string, updatedProfile: Partial<Prof
     toast.success('Profile updated successfully');
   } catch (error) {
     console.error('Update profile error:', error);
+    throw error;
+  }
+}
+
+export async function updateBusiness(businessId: string, updatedBusiness: Partial<Business>): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('businesses' as any)
+      .update(updatedBusiness)
+      .eq('id', businessId);
+    
+    if (error) {
+      toast.error(error.message);
+      throw error;
+    }
+    
+    toast.success('Business information updated successfully');
+  } catch (error) {
+    console.error('Update business error:', error);
     throw error;
   }
 }

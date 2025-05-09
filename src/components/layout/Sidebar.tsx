@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -22,7 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 
 type SidebarLinkType = {
   icon: React.ElementType;

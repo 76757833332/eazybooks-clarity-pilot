@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -53,11 +54,10 @@ const Onboarding = () => {
       if (profile?.role === "business_owner") {
         await createBusiness({
           name: businessName,
-          type: businessType,
+          type: businessType, // Now matches the updated Business interface
           industry,
           country,
-          vat_number: vatNumber,
-          company_number: companyNumber,
+          tax_id: vatNumber, // Map vatNumber to tax_id
           address,
           city,
           postal_code: postalCode,

@@ -1,4 +1,3 @@
-
 import React, { ReactNode, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
@@ -108,6 +107,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setProfile(prev => prev ? { ...prev, ...updatedProfile } : null);
   };
 
+  const updateBusiness = async (updatedBusiness: Partial<Business>) => {
+    if (!user || !business) return;
+    
+    try {
+      const { error } = await supabase
+        .from('businesses' as any)
+        .update(updatedBusiness)
+        .eq('id', business.id);
+      
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+      
+      // Update local state
+      setBusiness(prev => prev ? { ...prev, ...updatedBusiness } : null);
+      toast.success('Business information updated successfully');
+    } catch (error) {
+      console.error('Update business error:', error);
+      throw error;
+    }
+  };
+
   const updateOnboardingStep = async (step: number) => {
     if (!user) return;
     
@@ -157,6 +179,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     signUp,
     signOut,
     updateProfile,
+    updateBusiness,
     updateOnboardingStep,
     completeOnboarding,
     createBusiness,
