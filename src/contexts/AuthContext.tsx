@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Fetch user profile
   const fetchUserProfile = async (userId: string) => {
     try {
-      // Using type assertion since our tables are not in the generated types yet
+      // Using generic .from() to avoid TypeScript errors with new tables
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -36,12 +36,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setProfile(data as unknown as Profile);
 
       // If user has a business, fetch it
-      if (data.belongs_to_business_id) {
-        fetchUserBusiness(data.belongs_to_business_id);
+      if ((data as any).belongs_to_business_id) {
+        fetchUserBusiness((data as any).belongs_to_business_id);
       }
 
       // Check if onboarding is not completed
-      if (!data.onboarding_completed) {
+      if (!(data as any).onboarding_completed) {
         // Redirect to onboarding flow
         navigate('/onboarding');
       }
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Fetch user business
   const fetchUserBusiness = async (businessId: string) => {
     try {
-      // Using type assertion since our tables are not in the generated types yet
+      // Using generic .from() to avoid TypeScript errors with new tables
       const { data, error } = await supabase
         .from('businesses')
         .select('*')
@@ -183,10 +183,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Using type assertion since our tables are not in the generated types yet
+      // Using generic .from() to avoid TypeScript errors with new tables
       const { error } = await supabase
         .from('profiles')
-        .update(updatedProfile)
+        .update(updatedProfile as any)
         .eq('id', user.id);
       
       if (error) {
@@ -207,10 +207,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Using type assertion since our tables are not in the generated types yet
+      // Using generic .from() to avoid TypeScript errors with new tables
       const { error } = await supabase
         .from('profiles')
-        .update({ onboarding_step: step })
+        .update({ onboarding_step: step } as any)
         .eq('id', user.id);
       
       if (error) {
@@ -230,10 +230,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Using type assertion since our tables are not in the generated types yet
+      // Using generic .from() to avoid TypeScript errors with new tables
       const { error } = await supabase
         .from('profiles')
-        .update({ onboarding_completed: true })
+        .update({ onboarding_completed: true } as any)
         .eq('id', user.id);
       
       if (error) {
@@ -254,10 +254,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Using type assertion since our tables are not in the generated types yet
+      // Using generic .from() to avoid TypeScript errors with new tables
       const { data, error } = await supabase
         .from('businesses')
-        .insert([{ ...businessData, owner_id: user.id }])
+        .insert([{ ...businessData, owner_id: user.id } as any])
         .select()
         .single();
       
@@ -290,7 +290,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 48);
       
-      // Using type assertion since our tables are not in the generated types yet
+      // Using generic .from() to avoid TypeScript errors with new tables
       const { error } = await supabase
         .from('invites')
         .insert([{
@@ -301,7 +301,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           employee_role: employeeRole,
           token,
           expires_at: expiresAt.toISOString()
-        }]);
+        } as any]);
       
       if (error) {
         toast.error(error.message);
