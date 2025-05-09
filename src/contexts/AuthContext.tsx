@@ -20,6 +20,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Fetch user profile
   const fetchUserProfile = async (userId: string) => {
     try {
+      // Using type assertion since our tables are not in the generated types yet
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -31,7 +32,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      setProfile(data as Profile);
+      // Type assertion to convert the generic data to our Profile type
+      setProfile(data as unknown as Profile);
 
       // If user has a business, fetch it
       if (data.belongs_to_business_id) {
@@ -51,6 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Fetch user business
   const fetchUserBusiness = async (businessId: string) => {
     try {
+      // Using type assertion since our tables are not in the generated types yet
       const { data, error } = await supabase
         .from('businesses')
         .select('*')
@@ -62,7 +65,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      setBusiness(data as Business);
+      // Type assertion to convert the generic data to our Business type
+      setBusiness(data as unknown as Business);
     } catch (error) {
       console.error('Failed to fetch business:', error);
     }
@@ -179,6 +183,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
+      // Using type assertion since our tables are not in the generated types yet
       const { error } = await supabase
         .from('profiles')
         .update(updatedProfile)
@@ -202,6 +207,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
+      // Using type assertion since our tables are not in the generated types yet
       const { error } = await supabase
         .from('profiles')
         .update({ onboarding_step: step })
@@ -224,6 +230,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
+      // Using type assertion since our tables are not in the generated types yet
       const { error } = await supabase
         .from('profiles')
         .update({ onboarding_completed: true })
@@ -247,6 +254,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
+      // Using type assertion since our tables are not in the generated types yet
       const { data, error } = await supabase
         .from('businesses')
         .insert([{ ...businessData, owner_id: user.id }])
@@ -259,7 +267,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       // Update local state
-      setBusiness(data as Business);
+      setBusiness(data as unknown as Business);
       toast.success('Business created successfully!');
       
       // After business creation, the trigger will update the profile
@@ -282,6 +290,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 48);
       
+      // Using type assertion since our tables are not in the generated types yet
       const { error } = await supabase
         .from('invites')
         .insert([{
