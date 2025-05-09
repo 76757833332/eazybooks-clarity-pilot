@@ -24,8 +24,8 @@ const InviteAccept = () => {
       if (!token) return;
 
       try {
-        const { data, error } = await supabase
-          .from('invites')
+        const { data, error } = await (supabase
+          .from('invites') as any)
           .select('*')
           .eq('token', token)
           .single();
@@ -97,8 +97,8 @@ const InviteAccept = () => {
       }
 
       // Update the invite status
-      const { error: updateError } = await supabase
-        .from('invites')
+      const { error: updateError } = await (supabase
+        .from('invites') as any)
         .update({ status: 'accepted' })
         .eq('id', invite.id);
 
@@ -108,8 +108,8 @@ const InviteAccept = () => {
 
       // If it's an employee, create employee record
       if (invite.role === 'employee' && invite.employee_role) {
-        const { error: employeeError } = await supabase
-          .from('employees')
+        const { error: employeeError } = await (supabase
+          .from('employees') as any)
           .insert([{
             user_id: userData.user.id,
             business_id: invite.business_id,
@@ -124,8 +124,8 @@ const InviteAccept = () => {
 
       // If it's a client, create client-business relationship
       if (invite.role === 'client') {
-        const { error: clientError } = await supabase
-          .from('client_businesses')
+        const { error: clientError } = await (supabase
+          .from('client_businesses') as any)
           .insert([{
             client_id: userData.user.id,
             business_id: invite.business_id,

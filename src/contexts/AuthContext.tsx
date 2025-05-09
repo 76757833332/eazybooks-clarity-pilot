@@ -20,9 +20,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Fetch user profile
   const fetchUserProfile = async (userId: string) => {
     try {
-      // Using generic .from() to avoid TypeScript errors with new tables
-      const { data, error } = await supabase
-        .from('profiles')
+      // Using type casting with 'any' to bypass TypeScript's strict checking
+      const { data, error } = await (supabase
+        .from('profiles') as any)
         .select('*')
         .eq('id', userId)
         .single();
@@ -53,9 +53,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Fetch user business
   const fetchUserBusiness = async (businessId: string) => {
     try {
-      // Using generic .from() to avoid TypeScript errors with new tables
-      const { data, error } = await supabase
-        .from('businesses')
+      // Using type casting with 'any' to bypass TypeScript's strict checking
+      const { data, error } = await (supabase
+        .from('businesses') as any)
         .select('*')
         .eq('id', businessId)
         .single();
@@ -183,9 +183,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Using generic .from() to avoid TypeScript errors with new tables
-      const { error } = await supabase
-        .from('profiles')
+      // Using type casting with 'any' to bypass TypeScript's strict checking
+      const { error } = await (supabase
+        .from('profiles') as any)
         .update(updatedProfile as any)
         .eq('id', user.id);
       
@@ -207,9 +207,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Using generic .from() to avoid TypeScript errors with new tables
-      const { error } = await supabase
-        .from('profiles')
+      // Using type casting with 'any' to bypass TypeScript's strict checking
+      const { error } = await (supabase
+        .from('profiles') as any)
         .update({ onboarding_step: step } as any)
         .eq('id', user.id);
       
@@ -230,9 +230,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Using generic .from() to avoid TypeScript errors with new tables
-      const { error } = await supabase
-        .from('profiles')
+      // Using type casting with 'any' to bypass TypeScript's strict checking
+      const { error } = await (supabase
+        .from('profiles') as any)
         .update({ onboarding_completed: true } as any)
         .eq('id', user.id);
       
@@ -254,9 +254,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Using generic .from() to avoid TypeScript errors with new tables
-      const { data, error } = await supabase
-        .from('businesses')
+      // Using type casting with 'any' to bypass TypeScript's strict checking
+      const { data, error } = await (supabase
+        .from('businesses') as any)
         .insert([{ ...businessData, owner_id: user.id } as any])
         .select()
         .single();
@@ -290,9 +290,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 48);
       
-      // Using generic .from() to avoid TypeScript errors with new tables
-      const { error } = await supabase
-        .from('invites')
+      // Using type casting with 'any' to bypass TypeScript's strict checking
+      const { error } = await (supabase
+        .from('invites') as any)
         .insert([{
           email,
           business_id: business.id,
