@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -200,7 +199,7 @@ const CreateTask: React.FC = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">No project</SelectItem>
+                          <SelectItem value="no-project">No project</SelectItem>
                           {isLoadingProjects ? (
                             <SelectItem value="loading" disabled>
                               Loading projects...
@@ -298,7 +297,7 @@ const CreateTask: React.FC = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">No service</SelectItem>
+                          <SelectItem value="no-service">No service</SelectItem>
                           {isLoadingServices ? (
                             <SelectItem value="loading" disabled>
                               Loading services...

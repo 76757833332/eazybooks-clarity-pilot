@@ -179,7 +179,7 @@ const CreateProject: React.FC = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">No client</SelectItem>
+                          <SelectItem value="no-client">No client</SelectItem>
                           {isLoadingCustomers ? (
                             <SelectItem value="loading" disabled>
                               Loading clients...
