@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 
 const InviteAccept = () => {
   const { token } = useParams<{ token: string }>();
@@ -45,13 +45,14 @@ const InviteAccept = () => {
         return;
       }
 
-      if (new Date(invite.expires_at) < new Date()) {
+      const inviteData = invite as any;
+      if (new Date(inviteData.expires_at) < new Date()) {
         toast.error('Invite has expired.');
         setIsTokenValid(false);
         return;
       }
 
-      setEmail(invite.email);
+      setEmail(inviteData.email);
       setIsTokenValid(true);
     } catch (error) {
       console.error('Error verifying token:', error);
@@ -74,11 +75,6 @@ const InviteAccept = () => {
     setLoading(true);
     try {
       // Sign up the user
-      if (!token) {
-        toast.error('Invalid invite link.');
-        return;
-      }
-      
       const { data: invite, error: inviteError } = await supabase
         .from('invites' as any)
         .select('*')
@@ -98,14 +94,15 @@ const InviteAccept = () => {
         return;
       }
 
-      if (new Date(invite.expires_at) < new Date()) {
+      const inviteData = invite as any;
+      if (new Date(inviteData.expires_at) < new Date()) {
         toast.error('Invite has expired.');
         setIsTokenValid(false);
         return;
       }
 
       // Sign up the user
-      await signUp(email, password, '', '', invite.role);
+      await signUp(email, password, '', '', inviteData.role);
 
       // Delete the invite after successful signup
       const { error: deleteError } = await supabase
