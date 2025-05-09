@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -11,10 +12,12 @@ import {
   CalendarClock,
   BarChart3,
   Settings,
-  DollarSign,
-  UserRound,
   LogOut,
-  CalendarDays
+  CalendarDays,
+  Briefcase,
+  ListTodo,
+  FileEdit,
+  ClipboardList
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
@@ -50,6 +53,18 @@ const sidebarLinks: SidebarLinkType[] = [
     ]
   },
   { icon: CalendarDays, label: "Leave", path: "/leaves" },
+  // New project management section
+  { 
+    icon: Briefcase, 
+    label: "Projects", 
+    path: "/projects",
+    subItems: [
+      { label: "All Projects", path: "/projects" },
+      { label: "Job Requests", path: "/projects/job-requests" },
+      { label: "Tasks", path: "/projects/tasks" },
+      { label: "Services", path: "/projects/services" },
+    ]
+  },
   { icon: BarChart3, label: "Reports", path: "/reports" },
 ];
 

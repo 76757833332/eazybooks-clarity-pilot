@@ -278,6 +278,66 @@ export type Database = {
         }
         Relationships: []
       }
+      job_requests: {
+        Row: {
+          client_id: string
+          converted_to_project: string | null
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          priority: string | null
+          requested_services: string[] | null
+          status: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          converted_to_project?: string | null
+          created_at?: string
+          description: string
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          requested_services?: string[] | null
+          status?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          converted_to_project?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          requested_services?: string[] | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_requests_converted_to_project_fkey"
+            columns: ["converted_to_project"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leave_applications: {
         Row: {
           created_at: string
@@ -423,6 +483,247 @@ export type Database = {
           },
         ]
       }
+      project_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          project_id: string | null
+          task_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          project_id?: string | null
+          task_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          project_id?: string | null
+          task_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_files_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_files_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          budget: number | null
+          client_id: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          name: string
+          start_date: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget?: number | null
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          name: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget?: number | null
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          name?: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          created_at: string
+          delivery_time: number | null
+          description: string | null
+          id: string
+          is_hourly: boolean | null
+          name: string
+          rate: number
+          tax_rate: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_time?: number | null
+          description?: string | null
+          id?: string
+          is_hourly?: boolean | null
+          name: string
+          rate: number
+          tax_rate?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_time?: number | null
+          description?: string | null
+          id?: string
+          is_hourly?: boolean | null
+          name?: string
+          rate?: number
+          tax_rate?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      task_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          assigned_to: string | null
+          billable: boolean | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          name: string
+          priority: string | null
+          project_id: string | null
+          service_id: string | null
+          start_date: string | null
+          status: string
+          time_spent: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          billable?: boolean | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          name: string
+          priority?: string | null
+          project_id?: string | null
+          service_id?: string | null
+          start_date?: string | null
+          status?: string
+          time_spent?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          billable?: boolean | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          name?: string
+          priority?: string | null
+          project_id?: string | null
+          service_id?: string | null
+          start_date?: string | null
+          status?: string
+          time_spent?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       taxes: {
         Row: {
           amount: number
@@ -476,6 +777,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      time_logs: {
+        Row: {
+          created_at: string
+          duration: number | null
+          end_time: string | null
+          id: string
+          notes: string | null
+          start_time: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration?: number | null
+          end_time?: string | null
+          id?: string
+          notes?: string | null
+          start_time: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration?: number | null
+          end_time?: string | null
+          id?: string
+          notes?: string | null
+          start_time?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_logs_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

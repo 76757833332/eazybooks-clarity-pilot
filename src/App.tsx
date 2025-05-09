@@ -59,6 +59,20 @@ import ApplyForLeave from "./pages/leaves/ApplyForLeave";
 // Reports
 import ReportsPage from "./pages/reports/ReportsPage";
 
+// Projects - New module
+import ProjectsPage from "./pages/projects/ProjectsPage";
+import CreateProject from "./pages/projects/CreateProject";
+import ProjectDetails from "./pages/projects/ProjectDetails";
+import TasksPage from "./pages/projects/TasksPage";
+import TaskDetails from "./pages/projects/TaskDetails";
+import CreateTask from "./pages/projects/CreateTask";
+import ServicesPage from "./pages/projects/ServicesPage";
+import CreateService from "./pages/projects/CreateService";
+import ServiceDetails from "./pages/projects/ServiceDetails";
+import JobRequestsPage from "./pages/projects/JobRequestsPage";
+import CreateJobRequest from "./pages/projects/CreateJobRequest";
+import JobRequestDetails from "./pages/projects/JobRequestDetails";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -137,7 +151,23 @@ function App() {
               <Route path="apply" element={<ApplyForLeave />} />
             </Route>
             
-            {/* Reports - New */}
+            {/* Project Management - New */}
+            <Route path="/projects">
+              <Route index element={<ProjectsPage />} />
+              <Route path="create" element={<CreateProject />} />
+              <Route path=":id" element={<ProjectDetails />} />
+              <Route path="tasks" element={<TasksPage />} />
+              <Route path="tasks/create" element={<CreateTask />} />
+              <Route path="tasks/:id" element={<TaskDetails />} />
+              <Route path="services" element={<ServicesPage />} />
+              <Route path="services/create" element={<CreateService />} />
+              <Route path="services/:id" element={<ServiceDetails />} />
+              <Route path="job-requests" element={<JobRequestsPage />} />
+              <Route path="job-requests/create" element={<CreateJobRequest />} />
+              <Route path="job-requests/:id" element={<JobRequestDetails />} />
+            </Route>
+            
+            {/* Reports */}
             <Route path="/reports" element={<ReportsPage />} />
           </Route>
           
