@@ -49,7 +49,14 @@ const SecuritySettings = () => {
   };
 
   return (
-    <AppLayout title="Security Settings">
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold">Security Settings</h2>
+        <p className="text-muted-foreground">
+          Manage your password and security settings
+        </p>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Change Password</CardTitle>
@@ -99,7 +106,7 @@ const SecuritySettings = () => {
           </Button>
         </div>
       </Card>
-    </AppLayout>
+    </div>
   );
 };
 
