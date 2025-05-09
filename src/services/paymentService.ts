@@ -15,9 +15,12 @@ export const createCheckout = async (
   customerEmail?: string
 ): Promise<CheckoutResult> => {
   try {
+    const storeId = "176510"; // Set the store ID provided by the user
+    
     const { data, error } = await supabase.functions.invoke('lemon-squeezy', {
       body: {
         action: 'create-checkout',
+        storeId,
         productId,
         variantId,
         customerEmail,

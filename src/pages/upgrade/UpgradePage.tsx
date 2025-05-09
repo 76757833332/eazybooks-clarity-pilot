@@ -107,6 +107,8 @@ const UpgradePage = () => {
         return;
       }
       
+      console.log(`Starting checkout for plan: ${plan.name}, product: ${plan.productId}, variant: ${plan.variantId}`);
+      
       const result = await createCheckout(
         plan.productId, 
         plan.variantId,
@@ -115,8 +117,12 @@ const UpgradePage = () => {
       );
       
       if (result.success && result.url) {
+        console.log(`Redirecting to checkout URL: ${result.url}`);
         // Redirect to LemonSqueezy checkout
         window.location.href = result.url;
+      } else {
+        console.error("Checkout failed:", result.error);
+        toast.error(`Checkout failed: ${result.error || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error initiating checkout:", error);

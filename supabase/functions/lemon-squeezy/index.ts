@@ -31,7 +31,7 @@ serve(async (req) => {
     const path = url.pathname.split('/').pop();
 
     if (req.method === 'POST' && path === 'create-checkout') {
-      const { productId, variantId, customerEmail, planName } = await req.json();
+      const { productId, variantId, customerEmail, planName, storeId } = await req.json();
       
       if (!productId || !variantId) {
         return new Response(
@@ -40,6 +40,8 @@ serve(async (req) => {
         );
       }
 
+      console.log(`Creating checkout for store: ${storeId}, product: ${productId}, variant: ${variantId}`);
+      
       // Create a checkout in LemonSqueezy
       const checkoutResponse = await fetch(`${LEMON_SQUEEZY_API}/checkouts`, {
         method: 'POST',
@@ -52,6 +54,7 @@ serve(async (req) => {
           data: {
             type: 'checkouts',
             attributes: {
+              store_id: parseInt(storeId) || 176510, // Use the store ID from request or default to the provided one
               product_id: parseInt(productId),
               variant_id: parseInt(variantId),
               customer_email: customerEmail || '',
@@ -67,6 +70,17 @@ serve(async (req) => {
       });
 
       const checkoutData = await checkoutResponse.json();
+      
+      if (!checkoutResponse.ok) {
+        console.error("LemonSqueezy API error:", JSON.stringify(checkoutData));
+        return new Response(
+          JSON.stringify({ error: "Error creating checkout", details: checkoutData }),
+          { 
+            status: checkoutResponse.status, 
+            headers: { ...corsHeaders, "Content-Type": "application/json" } 
+          }
+        );
+      }
       
       return new Response(
         JSON.stringify(checkoutData),
