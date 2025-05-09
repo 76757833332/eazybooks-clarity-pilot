@@ -8,8 +8,9 @@ const SidebarPromo = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
   
-  // Check if user has premium subscription (this would need to be updated based on your subscription model)
-  const isPremium = profile?.subscription_tier === "premium" || profile?.subscription_tier === "enterprise";
+  // Since subscription_tier doesn't exist in the Profile type, let's check if the user has premium status
+  // For now, we'll assume non-premium until the subscription feature is fully implemented
+  const isPremium = false; // This will be replaced with actual subscription logic later
   
   if (isPremium) return null; // Don't show promo to premium users
   

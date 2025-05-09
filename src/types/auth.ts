@@ -1,4 +1,3 @@
-
 import { User, Session } from '@supabase/supabase-js';
 
 export type UserRole = 'business_owner' | 'employee' | 'client';
@@ -8,6 +7,8 @@ export type BusinessType = 'sole_proprietor' | 'partnership' | 'llc' | 'corporat
 export type EmployeeRole = 'admin' | 'accountant' | 'project_manager' | 'staff' | 'custom';
 
 export type InviteStatus = 'pending' | 'accepted' | 'expired';
+
+export type SubscriptionTier = 'free' | 'premium' | 'enterprise';
 
 export interface Profile {
   id: string;
@@ -22,6 +23,7 @@ export interface Profile {
   updated_at: string;
   belongs_to_business_id: string | null;
   verified: boolean;
+  subscription_tier?: SubscriptionTier;
 }
 
 export interface Business {
