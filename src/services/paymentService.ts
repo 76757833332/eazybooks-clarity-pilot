@@ -19,6 +19,23 @@ export const createCheckout = async (
     
     console.log(`Initiating checkout for product: ${productId}, variant: ${variantId}, plan: ${planName}`);
     
+    // Add a health check before proceeding with the actual checkout
+    const healthCheck = await supabase.functions.invoke('lemon-squeezy', {
+      body: { action: 'health-check' },
+      method: 'GET',
+    }).catch(error => {
+      console.error('Health check failed:', error);
+      return { error };
+    });
+    
+    if (healthCheck.error) {
+      console.error('Edge function health check failed:', healthCheck.error);
+      toast.error('Payment service is currently unavailable. Please try again later.');
+      return { success: false, error: `Edge function unavailable: ${healthCheck.error.message || 'Unknown error'}` };
+    }
+
+    console.log('Health check passed, proceeding with checkout');
+    
     const { data, error } = await supabase.functions.invoke('lemon-squeezy', {
       body: {
         action: 'create-checkout',
@@ -34,7 +51,7 @@ export const createCheckout = async (
     if (error) {
       console.error('Error invoking lemon-squeezy edge function:', error);
       toast.error('Failed to create checkout. Please try again.');
-      return { success: false, error: `Edge function error: ${error.message}` };
+      return { success: false, error: `Edge function error: ${error.message || 'Unknown error'}` };
     }
 
     console.log('Edge function response:', data);
@@ -59,6 +76,6 @@ export const createCheckout = async (
   } catch (error) {
     console.error('Exception in createCheckout:', error);
     toast.error('An unexpected error occurred. Please try again.');
-    return { success: false, error: `Exception: ${error.message}` };
+    return { success: false, error: `Exception: ${error.message || 'Unknown error'}` };
   }
 };

@@ -48,89 +48,106 @@ serve(async (req) => {
         );
       }
 
-      console.log(`Creating checkout for store: ${storeId}, product: ${productId}, variant: ${variantId}, email: ${customerEmail || 'not provided'}`);
+      console.log(`Creating checkout for store: ${storeId}, product: ${productId}, variant: ${variantId}, email: ${customerEmail || 'not provided'}, plan: ${planName || 'not provided'}`);
       
-      // Create a checkout in LemonSqueezy
-      const checkoutResponse = await fetch(`${LEMON_SQUEEZY_API}/checkouts`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/vnd.api+json',
-          'Content-Type': 'application/vnd.api+json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          data: {
-            type: 'checkouts',
-            attributes: {
-              store_id: parseInt(storeId) || 176510, // Use the store ID from request or default to the provided one
-              product_id: parseInt(productId),
-              variant_id: parseInt(variantId),
-              customer_email: customerEmail || '',
-              checkout_data: {
-                email: customerEmail || '',
-                custom: {
-                  plan_name: planName || ''
+      try {
+        // Create a checkout in LemonSqueezy
+        const checkoutResponse = await fetch(`${LEMON_SQUEEZY_API}/checkouts`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/vnd.api+json',
+            'Content-Type': 'application/vnd.api+json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            data: {
+              type: 'checkouts',
+              attributes: {
+                store_id: parseInt(storeId) || 176510,
+                product_id: parseInt(productId),
+                variant_id: parseInt(variantId),
+                customer_email: customerEmail || '',
+                checkout_data: {
+                  email: customerEmail || '',
+                  custom: {
+                    plan_name: planName || ''
+                  }
                 }
               }
             }
-          }
-        })
-      });
+          })
+        });
 
-      const responseText = await checkoutResponse.text();
-      let checkoutData;
-      
-      try {
-        checkoutData = JSON.parse(responseText);
-      } catch (e) {
-        console.error("Failed to parse LemonSqueezy response:", responseText);
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: "Invalid response from LemonSqueezy API", 
-            details: responseText.substring(0, 500) // Limit the length in case it's huge
-          }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      if (!checkoutResponse.ok) {
-        console.error("LemonSqueezy API error:", JSON.stringify(checkoutData));
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: "Error creating checkout", 
-            details: checkoutData,
-            status: checkoutResponse.status,
-            statusText: checkoutResponse.statusText
-          }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      // Check if the response has the expected structure
-      if (!checkoutData?.data?.attributes?.url) {
-        console.error("LemonSqueezy response missing checkout URL:", JSON.stringify(checkoutData));
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: "LemonSqueezy response missing checkout URL", 
-            data: checkoutData 
-          }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      console.log("Checkout created successfully", { 
-        url: checkoutData?.data?.attributes?.url,
-        status: checkoutResponse.status
-      });
+        const responseText = await checkoutResponse.text();
+        let checkoutData;
+        
+        try {
+          checkoutData = JSON.parse(responseText);
+        } catch (e) {
+          console.error("Failed to parse LemonSqueezy response:", responseText);
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: "Invalid response from LemonSqueezy API", 
+              details: responseText.substring(0, 500)
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        
+        if (!checkoutResponse.ok) {
+          console.error("LemonSqueezy API error:", JSON.stringify(checkoutData));
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: `LemonSqueezy API error: ${checkoutResponse.status} ${checkoutResponse.statusText}`, 
+              details: checkoutData,
+              status: checkoutResponse.status,
+              statusText: checkoutResponse.statusText
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        
+        // Check if the response has the expected structure
+        if (!checkoutData?.data?.attributes?.url) {
+          console.error("LemonSqueezy response missing checkout URL:", JSON.stringify(checkoutData));
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: "LemonSqueezy response missing checkout URL", 
+              data: checkoutData 
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        
+        console.log("Checkout created successfully", { 
+          url: checkoutData?.data?.attributes?.url,
+          status: checkoutResponse.status
+        });
 
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            data: checkoutData?.data 
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      } catch (fetchError) {
+        console.error("Error making request to LemonSqueezy API:", fetchError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: `Error making request to LemonSqueezy API: ${fetchError.message}` 
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else if (req.method === 'GET' && path === 'health-check') {
+      // Simple health check endpoint
       return new Response(
-        JSON.stringify({ 
-          success: true, 
-          data: checkoutData?.data 
-        }),
+        JSON.stringify({ success: true, message: "LemonSqueezy edge function is healthy" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else if (req.method === 'GET' && path === 'products') {
@@ -177,7 +194,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: false, error: "Not found" }),
+      JSON.stringify({ success: false, error: "Not found or method not supported" }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
