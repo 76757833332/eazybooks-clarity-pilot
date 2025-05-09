@@ -20,12 +20,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Fetch user profile
   const fetchUserProfile = async (userId: string) => {
     try {
-      // Use any type to bypass TypeScript's strict checking
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single() as any;
+      // Use RPC to get user profile instead of direct table access
+      const { data, error } = await supabase.rpc('get_user_profile', { user_id_param: userId }) as any;
 
       if (error) {
         console.error('Error fetching user profile:', error);
@@ -53,12 +49,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Fetch user business
   const fetchUserBusiness = async (businessId: string) => {
     try {
-      // Use any type to bypass TypeScript's strict checking
-      const { data, error } = await supabase
-        .from('businesses')
-        .select('*')
-        .eq('id', businessId)
-        .single() as any;
+      // Use RPC to get business details
+      const { data, error } = await supabase.rpc('get_business_by_id', { business_id_param: businessId }) as any;
 
       if (error) {
         console.error('Error fetching business:', error);
@@ -183,11 +175,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Use any type to bypass TypeScript's strict checking
-      const { error } = await supabase
-        .from('profiles')
-        .update(updatedProfile)
-        .eq('id', user.id) as any;
+      // Use RPC function to update profile
+      const { error } = await supabase.rpc('update_user_profile', {
+        user_id_param: user.id,
+        profile_data: updatedProfile
+      }) as any;
       
       if (error) {
         toast.error(error.message);
@@ -207,11 +199,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Use any type to bypass TypeScript's strict checking
-      const { error } = await supabase
-        .from('profiles')
-        .update({ onboarding_step: step })
-        .eq('id', user.id) as any;
+      // Use RPC function to update onboarding step
+      const { error } = await supabase.rpc('update_onboarding_step', {
+        user_id_param: user.id,
+        step_param: step
+      }) as any;
       
       if (error) {
         toast.error(error.message);
@@ -230,11 +222,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Use any type to bypass TypeScript's strict checking
-      const { error } = await supabase
-        .from('profiles')
-        .update({ onboarding_completed: true })
-        .eq('id', user.id) as any;
+      // Use RPC function to complete onboarding
+      const { error } = await supabase.rpc('complete_onboarding', {
+        user_id_param: user.id
+      }) as any;
       
       if (error) {
         toast.error(error.message);
@@ -254,12 +245,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Use any type to bypass TypeScript's strict checking
-      const { data, error } = await supabase
-        .from('businesses')
-        .insert([{ ...businessData, owner_id: user.id }])
-        .select()
-        .single() as any;
+      // Use RPC function to create business
+      const { data, error } = await supabase.rpc('create_business', {
+        owner_id_param: user.id,
+        business_data: { ...businessData }
+      }) as any;
       
       if (error) {
         toast.error(error.message);
@@ -270,7 +260,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setBusiness(data as unknown as Business);
       toast.success('Business created successfully!');
       
-      // After business creation, the trigger will update the profile
+      // After business creation, update user profile
       await fetchUserProfile(user.id);
     } catch (error) {
       console.error('Create business error:', error);
@@ -290,18 +280,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 48);
       
-      // Use any type to bypass TypeScript's strict checking
-      const { error } = await supabase
-        .from('invites')
-        .insert([{
-          email,
-          business_id: business.id,
-          invited_by: user.id,
-          role,
-          employee_role: employeeRole,
-          token,
-          expires_at: expiresAt.toISOString()
-        }]) as any;
+      // Use RPC function to create invite
+      const { error } = await supabase.rpc('create_user_invite', {
+        email_param: email,
+        business_id_param: business.id,
+        invited_by_param: user.id,
+        role_param: role,
+        employee_role_param: employeeRole,
+        token_param: token,
+        expires_at_param: expiresAt.toISOString()
+      }) as any;
       
       if (error) {
         toast.error(error.message);

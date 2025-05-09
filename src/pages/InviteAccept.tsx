@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -24,11 +25,7 @@ const InviteAccept = () => {
 
       try {
         // Use any type to bypass TypeScript errors
-        const { data, error } = await supabase
-          .from('invites')
-          .select('*')
-          .eq('token', token)
-          .single() as any;
+        const { data, error } = await supabase.rpc('get_invite_by_token', { token_param: token }) as any;
 
         if (error) {
           throw error;
@@ -97,10 +94,10 @@ const InviteAccept = () => {
       }
 
       // Update the invite status
-      const { error: updateError } = await supabase
-        .from('invites')
-        .update({ status: 'accepted' })
-        .eq('id', invite.id) as any;
+      const { error: updateError } = await supabase.rpc('update_invite_status', {
+        invite_id: invite.id,
+        new_status: 'accepted'
+      }) as any;
 
       if (updateError) {
         throw updateError;
@@ -108,13 +105,11 @@ const InviteAccept = () => {
 
       // If it's an employee, create employee record
       if (invite.role === 'employee' && invite.employee_role) {
-        const { error: employeeError } = await supabase
-          .from('employees')
-          .insert([{
-            user_id: userData.user.id,
-            business_id: invite.business_id,
-            employee_role: invite.employee_role,
-          }]) as any;
+        const { error: employeeError } = await supabase.rpc('create_employee', {
+          user_id_param: userData.user.id,
+          business_id_param: invite.business_id,
+          employee_role_param: invite.employee_role
+        }) as any;
 
         if (employeeError) {
           console.error("Error creating employee record:", employeeError);
@@ -124,12 +119,10 @@ const InviteAccept = () => {
 
       // If it's a client, create client-business relationship
       if (invite.role === 'client') {
-        const { error: clientError } = await supabase
-          .from('client_businesses')
-          .insert([{
-            client_id: userData.user.id,
-            business_id: invite.business_id,
-          }]) as any;
+        const { error: clientError } = await supabase.rpc('create_client_business', {
+          client_id_param: userData.user.id,
+          business_id_param: invite.business_id
+        }) as any;
 
         if (clientError) {
           console.error("Error creating client-business record:", clientError);
