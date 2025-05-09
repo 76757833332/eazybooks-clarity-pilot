@@ -1,19 +1,42 @@
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import Logo from "@/components/Logo";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+
+interface LocationState {
+  message?: string;
+}
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { signIn, signInWithGoogle, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // Check for any success message passed from other screens
+  useEffect(() => {
+    const state = location.state as LocationState | null;
+    if (state?.message) {
+      toast.success(state.message);
+      // Clear the message from state
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,21 +44,11 @@ const Login = () => {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        setError(error.message);
-        toast.error(error.message);
-      } else {
-        toast.success("Successfully logged in!");
-        navigate("/dashboard");
-      }
-    } catch (err) {
+      await signIn(email, password);
+      navigate("/dashboard");
+    } catch (err: any) {
       console.error("Login error:", err);
-      toast.error("An error occurred during login");
+      setError(err.message || "An error occurred during login");
     } finally {
       setIsLoading(false);
     }
@@ -46,20 +59,10 @@ const Login = () => {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        }
-      });
-
-      if (error) {
-        setError(error.message);
-        toast.error(error.message);
-      }
-    } catch (err) {
+      await signInWithGoogle();
+    } catch (err: any) {
       console.error("Google login error:", err);
-      toast.error("An error occurred during Google login");
+      setError(err.message || "An error occurred during Google login");
     } finally {
       setIsLoading(false);
     }
@@ -143,7 +146,7 @@ const Login = () => {
                 Password
               </label>
               <a
-                href="#"
+                href="/forgot-password"
                 className="text-xs text-eazybooks-purple hover:underline"
               >
                 Forgot password
@@ -182,10 +185,10 @@ const Login = () => {
         <p className="mt-4 text-center text-sm">
           Don't have an account?{" "}
           <a
-            href="/signup"
+            href="/select-role"
             onClick={(e) => {
               e.preventDefault();
-              navigate("/signup");
+              navigate("/select-role");
             }}
             className="font-medium text-eazybooks-purple hover:underline"
           >

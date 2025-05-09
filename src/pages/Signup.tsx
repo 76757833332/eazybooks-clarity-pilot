@@ -1,21 +1,34 @@
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Logo from "@/components/Logo";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { UserRole } from "@/types/auth";
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState<"details" | "account-type">("details");
+  const location = useLocation();
+  const { signUp, signInWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // Get role from URL query params
+  const queryParams = new URLSearchParams(location.search);
+  const role = queryParams.get("role") as UserRole | null;
+
+  useEffect(() => {
+    // If no role is selected, redirect to role selection page
+    if (!role) {
+      navigate("/select-role");
+    }
+  }, [role, navigate]);
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,11 +42,20 @@ const Signup = () => {
         setIsLoading(false);
         return;
       }
+
+      if (!role) {
+        setError("Please select a role first");
+        navigate("/select-role");
+        return;
+      }
       
-      setStep("account-type");
+      await signUp(email, password, firstName, lastName, role);
+      
+      // Navigate to login page with success message
+      navigate("/login", { state: { message: "Account created! Please check your email to verify your account." } });
     } catch (err) {
       console.error("Form error:", err);
-      toast.error("An error occurred");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -43,177 +65,26 @@ const Signup = () => {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        }
-      });
-
-      if (error) {
-        setError(error.message);
-        toast.error(error.message);
-      }
+      await signInWithGoogle();
     } catch (err) {
       console.error("Google signup error:", err);
-      toast.error("An error occurred during Google signup");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAccountTypeSelection = async (type: string) => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            account_type: type
-          }
-        }
-      });
-
-      if (error) {
-        setError(error.message);
-        toast.error(error.message);
-        setStep("details");
-      } else {
-        toast.success(`Account created as ${type}!`);
-        navigate("/dashboard");
-      }
-    } catch (err) {
-      console.error("Signup error:", err);
-      toast.error("An error occurred during signup");
-      setStep("details");
-    } finally {
-      setIsLoading(false);
+  const getRoleTitle = () => {
+    switch (role) {
+      case "business_owner":
+        return "Business Owner";
+      case "employee":
+        return "Employee";
+      case "client":
+        return "Client";
+      default:
+        return "User";
     }
   };
-
-  if (step === "account-type") {
-    return (
-      <div className="flex h-screen flex-col items-center justify-center bg-gradient-to-br from-eazybooks-purple/10 to-eazybooks-purple-dark/90">
-        <div className="w-full max-w-md rounded-xl bg-black/60 p-8 backdrop-blur-md">
-          <div className="mb-6 flex flex-col items-center">
-            <Logo size="lg" />
-            <h1 className="mt-4 text-2xl font-bold">Who are you?</h1>
-            <p className="text-sm text-muted-foreground">
-              Before we begin, we need some small details.
-            </p>
-          </div>
-
-          {error && (
-            <div className="mb-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
-
-          <div className="space-y-3">
-            <button 
-              onClick={() => handleAccountTypeSelection("Student")}
-              disabled={isLoading}
-              className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-border bg-secondary/20 p-3 transition-colors hover:bg-secondary/40 disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-eazybooks-purple bg-opacity-20 text-eazybooks-purple">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  className="h-4 w-4"
-                >
-                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                  <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
-                </svg>
-              </div>
-              <div className="flex flex-col items-start">
-                <span className="text-sm font-medium">
-                  I'm working as a student
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  Studying with self-employed status
-                </span>
-              </div>
-            </button>
-
-            <button 
-              onClick={() => handleAccountTypeSelection("Individual")}
-              disabled={isLoading}
-              className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-eazybooks-purple bg-eazybooks-purple/20 p-3 transition-colors hover:bg-eazybooks-purple/30 disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-eazybooks-purple bg-opacity-20 text-eazybooks-purple">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  className="h-4 w-4"
-                >
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-              </div>
-              <div className="flex flex-col items-start">
-                <span className="text-sm font-medium">
-                  I'm working as a natural person
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  Working as a natural person
-                </span>
-              </div>
-            </button>
-
-            <button 
-              onClick={() => handleAccountTypeSelection("Business")}
-              disabled={isLoading}
-              className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-border bg-secondary/20 p-3 transition-colors hover:bg-secondary/40 disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-eazybooks-purple bg-opacity-20 text-eazybooks-purple">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  className="h-4 w-4"
-                >
-                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-                </svg>
-              </div>
-              <div className="flex flex-col items-start">
-                <span className="text-sm font-medium">
-                  I'm working as a legal person
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  Working with a legal business
-                </span>
-              </div>
-            </button>
-          </div>
-
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            By continuing you accept:{" "}
-            <a href="#" className="text-eazybooks-purple hover:underline">
-              terms and conditions
-            </a>
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-gradient-to-br from-eazybooks-purple/10 to-eazybooks-purple-dark/90">
@@ -222,7 +93,7 @@ const Signup = () => {
           <Logo size="lg" />
           <h1 className="mt-4 text-2xl font-bold">Create an account</h1>
           <p className="text-sm text-muted-foreground">
-            Enter your details to get started
+            Sign up as a {getRoleTitle()}
           </p>
         </div>
 
@@ -341,7 +212,7 @@ const Signup = () => {
             disabled={isLoading}
             className="w-full bg-eazybooks-purple text-white hover:bg-eazybooks-purple-secondary"
           >
-            {isLoading ? "Processing..." : "Next"}
+            {isLoading ? "Processing..." : "Create Account"}
           </Button>
         </form>
 
@@ -356,6 +227,19 @@ const Signup = () => {
             className="font-medium text-eazybooks-purple hover:underline"
           >
             Log in
+          </a>
+        </p>
+        
+        <p className="mt-2 text-center text-xs">
+          <a
+            href="/select-role"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/select-role");
+            }}
+            className="text-eazybooks-purple hover:underline"
+          >
+            Change role
           </a>
         </p>
       </div>
