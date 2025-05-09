@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -57,6 +56,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 
 const JobRequestDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
