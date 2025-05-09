@@ -23,8 +23,11 @@ serve(async (req) => {
     if (!apiKey) {
       console.error("LemonSqueezy API key is not configured");
       return new Response(
-        JSON.stringify({ error: "LemonSqueezy API key is not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ 
+          success: false, 
+          error: "LemonSqueezy API key is not configured" 
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -37,8 +40,11 @@ serve(async (req) => {
       if (!productId || !variantId) {
         console.error("Missing required parameters:", { productId, variantId });
         return new Response(
-          JSON.stringify({ error: "Product ID and variant ID are required" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ 
+            success: false, 
+            error: "Product ID and variant ID are required" 
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -71,16 +77,47 @@ serve(async (req) => {
         })
       });
 
-      const checkoutData = await checkoutResponse.json();
+      const responseText = await checkoutResponse.text();
+      let checkoutData;
+      
+      try {
+        checkoutData = JSON.parse(responseText);
+      } catch (e) {
+        console.error("Failed to parse LemonSqueezy response:", responseText);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: "Invalid response from LemonSqueezy API", 
+            details: responseText.substring(0, 500) // Limit the length in case it's huge
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       
       if (!checkoutResponse.ok) {
         console.error("LemonSqueezy API error:", JSON.stringify(checkoutData));
         return new Response(
-          JSON.stringify({ error: "Error creating checkout", details: checkoutData }),
-          { 
-            status: checkoutResponse.status, 
-            headers: { ...corsHeaders, "Content-Type": "application/json" } 
-          }
+          JSON.stringify({ 
+            success: false, 
+            error: "Error creating checkout", 
+            details: checkoutData,
+            status: checkoutResponse.status,
+            statusText: checkoutResponse.statusText
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      // Check if the response has the expected structure
+      if (!checkoutData?.data?.attributes?.url) {
+        console.error("LemonSqueezy response missing checkout URL:", JSON.stringify(checkoutData));
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: "LemonSqueezy response missing checkout URL", 
+            data: checkoutData 
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
@@ -90,11 +127,11 @@ serve(async (req) => {
       });
 
       return new Response(
-        JSON.stringify(checkoutData),
-        { 
-          status: 200, // Explicitly set to 200 for successful responses
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
+        JSON.stringify({ 
+          success: true, 
+          data: checkoutData?.data 
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else if (req.method === 'GET' && path === 'products') {
       // Get products from LemonSqueezy
@@ -109,19 +146,16 @@ serve(async (req) => {
       const productsData = await productsResponse.json();
       
       return new Response(
-        JSON.stringify(productsData),
-        { 
-          status: productsResponse.status, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
+        JSON.stringify({ success: true, data: productsData }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else if (req.method === 'GET' && path === 'variants') {
       const productId = url.searchParams.get('product_id');
       
       if (!productId) {
         return new Response(
-          JSON.stringify({ error: "Product ID is required" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ success: false, error: "Product ID is required" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -137,24 +171,21 @@ serve(async (req) => {
       const variantsData = await variantsResponse.json();
       
       return new Response(
-        JSON.stringify(variantsData),
-        { 
-          status: variantsResponse.status, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
+        JSON.stringify({ success: true, data: variantsData }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     return new Response(
-      JSON.stringify({ error: "Not found" }),
-      { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: false, error: "Not found" }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Error in lemon-squeezy edge function:", error.message, error.stack);
     
     return new Response(
-      JSON.stringify({ error: error.message, stack: error.stack }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: false, error: error.message, stack: error.stack }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

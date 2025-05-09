@@ -39,11 +39,11 @@ export const createCheckout = async (
 
     console.log('Edge function response:', data);
 
-    // Check if there's an error in the response
-    if (data?.error) {
+    // Check if response has the success field set to false
+    if (data && data.success === false) {
       console.error('Edge function reported error:', data.error, data?.details);
-      toast.error(`Checkout error: ${data.error}`);
-      return { success: false, error: `API error: ${data.error}` };
+      toast.error(`Checkout error: ${data.error || 'Unknown error'}`);
+      return { success: false, error: data.error || 'Unknown error from API' };
     }
 
     // Extract the checkout URL from the response
