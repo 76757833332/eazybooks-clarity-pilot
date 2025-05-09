@@ -1,12 +1,14 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/auth";
+import { createCheckout } from "@/services/paymentService";
+import { toast } from "sonner";
 
 interface PricingFeature {
   name: string;
@@ -21,11 +23,14 @@ interface PricingPlan {
   features: PricingFeature[];
   buttonText: string;
   popular?: boolean;
+  productId: string;
+  variantId: string;
 }
 
 const UpgradePage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const pricingPlans: PricingPlan[] = [
     {
@@ -45,6 +50,8 @@ const UpgradePage = () => {
         { name: "Team management", included: false },
       ],
       buttonText: "Current Plan",
+      productId: "",
+      variantId: "",
     },
     {
       name: "Professional",
@@ -64,6 +71,8 @@ const UpgradePage = () => {
       ],
       buttonText: "Upgrade Now",
       popular: true,
+      productId: "12345", // Replace with your actual LemonSqueezy product ID
+      variantId: "67890", // Replace with your actual LemonSqueezy variant ID
     },
     {
       name: "Enterprise",
@@ -82,13 +91,39 @@ const UpgradePage = () => {
         { name: "Team management", included: true },
       ],
       buttonText: "Upgrade Now",
+      productId: "12346", // Replace with your actual LemonSqueezy product ID
+      variantId: "67891", // Replace with your actual LemonSqueezy variant ID
     },
   ];
 
-  const handleUpgrade = (plan: string) => {
-    // For now, just show a notification - this would connect to a payment processor in a real app
-    alert(`You selected the ${plan} plan. Payment integration would go here.`);
-    // navigate('/subscription-confirmation');
+  const handleUpgrade = async (plan: PricingPlan) => {
+    if (plan.name === "Free") return;
+    
+    try {
+      setLoadingPlan(plan.name);
+      
+      if (!user?.email) {
+        toast.error("You need to be logged in with an email to upgrade.");
+        return;
+      }
+      
+      const result = await createCheckout(
+        plan.productId, 
+        plan.variantId,
+        plan.name,
+        user.email
+      );
+      
+      if (result.success && result.url) {
+        // Redirect to LemonSqueezy checkout
+        window.location.href = result.url;
+      }
+    } catch (error) {
+      console.error("Error initiating checkout:", error);
+      toast.error("Failed to create checkout. Please try again.");
+    } finally {
+      setLoadingPlan(null);
+    }
   };
 
   return (
@@ -147,10 +182,17 @@ const UpgradePage = () => {
                       ? "bg-secondary text-foreground hover:bg-secondary/80"
                       : "bg-eazybooks-purple hover:bg-eazybooks-purple-secondary"
                   }`}
-                  onClick={() => handleUpgrade(plan.name)}
-                  disabled={plan.name === "Free"}
+                  onClick={() => handleUpgrade(plan)}
+                  disabled={plan.name === "Free" || loadingPlan !== null}
                 >
-                  {plan.buttonText}
+                  {loadingPlan === plan.name ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    plan.buttonText
+                  )}
                 </Button>
               </CardFooter>
             </Card>
@@ -179,13 +221,13 @@ const UpgradePage = () => {
             <div>
               <h3 className="font-medium mb-1">How does billing work?</h3>
               <p className="text-muted-foreground text-sm">
-                We bill monthly or annually based on your preference. You'll be charged automatically on the same date each month/year.
+                We bill monthly or annually based on your preference. You'll be charged automatically on the same date each month/year through LemonSqueezy, our secure payment processor.
               </p>
             </div>
             <div>
               <h3 className="font-medium mb-1">What payment methods do you accept?</h3>
               <p className="text-muted-foreground text-sm">
-                We accept all major credit cards, PayPal, and bank transfers for annual plans.
+                We accept all major credit cards, PayPal, and bank transfers for annual plans through our payment provider.
               </p>
             </div>
             <div>
