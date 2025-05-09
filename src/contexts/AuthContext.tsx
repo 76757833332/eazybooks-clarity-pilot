@@ -20,8 +20,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Fetch user profile
   const fetchUserProfile = async (userId: string) => {
     try {
-      // Use direct table access with type casting to bypass TypeScript errors
-      const { data, error } = await (supabase.from('profiles') as any)
+      const { data, error } = await supabase
+        .from('profiles' as any)
         .select('*')
         .eq('id', userId)
         .single();
@@ -52,8 +52,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Fetch user business
   const fetchUserBusiness = async (businessId: string) => {
     try {
-      // Use direct table access with type casting
-      const { data, error } = await (supabase.from('businesses') as any)
+      const { data, error } = await supabase
+        .from('businesses' as any)
         .select('*')
         .eq('id', businessId)
         .single();
@@ -181,8 +181,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Use direct table access with type casting
-      const { error } = await (supabase.from('profiles') as any)
+      const { error } = await supabase
+        .from('profiles' as any)
         .update(updatedProfile)
         .eq('id', user.id);
       
@@ -204,8 +204,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Use direct table access with type casting
-      const { error } = await (supabase.from('profiles') as any)
+      const { error } = await supabase
+        .from('profiles' as any)
         .update({ onboarding_step: step })
         .eq('id', user.id);
       
@@ -226,8 +226,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Use direct table access with type casting
-      const { error } = await (supabase.from('profiles') as any)
+      const { error } = await supabase
+        .from('profiles' as any)
         .update({ onboarding_completed: true })
         .eq('id', user.id);
       
@@ -249,22 +249,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      // Use direct table access with type casting
-      const { data, error } = await (supabase.from('businesses') as any)
+      const { data, error } = await supabase
+        .from('businesses' as any)
         .insert({
           ...businessData,
           owner_id: user.id
         })
-        .select()
-        .single();
+        .select();
       
       if (error) {
         toast.error(error.message);
         throw error;
       }
       
-      // Update local state
-      setBusiness(data as Business);
+      // Update local state with the first result if available
+      const newBusiness = Array.isArray(data) && data.length > 0 ? data[0] : data;
+      setBusiness(newBusiness as Business);
       toast.success('Business created successfully!');
       
       // After business creation, update user profile
@@ -287,8 +287,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 48);
       
-      // Use direct table access with type casting
-      const { error } = await (supabase.from('invites') as any)
+      const { error } = await supabase
+        .from('invites' as any)
         .insert({
           email,
           business_id: business.id,

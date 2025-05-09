@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface MetricCardProps {
   title: string;
   value: string;
-  changeValue?: string;  // Updated from change to changeValue
+  changeValue?: string;
   changeDirection?: "up" | "down";
   latestDate?: string;
   className?: string;
@@ -17,7 +17,7 @@ interface MetricCardProps {
 const MetricCard: React.FC<MetricCardProps> = ({
   title,
   value,
-  changeValue,  // Updated property name
+  changeValue,
   changeDirection,
   latestDate,
   className,

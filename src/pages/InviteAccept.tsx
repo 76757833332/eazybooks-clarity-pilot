@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,7 +26,11 @@ const InviteAccept = () => {
 
   const verifyToken = async (token: string) => {
     try {
-      const { data: invite, error: inviteError } = await (supabase.from('invites') as any).select('*').eq('token', token).single();
+      const { data: invite, error: inviteError } = await supabase
+        .from('invites' as any)
+        .select('*')
+        .eq('token', token)
+        .single();
 
       if (inviteError) {
         console.error('Error fetching invite:', inviteError);
@@ -74,7 +79,11 @@ const InviteAccept = () => {
         return;
       }
       
-      const { data: invite, error: inviteError } = await (supabase.from('invites') as any).select('*').eq('token', token).single();
+      const { data: invite, error: inviteError } = await supabase
+        .from('invites' as any)
+        .select('*')
+        .eq('token', token)
+        .single();
 
       if (inviteError) {
         console.error('Error fetching invite:', inviteError);
@@ -99,7 +108,11 @@ const InviteAccept = () => {
       await signUp(email, password, '', '', invite.role);
 
       // Delete the invite after successful signup
-      const { error: deleteError } = await (supabase.from('invites') as any).delete().eq('token', token);
+      const { error: deleteError } = await supabase
+        .from('invites' as any)
+        .delete()
+        .eq('token', token);
+
       if (deleteError) {
         console.error('Error deleting invite:', deleteError);
         toast.error('But there was an error deleting the invite. Please contact support.');
