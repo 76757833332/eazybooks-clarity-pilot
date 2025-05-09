@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth";
@@ -20,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Business } from "@/types/auth";
+import { Business } from "@/contexts/auth/types";
 
 const BusinessSettings = () => {
   const { business, updateBusiness } = useAuth();

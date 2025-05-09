@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import {
@@ -19,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/auth';
-import { EmployeeRole, UserRole } from '@/types/auth';
+import { EmployeeRole, UserRole } from '@/contexts/auth/types';
 
 interface InviteUserModalProps {
   isOpen: boolean;
@@ -100,6 +101,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose }) =>
                   <SelectItem value="accountant">Accountant</SelectItem>
                   <SelectItem value="project_manager">Project Manager</SelectItem>
                   <SelectItem value="staff">Staff</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
                   <SelectItem value="custom">Custom</SelectItem>
                 </SelectContent>
               </Select>

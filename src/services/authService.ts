@@ -1,12 +1,13 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Profile, Business, UserRole, EmployeeRole } from '@/types/auth';
+import { Profile, Business, UserRole, EmployeeRole } from '@/contexts/auth/types';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function fetchUserProfile(userId: string): Promise<Profile | null> {
   try {
     const { data, error } = await supabase
-      .from('profiles' as any)
+      .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
@@ -26,7 +27,7 @@ export async function fetchUserProfile(userId: string): Promise<Profile | null> 
 export async function fetchUserBusiness(businessId: string): Promise<Business | null> {
   try {
     const { data, error } = await supabase
-      .from('businesses' as any)
+      .from('businesses')
       .select('*')
       .eq('id', businessId)
       .single();
@@ -123,7 +124,7 @@ export async function signOut(): Promise<void> {
 export async function updateProfile(userId: string, updatedProfile: Partial<Profile>): Promise<void> {
   try {
     const { error } = await supabase
-      .from('profiles' as any)
+      .from('profiles')
       .update(updatedProfile)
       .eq('id', userId);
     
@@ -142,7 +143,7 @@ export async function updateProfile(userId: string, updatedProfile: Partial<Prof
 export async function updateBusiness(businessId: string, updatedBusiness: Partial<Business>): Promise<void> {
   try {
     const { error } = await supabase
-      .from('businesses' as any)
+      .from('businesses')
       .update(updatedBusiness)
       .eq('id', businessId);
     
@@ -234,7 +235,7 @@ export async function inviteUser(
     expiresAt.setHours(expiresAt.getHours() + 48);
     
     const { error } = await supabase
-      .from('invites' as any)
+      .from('invites')
       .insert({
         email,
         business_id: businessId,

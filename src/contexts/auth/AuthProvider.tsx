@@ -3,7 +3,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Profile, Business, UserRole, EmployeeRole } from '@/types/auth';
+import { Profile, Business, UserRole, EmployeeRole } from '@/contexts/auth/types';
 import { AuthContext } from './AuthContext';
 import * as authService from '@/services/authService';
 
@@ -110,24 +110,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const updateBusiness = async (updatedBusiness: Partial<Business>) => {
     if (!user || !business) return;
     
-    try {
-      const { error } = await supabase
-        .from('businesses' as any)
-        .update(updatedBusiness)
-        .eq('id', business.id);
-      
-      if (error) {
-        toast.error(error.message);
-        throw error;
-      }
-      
-      // Update local state
-      setBusiness(prev => prev ? { ...prev, ...updatedBusiness } : null);
-      toast.success('Business information updated successfully');
-    } catch (error) {
-      console.error('Update business error:', error);
-      throw error;
-    }
+    await authService.updateBusiness(business.id, updatedBusiness);
+    // Update local state
+    setBusiness(prev => prev ? { ...prev, ...updatedBusiness } : null);
   };
 
   const updateOnboardingStep = async (step: number) => {

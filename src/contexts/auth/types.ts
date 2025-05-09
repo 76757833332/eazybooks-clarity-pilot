@@ -2,7 +2,7 @@
 import { User, Session } from '@supabase/supabase-js';
 
 export type UserRole = 'business_owner' | 'employee' | 'client';
-export type EmployeeRole = 'admin' | 'manager' | 'staff';
+export type EmployeeRole = 'admin' | 'manager' | 'staff' | 'accountant' | 'project_manager' | 'custom';
 
 export interface Profile {
   id: string;
@@ -35,6 +35,11 @@ export interface Business {
   industry?: string;
   type?: string;
   description?: string;
+  logo_url?: string;
+  business_type?: string;
+  currency?: string;
+  default_invoice_terms?: string;
+  default_tax_percentage?: number;
   created_at: string;
   updated_at: string;
 }
