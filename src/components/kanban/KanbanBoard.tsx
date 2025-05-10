@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   DndContext,
@@ -369,7 +368,7 @@ const KanbanBoard: React.FC = () => {
           onDragEnd={handleDragEnd}
         >
           <div className="flex space-x-4">
-            {columns.map(column => (
+            {columns.map((column) => (
               <KanbanColumn
                 key={column.id}
                 column={column}
