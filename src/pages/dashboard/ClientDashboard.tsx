@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 
-// Import our new components
+// Import our components
 import WelcomeHeader from "@/components/dashboard/client/WelcomeHeader";
 import ProjectsSection from "@/components/dashboard/client/ProjectsSection";
 import InvoicesSection from "@/components/dashboard/client/InvoicesSection";
@@ -17,6 +18,7 @@ import PremiumFeaturesPromo from "@/components/dashboard/client/PremiumFeaturesP
 const ClientDashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const { isFeatureAvailable } = useFeatureAccess();
 
   // Example data, in a real app this would come from an API
   const projects = [
@@ -28,14 +30,6 @@ const ClientDashboard = () => {
     { id: "INV-001", amount: "$2,500", status: "Paid", date: "2023-04-15", downloadUrl: "#" },
     { id: "INV-002", amount: "$1,800", status: "Pending", date: "2023-05-01", downloadUrl: "#" },
   ];
-
-  // Function to check if a feature is available based on subscription
-  const isFeatureAvailable = (requiredTier: 'free' | 'premium' | 'enterprise') => {
-    const tierHierarchy = { 'free': 0, 'premium': 1, 'enterprise': 2 };
-    const userTier = profile?.subscription_tier || 'free';
-    
-    return tierHierarchy[userTier] >= tierHierarchy[requiredTier];
-  };
 
   return (
     <AppLayout title="Client Dashboard">
@@ -96,7 +90,7 @@ const ClientDashboard = () => {
         <InvoicesSection invoices={invoices} />
       </div>
 
-      <PremiumFeaturesPromo subscriptionTier={profile?.subscription_tier} />
+      <PremiumFeaturesPromo />
     </AppLayout>
   );
 };

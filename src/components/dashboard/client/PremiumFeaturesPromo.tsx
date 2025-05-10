@@ -4,21 +4,12 @@ import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SubscriptionTier } from "@/contexts/auth/types";
+import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 
-interface PremiumFeaturesPromoProps {
-  subscriptionTier: SubscriptionTier | undefined;
-}
+const PremiumFeaturesPromo: React.FC = () => {
+  const { isFeatureAvailable } = useFeatureAccess();
 
-const PremiumFeaturesPromo: React.FC<PremiumFeaturesPromoProps> = ({ subscriptionTier }) => {
-  // Function to check if a feature is available based on subscription
-  const isFeatureAvailable = (requiredTier: 'free' | 'premium' | 'enterprise') => {
-    const tierHierarchy = { 'free': 0, 'premium': 1, 'enterprise': 2 };
-    const userTier = subscriptionTier || 'free';
-    
-    return tierHierarchy[userTier] >= tierHierarchy[requiredTier];
-  };
-
+  // Hide this component for premium and enterprise users
   if (isFeatureAvailable('premium')) {
     return null;
   }

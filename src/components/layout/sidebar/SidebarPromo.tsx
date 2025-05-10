@@ -2,15 +2,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, X } from "lucide-react";
-import { useAuth } from "@/contexts/auth";
+import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 
 const SidebarPromo = () => {
   const navigate = useNavigate();
-  const { profile } = useAuth();
   const [dismissed, setDismissed] = useState(false);
+  const { isFeatureAvailable } = useFeatureAccess();
   
   // Check if the user has a premium or enterprise subscription
-  const isPremium = profile?.subscription_tier === 'premium' || profile?.subscription_tier === 'enterprise';
+  const isPremium = isFeatureAvailable('premium');
   
   if (isPremium || dismissed) return null; // Don't show promo to premium users or if dismissed
 

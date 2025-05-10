@@ -3,6 +3,7 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { User } from "@supabase/supabase-js";
 import { Profile } from "@/contexts/auth/types";
+import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 
 interface WelcomeHeaderProps {
   user: User | null;
@@ -10,9 +11,11 @@ interface WelcomeHeaderProps {
 }
 
 const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ user, profile }) => {
+  const { currentTier } = useFeatureAccess();
+  
   // Function to get badge color based on subscription tier
   const getSubscriptionBadgeColor = () => {
-    switch (profile?.subscription_tier) {
+    switch (currentTier) {
       case 'premium':
         return 'bg-amber-500';
       case 'enterprise':
@@ -28,11 +31,9 @@ const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ user, profile }) => {
         <h1 className="text-3xl font-bold">
           Welcome back, {profile?.first_name || user?.email}
         </h1>
-        {profile?.subscription_tier && (
-          <Badge className={getSubscriptionBadgeColor()}>
-            {profile.subscription_tier.charAt(0).toUpperCase() + profile.subscription_tier.slice(1)}
-          </Badge>
-        )}
+        <Badge className={getSubscriptionBadgeColor()}>
+          {currentTier.charAt(0).toUpperCase() + currentTier.slice(1)}
+        </Badge>
       </div>
       <p className="text-muted-foreground">
         Client Dashboard
