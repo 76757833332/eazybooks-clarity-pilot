@@ -42,7 +42,7 @@ const SidebarNavigation = ({ expandedItems, toggleExpand }: SidebarNavigationPro
               />
             )}
             
-            {link.subItems && (
+            {showSubItems && link.subItems && (
               <SidebarSubmenu
                 subItems={link.subItems}
                 showSubItems={showSubItems}
