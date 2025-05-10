@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth";
+import { toast } from "sonner";
 
 const SidebarUserProfile = () => {
   const navigate = useNavigate();
@@ -16,8 +17,14 @@ const SidebarUserProfile = () => {
   };
   
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
+    try {
+      await signOut();
+      toast.success("Logged out successfully");
+      navigate('/login');
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Failed to log out");
+    }
   };
   
   return (
@@ -44,6 +51,7 @@ const SidebarUserProfile = () => {
             size="icon" 
             className="text-muted-foreground hover:bg-red-500/10 hover:text-red-500"
             onClick={handleSignOut}
+            title="Logout"
           >
             <LogOut size={16} />
           </Button>
