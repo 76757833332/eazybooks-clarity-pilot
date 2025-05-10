@@ -1,7 +1,8 @@
 
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { User, Profile } from "@/contexts/auth/types";
+import { User } from "@supabase/supabase-js";
+import { Profile } from "@/contexts/auth/types";
 
 interface WelcomeHeaderProps {
   user: User | null;
