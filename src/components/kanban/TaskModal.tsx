@@ -112,14 +112,14 @@ const TaskModal: React.FC<TaskModalProps> = ({
           <div className="space-y-2">
             <Label htmlFor="assignee">Assigned to</Label>
             <Select 
-              value={editedTask.assigned_to || ''} 
+              value={editedTask.assigned_to || 'unassigned'} 
               onValueChange={handleAssigneeChange}
             >
               <SelectTrigger className="bg-black/30 border-gray-700">
                 <SelectValue placeholder="Assign to..." />
               </SelectTrigger>
               <SelectContent className="bg-black/90 border-gray-700">
-                <SelectItem value="">Unassigned</SelectItem>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
                 {dummyUsers.map(user => (
                   <SelectItem key={user.id} value={user.name}>
                     {user.name}

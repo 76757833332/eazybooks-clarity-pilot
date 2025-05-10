@@ -191,7 +191,7 @@ const CreateTask: React.FC = () => {
                       <FormLabel>Project</FormLabel>
                       <Select 
                         onValueChange={field.onChange} 
-                        value={field.value || ""}
+                        value={field.value || undefined}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -289,7 +289,7 @@ const CreateTask: React.FC = () => {
                       <FormLabel>Service</FormLabel>
                       <Select 
                         onValueChange={field.onChange} 
-                        value={field.value || ""}
+                        value={field.value || undefined}
                       >
                         <FormControl>
                           <SelectTrigger>
