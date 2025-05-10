@@ -39,7 +39,9 @@ const ExpensesPage: React.FC = () => {
         query = query.or(`description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%`);
       }
       
-      const { data, error } = await query.order('expense_date', { ascending: false });
+      const { data, error } = await query
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id || '')
+        .order('expense_date', { ascending: false });
       
       if (error) {
         console.error("Error fetching expenses:", error);

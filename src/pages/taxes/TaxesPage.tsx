@@ -48,8 +48,33 @@ const TaxesPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   
   const { data: taxes = [], isLoading, error } = useQuery({
-    queryKey: ["taxes"],
-    queryFn: taxService.getTaxes,
+    queryKey: ["taxes", categoryFilter, statusFilter],
+    queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("User not authenticated");
+      
+      let query = supabase
+        .from("taxes")
+        .select("*")
+        .eq("user_id", user.user.id);
+        
+      if (categoryFilter !== "all") {
+        query = query.eq("category", categoryFilter);
+      }
+      
+      if (statusFilter !== "all") {
+        query = query.eq("status", statusFilter);
+      }
+      
+      const { data, error } = await query.order("due_date", { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching taxes:", error);
+        throw error;
+      }
+      
+      return data as Tax[];
+    },
   });
   
   const { data: summary = { pending: 0, paid: 0, overdue: 0, upcoming: 0, total: 0 }, isLoading: isSummaryLoading } = useQuery({

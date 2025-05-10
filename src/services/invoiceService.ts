@@ -3,80 +3,93 @@ import { supabase } from "@/integrations/supabase/client";
 import { Invoice, InvoiceItem } from "@/types/invoice";
 
 export const invoiceService = {
-  // Get all invoices for the current user
   getInvoices: async () => {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error("User not authenticated");
     
-    const { data, error } = await supabase
-      .from("invoices")
-      .select("*, customers:customer_id(*)")
-      .eq("user_id", user.user.id)
-      .order("created_at", { ascending: false });
-      
-    if (error) throw error;
-    return data as Invoice[];
+    try {
+      const { data, error } = await supabase
+        .from("invoices")
+        .select(`
+          *,
+          customer:customers(*)
+        `)
+        .eq("user_id", user.user.id)
+        .order("issue_date", { ascending: false });
+        
+      if (error) throw error;
+      return data as Invoice[];
+    } catch (error) {
+      console.error("Error fetching invoices:", error);
+      // If there's an error with the join query, fall back to just invoices
+      const { data, error: fallbackError } = await supabase
+        .from("invoices")
+        .select("*")
+        .eq("user_id", user.user.id)
+        .order("issue_date", { ascending: false });
+        
+      if (fallbackError) throw fallbackError;
+      return data as Invoice[];
+    }
   },
   
-  // Get a single invoice by id
   getInvoiceById: async (id: string) => {
     const { data, error } = await supabase
       .from("invoices")
-      .select("*, customers:customer_id(*)")
+      .select(`
+        *,
+        customer:customers(*),
+        items:invoice_items(*)
+      `)
       .eq("id", id)
       .single();
       
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching invoice:", error);
+      throw error;
+    }
     
-    // Get invoice items
-    const { data: items, error: itemsError } = await supabase
-      .from("invoice_items")
-      .select("*")
-      .eq("invoice_id", id);
-      
-    if (itemsError) throw itemsError;
-    
-    return {
-      ...data,
-      invoice_items: items
-    } as Invoice & { invoice_items: InvoiceItem[] };
+    return data as Invoice & { items: InvoiceItem[] };
   },
   
-  // Create a new invoice
-  createInvoice: async (invoice: Omit<Invoice, "id" | "created_at" | "updated_at">, items: Omit<InvoiceItem, "id" | "created_at" | "updated_at" | "invoice_id">[]) => {
+  createInvoice: async (invoice: Omit<Invoice, "id" | "created_at" | "updated_at">, items: Omit<InvoiceItem, "id" | "invoice_id" | "created_at" | "updated_at">[]) => {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error("User not authenticated");
     
     // Start a transaction
-    const { data: newInvoice, error } = await supabase
+    const { data, error } = await supabase
       .from("invoices")
       .insert([{ ...invoice, user_id: user.user.id }])
       .select()
       .single();
       
-    if (error) throw error;
+    if (error) {
+      console.error("Error creating invoice:", error);
+      throw error;
+    }
     
-    // Add invoice items
+    // Now add the items if there are any
     if (items.length > 0) {
-      const formattedItems = items.map(item => ({
+      const itemsWithInvoiceId = items.map(item => ({
         ...item,
-        invoice_id: newInvoice.id,
-        description: item.description || "Item" // Ensure description is never undefined
+        invoice_id: data.id
       }));
       
       const { error: itemsError } = await supabase
         .from("invoice_items")
-        .insert(formattedItems);
+        .insert(itemsWithInvoiceId);
         
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.error("Error creating invoice items:", itemsError);
+        throw itemsError;
+      }
     }
     
-    return newInvoice;
+    return data as Invoice;
   },
   
-  // Update an existing invoice
   updateInvoice: async (id: string, invoice: Partial<Invoice>, items?: Partial<InvoiceItem>[]) => {
-    // Update invoice
+    // Update the invoice
     const { data, error } = await supabase
       .from("invoices")
       .update(invoice)
@@ -84,43 +97,52 @@ export const invoiceService = {
       .select()
       .single();
       
-    if (error) throw error;
-    
-    // Update items if provided
-    if (items && items.length > 0) {
-      // Delete existing items
-      await supabase
-        .from("invoice_items")
-        .delete()
-        .eq("invoice_id", id);
-        
-      // Insert new items
-      const formattedItems = items.map(item => ({
-        ...item,
-        invoice_id: id,
-        description: item.description || "Item" // Ensure description is never undefined
-      }));
-      
-      // Using .upsert() to properly handle inserts
-      const { error: itemsError } = await supabase
-        .from("invoice_items")
-        .upsert(formattedItems);
-        
-      if (itemsError) throw itemsError;
+    if (error) {
+      console.error("Error updating invoice:", error);
+      throw error;
     }
     
-    return data;
+    // Update items if provided
+    if (items) {
+      for (const item of items) {
+        if (item.id) {
+          // Update existing item
+          const { error: updateError } = await supabase
+            .from("invoice_items")
+            .update(item)
+            .eq("id", item.id);
+            
+          if (updateError) {
+            console.error("Error updating invoice item:", updateError);
+            throw updateError;
+          }
+        } else {
+          // Add new item
+          const { error: insertError } = await supabase
+            .from("invoice_items")
+            .insert([{ ...item, invoice_id: id }]);
+            
+          if (insertError) {
+            console.error("Error adding invoice item:", insertError);
+            throw insertError;
+          }
+        }
+      }
+    }
+    
+    return data as Invoice;
   },
   
-  // Delete an invoice
   deleteInvoice: async (id: string) => {
-    // Delete invoice items first (foreign key constraint)
+    // Delete invoice items first (if there are any)
     const { error: itemsError } = await supabase
       .from("invoice_items")
       .delete()
       .eq("invoice_id", id);
       
-    if (itemsError) throw itemsError;
+    if (itemsError) {
+      console.error("Error deleting invoice items:", itemsError);
+    }
     
     // Then delete the invoice
     const { error } = await supabase
@@ -128,21 +150,73 @@ export const invoiceService = {
       .delete()
       .eq("id", id);
       
-    if (error) throw error;
+    if (error) {
+      console.error("Error deleting invoice:", error);
+      throw error;
+    }
+    
     return true;
   },
   
-  // Get customers for dropdown
-  getCustomers: async () => {
+  getInvoiceItems: async (invoiceId: string) => {
+    const { data, error } = await supabase
+      .from("invoice_items")
+      .select("*")
+      .eq("invoice_id", invoiceId)
+      .order("created_at");
+      
+    if (error) {
+      console.error("Error fetching invoice items:", error);
+      throw error;
+    }
+    
+    return data as InvoiceItem[];
+  },
+  
+  deleteInvoiceItem: async (itemId: string) => {
+    const { error } = await supabase
+      .from("invoice_items")
+      .delete()
+      .eq("id", itemId);
+      
+    if (error) {
+      console.error("Error deleting invoice item:", error);
+      throw error;
+    }
+    
+    return true;
+  },
+  
+  // Generate a sequential invoice number
+  generateInvoiceNumber: async () => {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error("User not authenticated");
     
     const { data, error } = await supabase
-      .from("customers")
-      .select("*")
-      .eq("user_id", user.user.id);
+      .from("invoices")
+      .select("invoice_number")
+      .eq("user_id", user.user.id)
+      .order("created_at", { ascending: false })
+      .limit(1);
       
-    if (error) throw error;
-    return data;
+    if (error) {
+      console.error("Error generating invoice number:", error);
+      throw error;
+    }
+    
+    let nextNumber = 1;
+    const prefix = "INV-";
+    
+    if (data && data.length > 0 && data[0].invoice_number) {
+      const lastNumber = data[0].invoice_number;
+      if (lastNumber.startsWith(prefix)) {
+        const num = parseInt(lastNumber.substring(prefix.length), 10);
+        if (!isNaN(num)) {
+          nextNumber = num + 1;
+        }
+      }
+    }
+    
+    return `${prefix}${nextNumber.toString().padStart(4, '0')}`;
   }
 };
