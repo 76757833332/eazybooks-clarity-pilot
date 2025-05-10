@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SubscriptionTier } from "@/contexts/auth/types";
+import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 
 // Interface for user data in the subscription approval list
 interface UserSubscriptionData {
@@ -28,8 +29,44 @@ interface UserSubscriptionData {
 
 const SubscriptionApprovals = () => {
   const { user, profile } = useAuth();
+  const { updateUserSubscription } = useFeatureAccess();
   const [users, setUsers] = useState<UserSubscriptionData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if we need to make Lucky an enterprise user
+    const makeLuckyEnterprise = async () => {
+      const luckyEmail = "richndumbu@gmail.com";
+      
+      // Check if Lucky exists in our data
+      const luckyExists = users.some(user => user.email === luckyEmail);
+      
+      // If Lucky exists in our data but isn't enterprise, update them
+      if (luckyExists) {
+        const lucky = users.find(user => user.email === luckyEmail);
+        if (lucky && lucky.subscription_tier !== 'enterprise') {
+          await handleUpdateSubscription(lucky.id, 'enterprise');
+        }
+      } 
+      // If Lucky doesn't exist in our data yet, add them with enterprise tier
+      else {
+        const newLucky: UserSubscriptionData = {
+          id: "lucky-admin",
+          email: luckyEmail,
+          first_name: "Lucky",
+          last_name: "Ndumbu",
+          subscription_tier: "enterprise",
+          user_id: "lucky-admin"
+        };
+        setUsers(prev => [...prev, newLucky]);
+      }
+    };
+    
+    // If the component has loaded users, check for Lucky
+    if (!isLoading && users.length > 0) {
+      makeLuckyEnterprise();
+    }
+  }, [isLoading, users]);
 
   // Fetch users
   useEffect(() => {
@@ -58,6 +95,15 @@ const SubscriptionApprovals = () => {
             subscription_tier: "free",
             user_id: "user-2"
           },
+          // Add Lucky Ndumbu with enterprise tier
+          {
+            id: "lucky-admin",
+            email: "richndumbu@gmail.com",
+            first_name: "Lucky",
+            last_name: "Ndumbu",
+            subscription_tier: "enterprise",
+            user_id: "lucky-admin"
+          },
           // Add current user to the list for demonstration purposes
           {
             id: user?.id || "current-user",
@@ -83,8 +129,22 @@ const SubscriptionApprovals = () => {
 
   const handleUpdateSubscription = async (userId: string, tier: SubscriptionTier) => {
     try {
-      // In a real app, you would update the user's subscription in the database
-      // For now, we'll just update the local state
+      // Find the user in our local state
+      const userToUpdate = users.find(u => u.id === userId);
+      
+      if (userToUpdate) {
+        // For the specific user we want to ensure is enterprise
+        if (userToUpdate.email === "richndumbu@gmail.com" && tier !== "enterprise") {
+          toast.error("This user must remain on the Enterprise plan");
+          return;
+        }
+        
+        // In a real app, you would update the user's subscription in the database
+        // Try to update using our new function first
+        if (userToUpdate.email) {
+          await updateUserSubscription(userToUpdate.email, tier);
+        }
+      }
       
       // Update subscription in local state
       setUsers((prevUsers) =>
@@ -158,6 +218,7 @@ const SubscriptionApprovals = () => {
                             value as SubscriptionTier
                           )
                         }
+                        disabled={user.email === "richndumbu@gmail.com"} // Disable for Lucky Ndumbu
                       >
                         <SelectTrigger className="w-[140px]">
                           <SelectValue placeholder="Select tier" />
@@ -174,6 +235,7 @@ const SubscriptionApprovals = () => {
                         onClick={() =>
                           handleUpdateSubscription(user.id, user.subscription_tier)
                         }
+                        disabled={user.email === "richndumbu@gmail.com"} // Disable for Lucky Ndumbu
                       >
                         Apply
                       </Button>
