@@ -26,8 +26,9 @@ const AdminGuard: React.FC<AdminGuardProps> = ({
 
   // Check if user is admin (super admin)
   // We consider users with enterprise subscription or business owners as admins
-  const isAdmin = profile?.subscription_tier === 'enterprise' || 
-                  profile?.role === 'business_owner';
+  const isAdmin = 
+    profile?.subscription_tier === 'enterprise' || 
+    (profile?.role === 'business_owner' && profile?.subscription_tier === 'premium');
 
   // If user isn't an admin, redirect
   if (!profile || !isAdmin) {

@@ -9,8 +9,8 @@ const AdminPages: React.FC = () => {
   return (
     <AdminGuard>
       <Routes>
-        <Route index element={<SubscriptionApprovals />} />
-        <Route path="subscriptions" element={<SubscriptionApprovals />} />
+        <Route path="/" element={<SubscriptionApprovals />} />
+        <Route path="/subscriptions" element={<SubscriptionApprovals />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AdminGuard>

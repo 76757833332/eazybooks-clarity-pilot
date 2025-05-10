@@ -27,7 +27,7 @@ interface UserSubscriptionData {
 }
 
 const SubscriptionApprovals = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [users, setUsers] = useState<UserSubscriptionData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -62,9 +62,9 @@ const SubscriptionApprovals = () => {
           {
             id: user?.id || "current-user",
             email: user?.email || "current@example.com",
-            first_name: "Current",
-            last_name: "User",
-            subscription_tier: "free",
+            first_name: profile?.first_name || "Current",
+            last_name: profile?.last_name || "User",
+            subscription_tier: profile?.subscription_tier || "free",
             user_id: user?.id || "current-user"
           }
         ];
@@ -79,7 +79,7 @@ const SubscriptionApprovals = () => {
     };
 
     fetchUsers();
-  }, [user]);
+  }, [user, profile]);
 
   const handleUpdateSubscription = async (userId: string, tier: SubscriptionTier) => {
     try {

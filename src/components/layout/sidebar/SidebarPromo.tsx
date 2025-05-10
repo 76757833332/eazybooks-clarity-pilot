@@ -9,9 +9,8 @@ const SidebarPromo = () => {
   const { profile } = useAuth();
   const [dismissed, setDismissed] = useState(false);
   
-  // Since subscription_tier doesn't exist in the Profile type, let's check if the user has premium status
-  // For now, we'll assume non-premium until the subscription feature is fully implemented
-  const isPremium = false; // This will be replaced with actual subscription logic later
+  // Check if the user has a premium or enterprise subscription
+  const isPremium = profile?.subscription_tier === 'premium' || profile?.subscription_tier === 'enterprise';
   
   if (isPremium || dismissed) return null; // Don't show promo to premium users or if dismissed
 
