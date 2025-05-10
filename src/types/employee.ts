@@ -17,3 +17,5 @@ export type Employee = {
 };
 
 export type NewEmployee = Omit<Employee, 'id' | 'created_at' | 'updated_at'>;
+
+export type UpdateEmployee = Partial<NewEmployee>;

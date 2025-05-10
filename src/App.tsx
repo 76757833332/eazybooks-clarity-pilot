@@ -1,4 +1,3 @@
-
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
@@ -58,6 +57,7 @@ import CreatePayroll from "./pages/payroll/CreatePayroll";
 import EmployeesPage from "./pages/payroll/EmployeesPage";
 import EmployeeDetails from "./pages/payroll/EmployeeDetails";
 import CreateEmployee from "./pages/payroll/CreateEmployee";
+import EditEmployee from "./pages/payroll/EditEmployee";
 
 // Leave Pages
 import LeavesPage from "./pages/leaves/LeavesPage";
@@ -137,7 +137,8 @@ function App() {
                 
                 <Route path="/payroll/employees" element={<EmployeesPage />} />
                 <Route path="/payroll/employees/:id" element={<EmployeeDetails />} />
-                <Route path="/payroll/employees/add" element={<CreateEmployee />} />
+                <Route path="/payroll/employees/create" element={<CreateEmployee />} />
+                <Route path="/payroll/employees/:id/edit" element={<EditEmployee />} />
                 
                 <Route path="/leaves" element={<LeavesPage />} />
                 <Route path="/leaves/apply" element={<ApplyForLeave />} />

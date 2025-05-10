@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -26,16 +25,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { Employee } from "@/types/employee";
-import { supabase } from "@/integrations/supabase/client";
+import { payrollService } from "@/services/payrollService";
 
 const fetchEmployee = async (id: string) => {
-  const { data, error } = await supabase
-    .from("employees")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data, error } = await payrollService.getEmployeeById(id);
 
   if (error) throw error;
   return data as Employee;
@@ -63,15 +58,13 @@ const EmployeeDetails = () => {
 
   const { data: employee, isLoading, error } = useQuery({
     queryKey: ["employee", id],
-    queryFn: () => fetchEmployee(id!),
+    queryFn: () => payrollService.getEmployeeById(id!),
   });
 
   const deleteEmployeeMutation = useMutation({
     mutationFn: async (id: string) => {
       setIsDeleting(true);
-      const { error } = await supabase.from("employees").delete().eq("id", id);
-      if (error) throw error;
-      return id;
+      return payrollService.deleteEmployee(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
@@ -84,7 +77,7 @@ const EmployeeDetails = () => {
     onError: (error) => {
       toast({
         title: "Error deleting employee",
-        description: error.message,
+        description: error instanceof Error ? error.message : "An unknown error occurred",
         variant: "destructive",
       });
       setIsDeleting(false);
@@ -117,7 +110,7 @@ const EmployeeDetails = () => {
   }
 
   return (
-    <AppLayout title={`${employee.first_name} ${employee.last_name}`}>
+    <AppLayout title={`${employee?.first_name} ${employee?.last_name}`}>
       <div className="mb-6 flex items-center justify-end gap-4">
         <Button variant="outline" onClick={() => navigate("/payroll/employees")}>
           Back to Employees

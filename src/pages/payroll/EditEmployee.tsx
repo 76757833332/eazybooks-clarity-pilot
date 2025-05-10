@@ -1,19 +1,19 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+
+import React, { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format, parse } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { NewEmployee } from "@/types/employee";
+import { Employee, UpdateEmployee } from "@/types/employee";
 import { payrollService } from "@/services/payrollService";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -35,6 +35,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -55,8 +56,17 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const CreateEmployee = () => {
+const EditEmployee = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { data: employee, isLoading } = useQuery({
+    queryKey: ["employee", id],
+    queryFn: () => payrollService.getEmployeeById(id!),
+    enabled: !!id,
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -73,27 +83,53 @@ const CreateEmployee = () => {
     },
   });
 
-  const mutation = useMutation({
-    mutationFn: payrollService.createEmployee,
-    onSuccess: (data) => {
-      toast({
-        title: "Employee created",
-        description: "The employee has been created successfully.",
+  React.useEffect(() => {
+    if (employee) {
+      form.reset({
+        firstName: employee.first_name,
+        lastName: employee.last_name,
+        email: employee.email,
+        phone: employee.phone || "",
+        position: employee.position,
+        department: employee.department || "",
+        hireDate: parse(employee.hire_date, "yyyy-MM-dd", new Date()),
+        salary: employee.salary.toString(),
+        hourlyRate: employee.hourly_rate ? employee.hourly_rate.toString() : "",
+        status: employee.status,
       });
-      navigate(`/payroll/employees/${data.id}`);
+    }
+  }, [employee, form]);
+
+  const mutation = useMutation({
+    mutationFn: (data: UpdateEmployee) => {
+      setIsSubmitting(true);
+      return payrollService.updateEmployee(id!, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["employee", id] });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      toast({
+        title: "Employee updated",
+        description: "The employee has been updated successfully.",
+      });
+      navigate(`/payroll/employees/${id}`);
     },
     onError: (error) => {
+      console.error("Error updating employee:", error);
       toast({
         title: "Error",
-        description: "Failed to create employee. Please try again.",
+        description: "Failed to update employee. Please try again.",
         variant: "destructive",
       });
-      console.error("Error creating employee:", error);
+      setIsSubmitting(false);
+    },
+    onSettled: () => {
+      setIsSubmitting(false);
     },
   });
 
   const onSubmit = (values: FormValues) => {
-    const newEmployee: NewEmployee = {
+    const updatedEmployee: UpdateEmployee = {
       first_name: values.firstName,
       last_name: values.lastName,
       email: values.email,
@@ -104,14 +140,45 @@ const CreateEmployee = () => {
       salary: parseFloat(values.salary),
       hourly_rate: values.hourlyRate ? parseFloat(values.hourlyRate) : undefined,
       status: values.status,
-      user_id: "" // Will be populated by the service
     };
 
-    mutation.mutate(newEmployee);
+    mutation.mutate(updatedEmployee);
   };
 
+  if (isLoading) {
+    return (
+      <AppLayout title="Edit Employee">
+        <div className="flex justify-center py-12">Loading employee data...</div>
+      </AppLayout>
+    );
+  }
+
+  if (!employee) {
+    return (
+      <AppLayout title="Edit Employee">
+        <div className="flex flex-col items-center justify-center py-12">
+          <p>Employee not found</p>
+          <Button onClick={() => navigate("/payroll/employees")} className="mt-4">
+            Back to Employees
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
-    <AppLayout title="Add New Employee">
+    <AppLayout title="Edit Employee">
+      <div className="mb-6 flex flex-row justify-between">
+        <h1 className="text-2xl font-bold">
+          Edit Employee: {employee.first_name} {employee.last_name}
+        </h1>
+        <Button variant="outline" onClick={() => navigate(`/payroll/employees/${id}`)}>
+          Cancel
+        </Button>
+      </div>
+
+      <Separator className="my-4" />
+
       <div className="mx-auto max-w-3xl">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -314,12 +381,12 @@ const CreateEmployee = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate("/payroll/employees")}
+                onClick={() => navigate(`/payroll/employees/${id}`)}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Creating..." : "Create Employee"}
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </form>
@@ -329,4 +396,4 @@ const CreateEmployee = () => {
   );
 };
 
-export default CreateEmployee;
+export default EditEmployee;
