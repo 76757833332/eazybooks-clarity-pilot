@@ -108,9 +108,15 @@ export const invoiceService = {
       for (const item of items) {
         if (item.id) {
           // Update existing item
+          // Ensure description is provided since it's required
+          const itemToUpdate = {
+            ...item,
+            description: item.description || '' // Provide a default value if description is not set
+          };
+          
           const { error: updateError } = await supabase
             .from("invoice_items")
-            .update(item)
+            .update(itemToUpdate)
             .eq("id", item.id);
             
           if (updateError) {
@@ -119,9 +125,16 @@ export const invoiceService = {
           }
         } else {
           // Add new item
+          // Ensure all required fields are provided for new items
+          const newItem = {
+            ...item,
+            invoice_id: id,
+            description: item.description || '' // Provide a default value if description is not set
+          };
+          
           const { error: insertError } = await supabase
             .from("invoice_items")
-            .insert([{ ...item, invoice_id: id }]);
+            .insert([newItem]);
             
           if (insertError) {
             console.error("Error adding invoice item:", insertError);
