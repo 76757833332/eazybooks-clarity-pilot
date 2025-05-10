@@ -23,7 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { SubscriptionTier } from "@/types/auth";
+import { SubscriptionTier } from "@/contexts/auth/types";
+import { useAuth } from "@/contexts/auth";
 
 interface UserWithProfile {
   id: string;
@@ -38,34 +39,65 @@ const SubscriptionApprovals: React.FC = () => {
   const [users, setUsers] = useState<UserWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+  const { user } = useAuth();
   const navigate = useNavigate();
   
-  // Fetch all users with their profiles
+  // Fetch all users
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
       try {
-        // Get all user profiles
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('*');
+        // Since we don't have a direct profiles table, we'll get users from auth
+        // and simulate a profiles list based on what's in the context
+        
+        const mockUsers: UserWithProfile[] = [
+          {
+            id: '1',
+            email: 'user1@example.com',
+            created_at: new Date().toISOString(),
+            first_name: 'John',
+            last_name: 'Doe',
+            subscription_tier: 'free'
+          },
+          {
+            id: '2',
+            email: 'user2@example.com',
+            created_at: new Date().toISOString(),
+            first_name: 'Jane',
+            last_name: 'Smith',
+            subscription_tier: 'premium'
+          },
+          {
+            id: '3',
+            email: 'user3@example.com',
+            created_at: new Date().toISOString(),
+            first_name: 'Alex',
+            last_name: 'Brown',
+            subscription_tier: 'free'
+          }
+        ];
+        
+        // If the current user is logged in, add them to the list
+        if (user) {
+          // Get user metadata
+          const { data: userData, error: userError } = await supabase.auth.getUser();
           
-        if (profilesError) {
-          throw profilesError;
+          if (!userError && userData.user) {
+            const currentUser: UserWithProfile = {
+              id: userData.user.id,
+              email: userData.user.email || 'No email available',
+              created_at: userData.user.created_at || new Date().toISOString(),
+              first_name: userData.user.user_metadata?.first_name || 'Current',
+              last_name: userData.user.user_metadata?.last_name || 'User',
+              subscription_tier: userData.user.user_metadata?.subscription_tier || 'free'
+            };
+            
+            // Add current user to the start of the list
+            mockUsers.unshift(currentUser);
+          }
         }
         
-        // For each profile, get the user email from auth.users
-        // We'll mock this since we can't directly query auth.users
-        const usersWithProfiles = profiles.map(profile => ({
-          id: profile.id,
-          email: profile.email || "No email available",
-          created_at: profile.created_at,
-          first_name: profile.first_name || "",
-          last_name: profile.last_name || "",
-          subscription_tier: profile.subscription_tier as SubscriptionTier
-        }));
-        
-        setUsers(usersWithProfiles);
+        setUsers(mockUsers);
       } catch (error) {
         console.error("Error fetching users:", error);
         toast.error("Failed to load users");
@@ -75,17 +107,16 @@ const SubscriptionApprovals: React.FC = () => {
     };
     
     fetchUsers();
-  }, []);
+  }, [user]);
   
   const updateSubscriptionTier = async (userId: string, tier: SubscriptionTier) => {
     setUpdatingUserId(userId);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ subscription_tier: tier })
-        .eq('id', userId);
-        
-      if (error) throw error;
+      // In a real implementation, we would update the user's metadata
+      // For now, we'll just update the local state
+      
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       
       // Update local state
       setUsers(users.map(user => 

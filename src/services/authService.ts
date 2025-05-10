@@ -25,6 +25,8 @@ export async function fetchUserProfile(userId: string): Promise<Profile | null> 
       belongs_to_business_id: user.user?.user_metadata?.belongs_to_business_id || null,
       created_at: user.user?.created_at || new Date().toISOString(),
       updated_at: user.user?.updated_at || new Date().toISOString(),
+      subscription_tier: (user.user?.user_metadata?.subscription_tier as 'free' | 'premium' | 'enterprise') || 'free',
+      email: user.user?.email
     };
 
     return profile;

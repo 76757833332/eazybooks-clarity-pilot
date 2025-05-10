@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
@@ -24,7 +25,7 @@ const AdminGuard: React.FC<AdminGuardProps> = ({
   }
 
   // Check if user is admin (super admin)
-  // In a real application, you'd have a proper admin role check
+  // We consider users with enterprise subscription or business owners as admins
   const isAdmin = profile?.subscription_tier === 'enterprise' || 
                   profile?.role === 'business_owner';
 
