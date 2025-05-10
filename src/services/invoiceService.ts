@@ -18,7 +18,7 @@ export const invoiceService = {
         .order("issue_date", { ascending: false });
         
       if (error) throw error;
-      return data as Invoice[];
+      return data as unknown as Invoice[]; // Using unknown as an intermediate type
     } catch (error) {
       console.error("Error fetching invoices:", error);
       // If there's an error with the join query, fall back to just invoices
@@ -29,7 +29,7 @@ export const invoiceService = {
         .order("issue_date", { ascending: false });
         
       if (fallbackError) throw fallbackError;
-      return data as Invoice[];
+      return data as unknown as Invoice[];
     }
   },
   
@@ -49,7 +49,7 @@ export const invoiceService = {
       throw error;
     }
     
-    return data as Invoice & { items: InvoiceItem[] };
+    return data as unknown as Invoice & { items: InvoiceItem[] };
   },
   
   createInvoice: async (invoice: Omit<Invoice, "id" | "created_at" | "updated_at">, items: Omit<InvoiceItem, "id" | "invoice_id" | "created_at" | "updated_at">[]) => {
@@ -72,12 +72,13 @@ export const invoiceService = {
     if (items.length > 0) {
       const itemsWithInvoiceId = items.map(item => ({
         ...item,
-        invoice_id: data.id
+        invoice_id: data.id,
+        description: item.description || '' // Ensure description is always provided
       }));
       
       const { error: itemsError } = await supabase
         .from("invoice_items")
-        .insert(itemsWithInvoiceId);
+        .insert(itemsWithInvoiceId as any[]);
         
       if (itemsError) {
         console.error("Error creating invoice items:", itemsError);
