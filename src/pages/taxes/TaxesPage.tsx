@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { taxService } from "@/services/taxService";
 import { formatCurrency } from "@/lib/utils";
 import { Tax, TaxCategory, TaxStatus } from "@/types/tax";
+import { supabase } from "@/integrations/supabase/client";
 
 const statusColors: Record<TaxStatus, string> = {
   pending: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200",

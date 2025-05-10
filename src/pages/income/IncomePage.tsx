@@ -10,35 +10,18 @@ import { Badge } from "@/components/ui/badge";
 import { getIncomes } from "@/services/incomeService";
 import { formatCurrency } from "@/lib/utils";
 import { IncomeSource, IncomeStatus, Income } from "@/types/income";
-import { supabase } from "@/integrations/supabase/client";
 
 const IncomePage: React.FC = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<string | null>(null);
   
-  const { data: incomes, isLoading, error } = useQuery({
+  const { data: incomes = [], isLoading, error } = useQuery({
     queryKey: ["incomes", filter],
-    queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("User not authenticated");
-      
-      const { data, error } = await supabase
-        .from("incomes")
-        .select("*")
-        .eq("user_id", user.user.id)
-        .order("income_date", { ascending: false });
-        
-      if (error) {
-        console.error("Error fetching incomes:", error);
-        throw error;
-      }
-      
-      return data as Income[];
-    },
+    queryFn: getIncomes
   });
 
   const filteredIncomes = filter 
-    ? incomes?.filter(income => income.source === filter)
+    ? incomes.filter(income => income.source === filter)
     : incomes;
 
   // Calculate total income (received only)
@@ -108,6 +91,7 @@ const IncomePage: React.FC = () => {
   };
 
   return (
+    
     <AppLayout title="Income">
       <div className="space-y-6">
         {/* Summary Cards */}

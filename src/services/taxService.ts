@@ -2,6 +2,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Tax } from "@/types/tax";
 
+// Define the CreateTaxInput type that was missing
+export type CreateTaxInput = Omit<Tax, "id" | "created_at" | "updated_at">;
+
 export const taxService = {
   getTaxes: async () => {
     const { data: user } = await supabase.auth.getUser();
