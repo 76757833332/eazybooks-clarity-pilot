@@ -30,10 +30,8 @@ import { Employee } from "@/types/employee";
 import { payrollService } from "@/services/payrollService";
 
 const fetchEmployee = async (id: string) => {
-  const { data, error } = await payrollService.getEmployeeById(id);
-
-  if (error) throw error;
-  return data as Employee;
+  const employee = await payrollService.getEmployeeById(id);
+  return employee;
 };
 
 const formatCurrency = (amount: number) => {
@@ -58,7 +56,7 @@ const EmployeeDetails = () => {
 
   const { data: employee, isLoading, error } = useQuery({
     queryKey: ["employee", id],
-    queryFn: () => payrollService.getEmployeeById(id!),
+    queryFn: () => fetchEmployee(id!),
   });
 
   const deleteEmployeeMutation = useMutation({
