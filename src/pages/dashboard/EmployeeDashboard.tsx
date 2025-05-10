@@ -1,9 +1,12 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import AppLayout from "@/components/layout/AppLayout";
 import MetricCard from "@/components/dashboard/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Clock, CalendarDays } from "lucide-react";
+import { CheckCircle, Clock, CalendarDays, Lock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const EmployeeDashboard = () => {
   const { user, profile } = useAuth();
@@ -22,6 +25,18 @@ const EmployeeDashboard = () => {
     { id: 3, title: "Project Deadline", date: "2023-05-20" },
   ];
 
+  // Function to get badge color based on subscription tier
+  const getSubscriptionBadgeColor = () => {
+    switch (profile?.subscription_tier) {
+      case 'premium':
+        return 'bg-amber-500';
+      case 'enterprise':
+        return 'bg-purple-600';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority.toLowerCase()) {
       case "high":
@@ -35,12 +50,27 @@ const EmployeeDashboard = () => {
     }
   };
 
+  // Function to check if a feature is available based on subscription
+  const isFeatureAvailable = (requiredTier: 'free' | 'premium' | 'enterprise') => {
+    const tierHierarchy = { 'free': 0, 'premium': 1, 'enterprise': 2 };
+    const userTier = profile?.subscription_tier || 'free';
+    
+    return tierHierarchy[userTier] >= tierHierarchy[requiredTier];
+  };
+
   return (
     <AppLayout title="Employee Dashboard">
       <div className="mb-6 flex flex-col gap-1">
-        <h1 className="text-3xl font-bold">
-          Welcome back, {profile?.first_name || user?.email}
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold">
+            Welcome back, {profile?.first_name || user?.email}
+          </h1>
+          {profile?.subscription_tier && (
+            <Badge className={getSubscriptionBadgeColor()}>
+              {profile.subscription_tier.charAt(0).toUpperCase() + profile.subscription_tier.slice(1)}
+            </Badge>
+          )}
+        </div>
         <p className="text-muted-foreground">
           Employee Dashboard
         </p>
@@ -172,6 +202,28 @@ const EmployeeDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {!isFeatureAvailable('premium') && (
+        <Card className="mt-6 border-amber-500/30 bg-amber-50/10">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Lock size={18} className="text-amber-500" />
+              <span className="text-amber-700">Premium Features Locked</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              Ask your manager to upgrade to Premium or Enterprise to unlock:
+            </p>
+            <ul className="list-disc ml-5 text-sm space-y-1 text-muted-foreground">
+              <li>Advanced time tracking</li>
+              <li>Project management tools</li>
+              <li>Detailed performance metrics</li>
+              <li>Automated leave management</li>
+            </ul>
+          </CardContent>
+        </Card>
+      )}
     </AppLayout>
   );
 };

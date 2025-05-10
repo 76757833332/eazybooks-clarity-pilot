@@ -8,9 +8,10 @@ import PerformanceChart from "@/components/dashboard/PerformanceChart";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
 import QuickActions from "@/components/dashboard/QuickActions";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Crown, Settings } from "lucide-react";
+import { PlusCircle, Crown, Settings, Lock } from "lucide-react";
 import InviteUserModal from "@/components/invite/InviteUserModal";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const BusinessOwnerDashboard = () => {
   const { user, profile, business } = useAuth();
@@ -57,6 +58,14 @@ const BusinessOwnerDashboard = () => {
     }
   };
 
+  // Function to check if a feature is available based on subscription
+  const isFeatureAvailable = (requiredTier: 'free' | 'premium' | 'enterprise') => {
+    const tierHierarchy = { 'free': 0, 'premium': 1, 'enterprise': 2 };
+    const userTier = profile?.subscription_tier || 'free';
+    
+    return tierHierarchy[userTier] >= tierHierarchy[requiredTier];
+  };
+
   return (
     <AppLayout title="Business Dashboard">
       <div className="mb-6 flex flex-col gap-1">
@@ -64,7 +73,7 @@ const BusinessOwnerDashboard = () => {
           <h1 className="text-3xl font-bold">
             Welcome back, {profile?.first_name || user?.email}
           </h1>
-          {profile?.subscription_tier && profile.subscription_tier !== 'free' && (
+          {profile?.subscription_tier && (
             <Badge className={getSubscriptionBadgeColor()}>
               {profile.subscription_tier.charAt(0).toUpperCase() + profile.subscription_tier.slice(1)}
             </Badge>
@@ -98,6 +107,18 @@ const BusinessOwnerDashboard = () => {
             <PlusCircle size={16} />
             Invite User
           </Button>
+          {!isFeatureAvailable('premium') && (
+            <Button
+              variant="outline"
+              className="flex items-center gap-1 border-amber-500 text-amber-500"
+              asChild
+            >
+              <Link to="/upgrade">
+                <Lock size={16} />
+                Upgrade Plan
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -134,6 +155,37 @@ const BusinessOwnerDashboard = () => {
           <RecentTransactions transactions={transactions} />
         </div>
       </div>
+
+      {!isFeatureAvailable('premium') && (
+        <Card className="mt-6 border-amber-500/30 bg-amber-50/10">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Lock size={18} className="text-amber-500" />
+              <span className="text-amber-700">Premium Features Locked</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              Upgrade to Premium or Enterprise to unlock advanced features:
+            </p>
+            <ul className="list-disc ml-5 text-sm space-y-1 text-muted-foreground">
+              <li>Advanced reporting and analytics</li>
+              <li>Payroll management</li>
+              <li>AI-powered financial insights</li>
+              <li>Unlimited team members</li>
+              <li>Priority support</li>
+            </ul>
+            <Button 
+              className="mt-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+              asChild
+            >
+              <Link to="/upgrade">
+                Upgrade Now
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <InviteUserModal 
         isOpen={isInviteModalOpen}

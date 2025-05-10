@@ -1,12 +1,13 @@
-
 import React from "react";
 import { useAuth } from "@/contexts/auth";
 import AppLayout from "@/components/layout/AppLayout";
 import MetricCard from "@/components/dashboard/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, PlusCircle, Clock, Package } from "lucide-react";
+import { FileText, PlusCircle, Clock, Package, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 
 const ClientDashboard = () => {
   const { user, profile } = useAuth();
@@ -22,6 +23,18 @@ const ClientDashboard = () => {
     { id: "INV-001", amount: "$2,500", status: "Paid", date: "2023-04-15", downloadUrl: "#" },
     { id: "INV-002", amount: "$1,800", status: "Pending", date: "2023-05-01", downloadUrl: "#" },
   ];
+
+  // Function to get badge color based on subscription tier
+  const getSubscriptionBadgeColor = () => {
+    switch (profile?.subscription_tier) {
+      case 'premium':
+        return 'bg-amber-500';
+      case 'enterprise':
+        return 'bg-purple-600';
+      default:
+        return 'bg-gray-500';
+    }
+  };
 
   const getProjectStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -49,12 +62,27 @@ const ClientDashboard = () => {
     }
   };
 
+  // Function to check if a feature is available based on subscription
+  const isFeatureAvailable = (requiredTier: 'free' | 'premium' | 'enterprise') => {
+    const tierHierarchy = { 'free': 0, 'premium': 1, 'enterprise': 2 };
+    const userTier = profile?.subscription_tier || 'free';
+    
+    return tierHierarchy[userTier] >= tierHierarchy[requiredTier];
+  };
+
   return (
     <AppLayout title="Client Dashboard">
       <div className="mb-6 flex flex-col gap-1">
-        <h1 className="text-3xl font-bold">
-          Welcome back, {profile?.first_name || user?.email}
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold">
+            Welcome back, {profile?.first_name || user?.email}
+          </h1>
+          {profile?.subscription_tier && (
+            <Badge className={getSubscriptionBadgeColor()}>
+              {profile.subscription_tier.charAt(0).toUpperCase() + profile.subscription_tier.slice(1)}
+            </Badge>
+          )}
+        </div>
         <p className="text-muted-foreground">
           Client Dashboard
         </p>
@@ -86,14 +114,28 @@ const ClientDashboard = () => {
 
       <div className="flex justify-between mb-6">
         <h2 className="text-xl font-semibold">Your Projects</h2>
-        <Button
-          onClick={() => navigate("/projects/job-requests/create")}
-          variant="outline"
-          className="flex items-center gap-1 border-eazybooks-purple text-eazybooks-purple"
-        >
-          <PlusCircle size={16} />
-          New Job Request
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => navigate("/projects/job-requests/create")}
+            variant="outline"
+            className="flex items-center gap-1 border-eazybooks-purple text-eazybooks-purple"
+          >
+            <PlusCircle size={16} />
+            New Job Request
+          </Button>
+          {!isFeatureAvailable('premium') && (
+            <Button
+              variant="outline"
+              className="flex items-center gap-1 border-amber-500 text-amber-500"
+              asChild
+            >
+              <Link to="/upgrade">
+                <Lock size={16} />
+                Upgrade
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -259,6 +301,37 @@ const ClientDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {!isFeatureAvailable('premium') && (
+        <Card className="mt-6 border-amber-500/30 bg-amber-50/10">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Lock size={18} className="text-amber-500" />
+              <span className="text-amber-700">Premium Features Locked</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              Upgrade to Premium or Enterprise to unlock:
+            </p>
+            <ul className="list-disc ml-5 text-sm space-y-1 text-muted-foreground">
+              <li>Unlimited project requests</li>
+              <li>Priority project handling</li>
+              <li>Custom project templates</li>
+              <li>Advanced project reporting</li>
+              <li>Dedicated account manager</li>
+            </ul>
+            <Button 
+              className="mt-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+              asChild
+            >
+              <Link to="/upgrade">
+                Upgrade Now
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </AppLayout>
   );
 };

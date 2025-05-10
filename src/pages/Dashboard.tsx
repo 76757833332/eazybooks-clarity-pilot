@@ -5,6 +5,8 @@ import BusinessOwnerDashboard from "@/pages/dashboard/BusinessOwnerDashboard";
 import EmployeeDashboard from "@/pages/dashboard/EmployeeDashboard";
 import ClientDashboard from "@/pages/dashboard/ClientDashboard";
 import { Spinner } from "@/components/ui/spinner";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const { profile, loading } = useAuth();
@@ -17,6 +19,18 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  // Get the subscription badge class based on tier
+  const getSubscriptionBadgeClass = () => {
+    switch (profile?.subscription_tier) {
+      case "premium":
+        return "bg-amber-500";
+      case "enterprise":
+        return "bg-purple-600";
+      default:
+        return "bg-gray-500";
+    }
+  };
 
   // Render different dashboard based on user role
   switch (profile?.role) {
