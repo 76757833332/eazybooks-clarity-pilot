@@ -1,3 +1,4 @@
+
 import { User, Session } from '@supabase/supabase-js';
 
 export type UserRole = 'business_owner' | 'employee' | 'client';
@@ -14,7 +15,8 @@ export interface Profile {
   belongs_to_business_id?: string;
   created_at: string;
   updated_at: string;
-  subscription_tier?: SubscriptionTier;
+  subscription_tier: SubscriptionTier;
+  email?: string;
 }
 
 export interface Business {

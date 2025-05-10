@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import AppLayout from "@/components/layout/AppLayout";
 import MetricCard from "@/components/dashboard/MetricCard";
@@ -7,8 +8,9 @@ import PerformanceChart from "@/components/dashboard/PerformanceChart";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
 import QuickActions from "@/components/dashboard/QuickActions";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Crown, Settings } from "lucide-react";
 import InviteUserModal from "@/components/invite/InviteUserModal";
+import { Badge } from "@/components/ui/badge";
 
 const BusinessOwnerDashboard = () => {
   const { user, profile, business } = useAuth();
@@ -39,27 +41,64 @@ const BusinessOwnerDashboard = () => {
     }
   ];
 
+  // Check if user has admin privileges
+  const isAdmin = profile?.subscription_tier === 'enterprise' || 
+                  profile?.role === 'business_owner';
+
+  // Function to get badge color based on subscription tier
+  const getSubscriptionBadgeColor = () => {
+    switch (profile?.subscription_tier) {
+      case 'premium':
+        return 'bg-amber-500';
+      case 'enterprise':
+        return 'bg-purple-600';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
   return (
     <AppLayout title="Business Dashboard">
       <div className="mb-6 flex flex-col gap-1">
-        <h1 className="text-3xl font-bold">
-          Welcome back, {profile?.first_name || user?.email}
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold">
+            Welcome back, {profile?.first_name || user?.email}
+          </h1>
+          {profile?.subscription_tier && profile.subscription_tier !== 'free' && (
+            <Badge className={getSubscriptionBadgeColor()}>
+              {profile.subscription_tier.charAt(0).toUpperCase() + profile.subscription_tier.slice(1)}
+            </Badge>
+          )}
+        </div>
         <p className="text-muted-foreground">
           {business?.name || "Your Business"} · Business Owner Dashboard
         </p>
       </div>
 
-      <div className="flex justify-between mb-6">
+      <div className="flex flex-wrap gap-4 justify-between mb-6">
         <h2 className="text-xl font-semibold">Business Overview</h2>
-        <Button
-          onClick={() => setIsInviteModalOpen(true)}
-          variant="outline"
-          className="flex items-center gap-1 border-eazybooks-purple text-eazybooks-purple"
-        >
-          <PlusCircle size={16} />
-          Invite User
-        </Button>
+        <div className="flex gap-2">
+          {isAdmin && (
+            <Button
+              variant="outline"
+              className="flex items-center gap-1 border-eazybooks-purple text-eazybooks-purple"
+              asChild
+            >
+              <Link to="/admin/subscriptions">
+                <Crown size={16} />
+                Manage Subscriptions
+              </Link>
+            </Button>
+          )}
+          <Button
+            onClick={() => setIsInviteModalOpen(true)}
+            variant="outline"
+            className="flex items-center gap-1 border-eazybooks-purple text-eazybooks-purple"
+          >
+            <PlusCircle size={16} />
+            Invite User
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

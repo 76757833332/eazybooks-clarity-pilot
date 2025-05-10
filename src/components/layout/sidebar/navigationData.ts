@@ -1,61 +1,157 @@
 
-import {
-  Home,
-  Building2,
-  FileText,
-  FileDown,
-  Users,
-  Receipt,
-  CreditCard,
-  CalendarClock,
-  BarChart3,
-  Settings,
-  CalendarDays,
-  Briefcase,
-  TrendingUp
-} from "lucide-react";
+import { BarChart3, CreditCard, FileCog, FileSpreadsheet, FolderKanban, Home, LucideIcon, Package, Receipt, Settings, Users, DollarSign, Calendar, Briefcase, FileCheck, MessageCircle, PanelLeft, Wallet, CreditCard as CreditCardIcon, Building2, Crown } from "lucide-react";
 
-export type SidebarLinkType = {
-  icon: React.ElementType;
+export interface SidebarLinkGroup {
   label: string;
   path: string;
-  subItems?: {
-    label: string;
-    path: string;
-    icon?: React.ElementType;
-  }[];
-};
+  icon: LucideIcon;
+  badge?: string;
+  subItems?: SidebarLink[];
+}
 
-export const sidebarLinks: SidebarLinkType[] = [
-  { icon: Home, label: "Dashboard", path: "/dashboard" },
-  { icon: Building2, label: "Bank", path: "/bank" },
-  { icon: FileDown, label: "Income", path: "/income" },
-  { icon: FileText, label: "Expenses", path: "/expenses" },
-  { icon: Users, label: "Customers", path: "/customers" },
-  { icon: Receipt, label: "Invoices", path: "/invoices" },
-  { icon: CreditCard, label: "Taxes", path: "/taxes" },
-  { 
-    icon: CalendarClock, 
-    label: "Payroll", 
-    path: "/payroll",
+export type SidebarLink = SidebarLinkGroup;
+
+export const sidebarLinks: SidebarLink[] = [
+  {
+    label: "Dashboard",
+    path: "/dashboard",
+    icon: Home
+  },
+  {
+    label: "Customers",
+    path: "/customers",
+    icon: Users,
     subItems: [
-      { label: "Payroll Records", path: "/payroll" },
-      { label: "Employees", path: "/payroll/employees" },
+      {
+        label: "All Customers",
+        path: "/customers",
+        icon: Users
+      },
+      {
+        label: "Add Customer",
+        path: "/customers/add",
+        icon: Users
+      }
     ]
   },
-  { icon: CalendarDays, label: "Leave", path: "/leaves" },
-  // Project management section
-  { 
-    icon: Briefcase, 
-    label: "Projects", 
+  {
+    label: "Invoices",
+    path: "/invoices",
+    icon: FileSpreadsheet,
+    subItems: [
+      {
+        label: "All Invoices",
+        path: "/invoices",
+        icon: FileSpreadsheet
+      },
+      {
+        label: "Create Invoice",
+        path: "/invoices/create",
+        icon: FileSpreadsheet
+      }
+    ]
+  },
+  {
+    label: "Banking",
+    path: "/bank",
+    icon: Building2
+  },
+  {
+    label: "Projects",
     path: "/projects",
+    icon: FolderKanban,
     subItems: [
-      { label: "All Projects", path: "/projects" },
-      { label: "Job Requests", path: "/projects/job-requests" },
-      { label: "Tasks", path: "/projects/tasks" },
-      { label: "Services", path: "/projects/services" },
+      {
+        label: "All Projects",
+        path: "/projects",
+        icon: FolderKanban
+      },
+      {
+        label: "Create Project",
+        path: "/projects/create",
+        icon: FolderKanban
+      },
+      {
+        label: "Job Requests",
+        path: "/projects/job-requests",
+        icon: MessageCircle
+      },
+      {
+        label: "Services",
+        path: "/projects/services",
+        icon: Package
+      },
+      {
+        label: "Tasks",
+        path: "/projects/tasks",
+        icon: FileCheck
+      }
     ]
   },
-  { icon: BarChart3, label: "Reports", path: "/reports" },
-  { icon: TrendingUp, label: "Upgrade", path: "/upgrade" },
+  {
+    label: "Income",
+    path: "/income",
+    icon: DollarSign
+  },
+  {
+    label: "Expenses",
+    path: "/expenses",
+    icon: CreditCard
+  },
+  {
+    label: "Reports",
+    path: "/reports",
+    icon: BarChart3
+  },
+  {
+    label: "Taxes",
+    path: "/taxes",
+    icon: Receipt
+  },
+  {
+    label: "Payroll",
+    path: "/payroll",
+    icon: Wallet,
+    subItems: [
+      {
+        label: "Payroll",
+        path: "/payroll",
+        icon: CreditCardIcon
+      },
+      {
+        label: "Employees",
+        path: "/payroll/employees",
+        icon: Briefcase
+      },
+      {
+        label: "Leave Management",
+        path: "/leaves",
+        icon: Calendar
+      }
+    ]
+  },
+  {
+    label: "Settings",
+    path: "/settings",
+    icon: Settings
+  },
+  {
+    label: "Upgrade",
+    path: "/upgrade",
+    icon: Crown,
+    badge: "New"
+  },
+  // Add Admin section with subscription approvals
+  {
+    label: "Admin",
+    path: "/admin",
+    icon: FileCog,
+    subItems: [
+      {
+        label: "Subscription Approvals",
+        path: "/admin/subscriptions",
+        icon: Crown
+      }
+    ]
+  }
 ];
