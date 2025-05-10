@@ -1,26 +1,40 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 
 const SidebarPromo = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const [dismissed, setDismissed] = useState(false);
   
   // Since subscription_tier doesn't exist in the Profile type, let's check if the user has premium status
   // For now, we'll assume non-premium until the subscription feature is fully implemented
   const isPremium = false; // This will be replaced with actual subscription logic later
   
-  if (isPremium) return null; // Don't show promo to premium users
+  if (isPremium || dismissed) return null; // Don't show promo to premium users or if dismissed
 
   const handleUpgradeClick = () => {
-    // Direct link to Professional plan checkout
-    window.location.href = "https://eazybooks.lemonsqueezy.com/buy/0e97cccf-68b2-4e16-8af9-92ddb21c904f";
+    // Navigate to the upgrade page instead of direct checkout
+    navigate("/upgrade");
+  };
+  
+  const handleDismiss = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDismissed(true);
   };
   
   return (
-    <div className="mx-3 mb-3 rounded-lg bg-eazybooks-purple bg-opacity-20 p-4">
+    <div className="mx-3 mb-3 rounded-lg bg-eazybooks-purple bg-opacity-20 p-4 relative">
+      <button 
+        onClick={handleDismiss}
+        className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
+        aria-label="Dismiss"
+      >
+        <X size={16} />
+      </button>
+      
       <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-eazybooks-purple">
         <Sparkles size={16} className="text-eazybooks-purple" />
         EazyBooks Pro

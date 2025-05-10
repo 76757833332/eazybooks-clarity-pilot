@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, Loader2 } from "lucide-react";
@@ -67,7 +66,7 @@ const UpgradePage = () => {
       ],
       buttonText: "Upgrade Now",
       popular: true,
-      checkoutUrl: "https://eazybooks.lemonsqueezy.com/buy/0e97cccf-68b2-4e16-8af9-92ddb21c904f"
+      checkoutUrl: "https://eazybooks.lemonsqueezy.com/buy/d58cf4a3-d41c-45df-a983-5ace391c0e24"
     },
     {
       name: "Enterprise",
