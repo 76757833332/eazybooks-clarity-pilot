@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -56,6 +55,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import KanbanBoard from "@/components/kanban/KanbanBoard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TaskStatusBadge = ({ status }: { status: string }) => {
   const statusMap = {
@@ -98,6 +99,7 @@ const TasksPage: React.FC = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [viewMode, setViewMode] = useState("list");
 
   // Fetch tasks
   const { data: tasks = [], isLoading, refetch } = useQuery({
@@ -207,21 +209,29 @@ const TasksPage: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Select 
-              value={statusFilter} 
-              onValueChange={setStatusFilter}
-            >
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="todo">To Do</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="review">Review</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
+            <Tabs value={viewMode} onValueChange={setViewMode} className="w-full sm:w-auto">
+              <TabsList className="bg-background/5">
+                <TabsTrigger value="list">List</TabsTrigger>
+                <TabsTrigger value="board">Board</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            {viewMode === "list" && (
+              <Select 
+                value={statusFilter} 
+                onValueChange={setStatusFilter}
+              >
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="todo">To Do</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="review">Review</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <Button 
             onClick={() => navigate("/projects/tasks/create")}
@@ -240,174 +250,184 @@ const TasksPage: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <div className="flex justify-center py-8">Loading tasks...</div>
-            ) : filteredTasks.length === 0 ? (
-              <div className="text-center py-8">
-                {searchTerm || statusFilter !== "all"
-                  ? "No tasks match your search criteria." 
-                  : "No tasks found. Create your first task to get started."}
-              </div>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Task</TableHead>
-                      <TableHead className="hidden md:table-cell">Project</TableHead>
-                      <TableHead className="hidden lg:table-cell">Due Date</TableHead>
-                      <TableHead className="hidden md:table-cell">Status</TableHead>
-                      <TableHead className="hidden md:table-cell">Priority</TableHead>
-                      <TableHead className="hidden xl:table-cell">Assigned To</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredTasks.map((task) => (
-                      <TableRow 
-                        key={task.id} 
-                        className={`cursor-pointer ${
-                          isOverdue(task) ? 'bg-red-50/10' : ''
-                        }`}
-                        onClick={() => navigate(`/projects/tasks/${task.id}`)}
-                      >
-                        <TableCell className="font-medium">
-                          <div className="flex items-center">
-                            <div className={`h-8 w-8 rounded-full flex items-center justify-center mr-2 ${
-                              task.status === 'completed' 
-                                ? 'bg-green-500/20 text-green-500' 
-                                : 'bg-eazybooks-purple bg-opacity-15 text-eazybooks-purple'
-                            }`}>
-                              {task.status === 'completed' ? (
-                                <CheckCircle size={16} />
-                              ) : (
-                                <ListTodo size={16} />
-                              )}
-                            </div>
-                            <div>
-                              {task.name}
-                              {isOverdue(task) && (
-                                <div className="flex items-center text-xs text-red-500 mt-0.5">
-                                  <AlertCircle size={12} className="mr-1" />
-                                  Overdue
+            <Tabs value={viewMode} className="w-full">
+              <TabsContent value="list" className="mt-0">
+                {isLoading ? (
+                  <div className="flex justify-center py-8">Loading tasks...</div>
+                ) : filteredTasks.length === 0 ? (
+                  <div className="text-center py-8">
+                    {searchTerm || statusFilter !== "all"
+                      ? "No tasks match your search criteria." 
+                      : "No tasks found. Create your first task to get started."}
+                  </div>
+                ) : (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Task</TableHead>
+                          <TableHead className="hidden md:table-cell">Project</TableHead>
+                          <TableHead className="hidden lg:table-cell">Due Date</TableHead>
+                          <TableHead className="hidden md:table-cell">Status</TableHead>
+                          <TableHead className="hidden md:table-cell">Priority</TableHead>
+                          <TableHead className="hidden xl:table-cell">Assigned To</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredTasks.map((task) => (
+                          <TableRow 
+                            key={task.id} 
+                            className={`cursor-pointer ${
+                              isOverdue(task) ? 'bg-red-50/10' : ''
+                            }`}
+                            onClick={() => navigate(`/projects/tasks/${task.id}`)}
+                          >
+                            <TableCell className="font-medium">
+                              <div className="flex items-center">
+                                <div className={`h-8 w-8 rounded-full flex items-center justify-center mr-2 ${
+                                  task.status === 'completed' 
+                                    ? 'bg-green-500/20 text-green-500' 
+                                    : 'bg-eazybooks-purple bg-opacity-15 text-eazybooks-purple'
+                                }`}>
+                                  {task.status === 'completed' ? (
+                                    <CheckCircle size={16} />
+                                  ) : (
+                                    <ListTodo size={16} />
+                                  )}
                                 </div>
+                                <div>
+                                  {task.name}
+                                  {isOverdue(task) && (
+                                    <div className="flex items-center text-xs text-red-500 mt-0.5">
+                                      <AlertCircle size={12} className="mr-1" />
+                                      Overdue
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {task.project_id ? (
+                                <div className="flex items-center text-muted-foreground">
+                                  <Briefcase size={14} className="mr-1" />
+                                  Project
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground italic">No project</span>
                               )}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {task.project_id ? (
-                            <div className="flex items-center text-muted-foreground">
-                              <Briefcase size={14} className="mr-1" />
-                              Project
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground italic">No project</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="hidden lg:table-cell">
-                          {task.due_date ? (
-                            <div className="flex flex-col">
-                              <div className="flex items-center text-muted-foreground">
-                                <Calendar size={14} className="mr-1" />
-                                {formatDate(task.due_date)}
-                              </div>
-                              <div className={`text-xs ${
-                                isOverdue(task) ? 'text-red-500' : 'text-muted-foreground'
-                              }`}>
-                                {getRelativeDateString(task.due_date)}
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground italic">No due date</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <TaskStatusBadge status={task.status} />
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <TaskPriorityBadge priority={task.priority} />
-                        </TableCell>
-                        <TableCell className="hidden xl:table-cell">
-                          {task.assigned_to ? (
-                            <div className="flex items-center text-muted-foreground">
-                              <User size={14} className="mr-1" />
-                              {task.assigned_to}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground italic">Unassigned</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex justify-end items-center gap-2">
-                            {task.status !== 'completed' ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-green-500 border-green-500 hover:bg-green-500/10"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleStatusChange(task.id, 'completed');
-                                }}
-                              >
-                                <CheckCircle size={14} className="mr-1" />
-                                Complete
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-blue-500 border-blue-500 hover:bg-blue-500/10"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleStatusChange(task.id, 'todo');
-                                }}
-                              >
-                                <ListTodo size={14} className="mr-1" />
-                                Reopen
-                              </Button>
-                            )}
-                            
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/projects/tasks/${task.id}`);
-                              }}
-                            >
-                              <PenLine size={16} />
-                            </Button>
-                            
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <Trash2 size={16} />
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                              {task.due_date ? (
+                                <div className="flex flex-col">
+                                  <div className="flex items-center text-muted-foreground">
+                                    <Calendar size={14} className="mr-1" />
+                                    {formatDate(task.due_date)}
+                                  </div>
+                                  <div className={`text-xs ${
+                                    isOverdue(task) ? 'text-red-500' : 'text-muted-foreground'
+                                  }`}>
+                                    {getRelativeDateString(task.due_date)}
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground italic">No due date</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              <TaskStatusBadge status={task.status} />
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              <TaskPriorityBadge priority={task.priority} />
+                            </TableCell>
+                            <TableCell className="hidden xl:table-cell">
+                              {task.assigned_to ? (
+                                <div className="flex items-center text-muted-foreground">
+                                  <User size={14} className="mr-1" />
+                                  {task.assigned_to}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground italic">Unassigned</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex justify-end items-center gap-2">
+                                {task.status !== 'completed' ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-green-500 border-green-500 hover:bg-green-500/10"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleStatusChange(task.id, 'completed');
+                                    }}
+                                  >
+                                    <CheckCircle size={14} className="mr-1" />
+                                    Complete
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-blue-500 border-blue-500 hover:bg-blue-500/10"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleStatusChange(task.id, 'todo');
+                                    }}
+                                  >
+                                    <ListTodo size={14} className="mr-1" />
+                                    Reopen
+                                  </Button>
+                                )}
+                                
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/projects/tasks/${task.id}`);
+                                  }}
+                                >
+                                  <PenLine size={16} />
                                 </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Task</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete this task? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteTask(task.id)}>
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+                                
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                      <Trash2 size={16} />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete Task</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to delete this task? This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDeleteTask(task.id)}>
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="board" className="mt-0">
+                <div className="h-[calc(100vh-320px)] overflow-auto">
+                  <KanbanBoard />
+                </div>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>
