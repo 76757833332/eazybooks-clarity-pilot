@@ -26,9 +26,22 @@ const ClientDashboard = () => {
     { id: 2, name: "Mobile App Development", status: "Planning", dueDate: "2023-07-15", progress: 20 },
   ];
 
+  // Updated mock invoices to match the Invoice type
   const invoices = [
-    { id: "INV-001", amount: "$2,500", status: "Paid", date: "2023-04-15", downloadUrl: "#" },
-    { id: "INV-002", amount: "$1,800", status: "Pending", date: "2023-05-01", downloadUrl: "#" },
+    { 
+      id: "inv1", 
+      invoice_number: "INV-001", 
+      amount: "$2,500", 
+      status: "Paid", 
+      date: "2023-04-15"
+    },
+    { 
+      id: "inv2", 
+      invoice_number: "INV-002", 
+      amount: "$1,800", 
+      status: "Pending", 
+      date: "2023-05-01" 
+    },
   ];
 
   return (
