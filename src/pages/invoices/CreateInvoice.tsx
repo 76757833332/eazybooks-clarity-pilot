@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import AppLayout from "@/components/layout/AppLayout";
-import { supabase } from "@/integrations/supabase/client";
+import { invoiceService } from "@/services/invoiceService";
 import { Customer, NewInvoice, NewInvoiceItem } from "@/types/invoice";
 import { format } from "date-fns";
 
@@ -64,26 +64,37 @@ const CreateInvoice: React.FC = () => {
     },
   });
 
-  // Generate invoice number (simple implementation)
-  const generateInvoiceNumber = () => {
-    const today = new Date();
-    const year = today.getFullYear().toString().slice(-2);
-    const month = (today.getMonth() + 1).toString().padStart(2, '0');
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    return `INV-${year}${month}-${random}`;
-  };
+  // Generate invoice number
+  const { data: invoiceNumber } = useQuery({
+    queryKey: ["invoice-number"],
+    queryFn: async () => {
+      try {
+        return await invoiceService.generateInvoiceNumber();
+      } catch (error) {
+        console.error("Error generating invoice number:", error);
+        return `INV-${new Date().getTime().toString().slice(-4)}`;
+      }
+    }
+  });
 
   // Form setup
   const form = useForm<InvoiceFormValues>({
     defaultValues: {
       customer_id: "",
-      invoice_number: generateInvoiceNumber(),
+      invoice_number: "",
       issue_date: format(new Date(), "yyyy-MM-dd"),
       due_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), "yyyy-MM-dd"),
       notes: "",
       items: [{ description: "", quantity: 1, price: 0 }],
     },
   });
+
+  // Update invoice number when available
+  React.useEffect(() => {
+    if (invoiceNumber && !form.getValues("invoice_number")) {
+      form.setValue("invoice_number", invoiceNumber);
+    }
+  }, [invoiceNumber, form]);
 
   // Add useFieldArray for managing the items array
   const { fields, append, remove } = useFieldArray({
@@ -93,75 +104,65 @@ const CreateInvoice: React.FC = () => {
 
   // Calculate totals
   const calculateItemAmount = (quantity: number, price: number) => {
-    return quantity * price;
+    return (quantity || 0) * (price || 0);
   };
 
   const calculateTotal = () => {
     return form
       .getValues("items")
-      .reduce((sum, item) => sum + calculateItemAmount(item.quantity, item.price), 0);
+      .reduce((sum, item) => sum + calculateItemAmount(Number(item.quantity) || 0, Number(item.price) || 0), 0);
   };
 
-  // Submit handler
-  const handleSubmit = async (data: InvoiceFormValues) => {
-    try {
-      setIsSubmitting(true);
-
+  // Create invoice mutation
+  const createInvoiceMutation = useMutation({
+    mutationFn: async (data: InvoiceFormValues) => {
       // Prepare invoice data
-      const total_amount = data.items.reduce(
-        (sum, item) => sum + item.quantity * item.price,
-        0
-      );
-
       const newInvoice: NewInvoice = {
-        user_id: (await supabase.auth.getUser()).data.user?.id || "",
+        user_id: "", // Will be set by the service
         customer_id: data.customer_id,
         invoice_number: data.invoice_number,
         issue_date: data.issue_date,
         due_date: data.due_date,
         status: "draft",
-        total_amount,
+        total_amount: calculateTotal(),
         notes: data.notes,
       };
 
-      // Insert invoice
-      const { data: invoiceData, error: invoiceError } = await supabase
-        .from("invoices")
-        .insert(newInvoice)
-        .select()
-        .single();
-
-      if (invoiceError) throw invoiceError;
-
-      // Process invoice items
+      // Prepare invoice items
       const invoiceItems: NewInvoiceItem[] = data.items.map((item) => ({
-        invoice_id: invoiceData.id,
+        invoice_id: "", // Will be set by the service
         description: item.description,
-        quantity: item.quantity,
-        price: item.price,
-        amount: item.quantity * item.price,
+        quantity: Number(item.quantity) || 0,
+        price: Number(item.price) || 0,
+        amount: calculateItemAmount(Number(item.quantity) || 0, Number(item.price) || 0),
       }));
 
-      // Insert invoice items
-      const { error: itemsError } = await supabase
-        .from("invoice_items")
-        .insert(invoiceItems);
-
-      if (itemsError) throw itemsError;
-
+      // Create the invoice
+      return await invoiceService.createInvoice(newInvoice, invoiceItems);
+    },
+    onSuccess: (data) => {
       toast({
         title: "Invoice created",
         description: `Invoice #${data.invoice_number} has been created successfully.`,
       });
 
-      navigate(`/invoices/${invoiceData.id}`);
-    } catch (error: any) {
+      navigate(`/invoices/${data.id}`);
+    },
+    onError: (error: any) => {
       console.error("Error creating invoice:", error);
       toast({
         variant: "destructive",
         title: "Failed to create invoice",
         description: error.message || "An unexpected error occurred.",
       });
+    }
+  });
+
+  // Submit handler
+  const handleSubmit = async (data: InvoiceFormValues) => {
+    setIsSubmitting(true);
+    try {
+      await createInvoiceMutation.mutateAsync(data);
     } finally {
       setIsSubmitting(false);
     }
@@ -290,9 +291,12 @@ const CreateInvoice: React.FC = () => {
                             <FormControl>
                               <Input
                                 type="number"
+                                step="1"
+                                min="1"
                                 {...field}
                                 onChange={(e) => {
-                                  field.onChange(parseFloat(e.target.value) || 0);
+                                  const value = e.target.value ? parseInt(e.target.value, 10) : 0;
+                                  field.onChange(value);
                                   form.trigger("items");
                                 }}
                               />
@@ -312,9 +316,11 @@ const CreateInvoice: React.FC = () => {
                               <Input
                                 type="number"
                                 step="0.01"
+                                min="0"
                                 {...field}
                                 onChange={(e) => {
-                                  field.onChange(parseFloat(e.target.value) || 0);
+                                  const value = e.target.value ? parseFloat(e.target.value) : 0;
+                                  field.onChange(value);
                                   form.trigger("items");
                                 }}
                               />
@@ -328,8 +334,8 @@ const CreateInvoice: React.FC = () => {
                       <div className="h-10 px-3 py-2 rounded-md border border-input bg-secondary/40 flex items-center">
                         $
                         {calculateItemAmount(
-                          form.getValues(`items.${index}.quantity`),
-                          form.getValues(`items.${index}.price`)
+                          Number(form.getValues(`items.${index}.quantity`)) || 0,
+                          Number(form.getValues(`items.${index}.price`)) || 0
                         ).toFixed(2)}
                       </div>
                     </div>
