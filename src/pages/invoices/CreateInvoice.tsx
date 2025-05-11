@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -28,6 +27,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { invoiceService } from "@/services/invoiceService";
 import { Customer, NewInvoice, NewInvoiceItem } from "@/types/invoice";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client"; // Added supabase import
 
 type InvoiceFormValues = {
   customer_id: string;

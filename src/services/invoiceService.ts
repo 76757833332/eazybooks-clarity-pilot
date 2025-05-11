@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Invoice, InvoiceItem } from "@/types/invoice";
 
@@ -118,7 +117,7 @@ export const invoiceService = {
     if (items && items.length > 0) {
       totalAmount = items.reduce((sum, item) => {
         // Skip items marked for deletion (if any)
-        if (item.deleted) return sum;
+        if ((item as any).deleted) return sum;
         
         // Ensure price and quantity are numbers
         const price = Number(item.price) || 0;
