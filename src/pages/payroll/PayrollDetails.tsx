@@ -1,99 +1,64 @@
+
 import React from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import AppLayout from "@/components/layout/AppLayout";
-import { Payroll } from "@/types/payroll";
+import { useAuth } from "@/contexts/auth";
+import { payrollService } from "@/services/payrollService";
+import { pdfService } from "@/services/pdfService";
+import { toast } from "@/hooks/use-toast";
+import { Download } from "lucide-react";
 
 const PayrollDetails = () => {
   const { id } = useParams<{ id: string }>();
-
-  const fetchPayroll = async (): Promise<Payroll> => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-    return {
-      id: id || "1",
-      user_id: "user123",
-      employee_id: "emp456",
-      pay_period_start: "2023-05-01",
-      pay_period_end: "2023-05-15",
-      payment_date: "2023-05-20",
-      gross_amount: 2500,
-      net_amount: 1875.5,
-      taxes: 500,
-      deductions: 124.5,
-      status: "paid",
-      notes: "Regular bi-weekly payroll",
-      created_at: "2023-05-16T10:00:00Z",
-      updated_at: "2023-05-16T10:00:00Z",
-      employee: {
-        id: "emp456",
-        user_id: "user123",
-        first_name: "Jane",
-        last_name: "Smith",
-        email: "jane.smith@example.com",
-        phone: "555-123-4567",
-        hire_date: "2022-01-15",
-        position: "Marketing Specialist",
-        department: "Marketing",
-        salary: 60000,
-        status: "active",
-        created_at: "2022-01-15T09:00:00Z",
-        updated_at: "2022-01-15T09:00:00Z",
-      },
-      payroll_deductions: [
-        {
-          id: "ded1",
-          payroll_id: id || "1",
-          deduction_type_id: "dt1",
-          amount: 75,
-          created_at: "2023-05-16T10:00:00Z",
-          deduction_type: {
-            id: "dt1",
-            user_id: "user123",
-            name: "Health Insurance",
-            description: "Employee health insurance premium",
-            is_percentage: false,
-            created_at: "2022-01-01T00:00:00Z",
-            updated_at: "2022-01-01T00:00:00Z",
-          },
-        },
-        {
-          id: "ded2",
-          payroll_id: id || "1",
-          deduction_type_id: "dt2",
-          amount: 49.5,
-          created_at: "2023-05-16T10:00:00Z",
-          deduction_type: {
-            id: "dt2",
-            user_id: "user123",
-            name: "401(k)",
-            description: "Retirement contribution",
-            is_percentage: true,
-            rate: 3,
-            created_at: "2022-01-01T00:00:00Z",
-            updated_at: "2022-01-01T00:00:00Z",
-          },
-        },
-      ],
-    };
-  };
+  const { business } = useAuth();
 
   const { data: payroll, isLoading, error } = useQuery({
     queryKey: ['payroll', id],
-    queryFn: fetchPayroll,
+    queryFn: () => payrollService.getPayrollById(id!),
     meta: {
-      onSuccess: (data) => {
-        console.log('Payroll data loaded:', data);
+      onError: (error: any) => {
+        console.error("Error loading payroll:", error);
+        toast({
+          title: "Error loading payroll details",
+          description: error.message || "Failed to load payroll details",
+          variant: "destructive",
+        });
       }
     }
   });
+
+  const handleDownloadPayslip = () => {
+    try {
+      if (payroll && business) {
+        pdfService.generatePayslipPDF(payroll, business);
+        toast({
+          title: "Payslip downloaded",
+          description: "Your payslip has been downloaded successfully.",
+        });
+      } else {
+        toast({
+          title: "Download failed",
+          description: "Payroll or business data is missing.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error downloading payslip:", error);
+      toast({
+        title: "Download failed",
+        description: error.message || "Failed to download payslip",
+        variant: "destructive",
+      });
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -171,9 +136,19 @@ const PayrollDetails = () => {
               {format(new Date(payroll.payment_date), " MMMM d, yyyy")}
             </p>
           </div>
-          <Badge className={getStatusColor(payroll.status)}>
-            {payroll.status.charAt(0).toUpperCase() + payroll.status.slice(1)}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge className={getStatusColor(payroll.status)}>
+              {payroll.status.charAt(0).toUpperCase() + payroll.status.slice(1)}
+            </Badge>
+            <Button 
+              onClick={handleDownloadPayslip} 
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Download Payslip
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
