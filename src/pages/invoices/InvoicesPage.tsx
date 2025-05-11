@@ -15,10 +15,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { supabase } from "@/integrations/supabase/client";
+import { invoiceService } from "@/services/invoiceService";
 import { Invoice } from "@/types/invoice";
 import AppLayout from "@/components/layout/AppLayout";
 import { formatCurrency } from "@/lib/utils";
+import { toast } from "sonner";
 
 const InvoicesPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
@@ -27,29 +28,34 @@ const InvoicesPage: React.FC = () => {
   const { data: invoices, isLoading } = useQuery({
     queryKey: ["invoices", statusFilter, searchTerm],
     queryFn: async () => {
-      let query = supabase
-        .from("invoices")
-        .select(`
-          *,
-          customer:customers(name, email, phone)
-        `);
-  
-      if (statusFilter) {
-        query = query.eq('status', statusFilter);
-      }
-      
-      if (searchTerm) {
-        query = query.or(`invoice_number.ilike.%${searchTerm}%,customer.name.ilike.%${searchTerm}%`);
-      }
-      
-      const { data, error } = await query.order('issue_date', { ascending: false });
-      
-      if (error) {
+      try {
+        const invoiceData = await invoiceService.getInvoices();
+        
+        // Apply client-side filtering
+        return invoiceData.filter(invoice => {
+          // Status filter
+          if (statusFilter && invoice.status !== statusFilter) {
+            return false;
+          }
+          
+          // Search term filter
+          if (searchTerm) {
+            const searchLower = searchTerm.toLowerCase();
+            const matchesInvoiceNumber = invoice.invoice_number.toLowerCase().includes(searchLower);
+            const matchesCustomerName = invoice.customer?.name?.toLowerCase().includes(searchLower);
+            
+            if (!matchesInvoiceNumber && !matchesCustomerName) {
+              return false;
+            }
+          }
+          
+          return true;
+        });
+      } catch (error) {
         console.error("Error fetching invoices:", error);
-        throw new Error(error.message);
+        toast.error("Failed to load invoices. Please try again.");
+        return [];
       }
-      
-      return data as unknown as Invoice[];
     },
   });
 

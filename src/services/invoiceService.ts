@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Invoice, InvoiceItem } from "@/types/invoice";
 
@@ -18,7 +17,7 @@ export const invoiceService = {
         .order("issue_date", { ascending: false });
         
       if (error) throw error;
-      return data as unknown as Invoice[]; // Using unknown as an intermediate type
+      return data as Invoice[]; // Simplified casting since we're using proper relationships
     } catch (error) {
       console.error("Error fetching invoices:", error);
       // If there's an error with the join query, fall back to just invoices
@@ -29,7 +28,7 @@ export const invoiceService = {
         .order("issue_date", { ascending: false });
         
       if (fallbackError) throw fallbackError;
-      return data as unknown as Invoice[];
+      return data as Invoice[];
     }
   },
   
@@ -49,7 +48,7 @@ export const invoiceService = {
       throw error;
     }
     
-    return data as unknown as Invoice & { items: InvoiceItem[] };
+    return data as Invoice & { items: InvoiceItem[] };
   },
   
   createInvoice: async (invoice: Omit<Invoice, "id" | "created_at" | "updated_at">, items: Omit<InvoiceItem, "id" | "invoice_id" | "created_at" | "updated_at">[]) => {
