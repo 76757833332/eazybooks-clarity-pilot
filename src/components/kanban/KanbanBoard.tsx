@@ -346,7 +346,7 @@ const KanbanBoard: React.FC = () => {
   // Handle saving task
   const handleSaveTask = (task: KanbanTask) => {
     if (isNewTask) {
-      // Add new task
+      // Add new task - Fix: Include all required properties
       projectService.createTask({
         name: task.name,
         description: task.description || null,
@@ -354,6 +354,10 @@ const KanbanBoard: React.FC = () => {
         assigned_to: task.assigned_to || null,
         priority: 'medium',
         billable: true,
+        project_id: null,  // Added missing property
+        service_id: null,  // Added missing property
+        start_date: null,  // Added missing property
+        due_date: null,    // Added missing property
       }).then(() => {
         toast({
           title: "Task created",
