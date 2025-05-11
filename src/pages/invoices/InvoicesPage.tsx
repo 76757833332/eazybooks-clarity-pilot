@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { invoiceService } from "@/services/invoiceService";
+import { invoiceService } from "@/services/invoice"; // Updated import path
 import { Invoice } from "@/types/invoice";
 import AppLayout from "@/components/layout/AppLayout";
 import { formatCurrency } from "@/lib/utils";

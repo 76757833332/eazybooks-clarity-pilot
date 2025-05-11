@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { invoiceService } from "@/services/invoice";
 
 const InvoiceDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,21 +34,7 @@ const InvoiceDetails: React.FC = () => {
     queryFn: async () => {
       if (!id) throw new Error("Invoice ID is required");
       
-      const { data, error } = await supabase
-        .from("invoices")
-        .select(`
-          *,
-          customer:customers(*)
-        `)
-        .eq("id", id)
-        .single();
-      
-      if (error) {
-        console.error("Error fetching invoice:", error);
-        throw new Error(error.message);
-      }
-      
-      return data as unknown as Invoice;
+      return await invoiceService.getInvoiceById(id);
     },
   });
 
@@ -57,18 +44,7 @@ const InvoiceDetails: React.FC = () => {
     queryFn: async () => {
       if (!id) throw new Error("Invoice ID is required");
       
-      const { data, error } = await supabase
-        .from("invoice_items")
-        .select("*")
-        .eq("invoice_id", id)
-        .order("created_at");
-      
-      if (error) {
-        console.error("Error fetching invoice items:", error);
-        throw new Error(error.message);
-      }
-      
-      return data as InvoiceItem[];
+      return await invoiceService.getInvoiceItems(id);
     },
   });
 
@@ -123,12 +99,7 @@ const InvoiceDetails: React.FC = () => {
     try {
       setIsDeleting(true);
       
-      const { error } = await supabase
-        .from("invoices")
-        .delete()
-        .eq("id", id);
-      
-      if (error) throw error;
+      await invoiceService.deleteInvoice(id);
       
       toast({
         title: "Invoice deleted",

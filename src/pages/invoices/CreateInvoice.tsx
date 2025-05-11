@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import AppLayout from "@/components/layout/AppLayout";
-import { invoiceService } from "@/services/invoiceService";
+import { invoiceService } from "@/services/invoice"; // Updated import path
 import { Customer, NewInvoice, NewInvoiceItem } from "@/types/invoice";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client"; // Added supabase import
