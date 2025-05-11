@@ -11,6 +11,7 @@ import {
   Square,
   CheckCircle,
   User,
+  ArrowLeft,
 } from "lucide-react";
 import { format } from "date-fns";
 import { projectService } from "@/services/projectService";
@@ -53,6 +54,13 @@ const TaskDetails: React.FC = () => {
     queryKey: ["task", id],
     queryFn: () => projectService.getTaskById(id as string),
     enabled: !!id
+  });
+
+  // Fetch project details if task has a project
+  const { data: project } = useQuery({
+    queryKey: ["project", task?.project_id],
+    queryFn: () => projectService.getProjectById(task!.project_id as string),
+    enabled: !!task?.project_id
   });
 
   // Handle status change
@@ -119,7 +127,7 @@ const TaskDetails: React.FC = () => {
     setTrackingStartTime(null);
   };
 
-  // Add comment function - placeholder for now
+  // Add comment function
   const handleAddComment = () => {
     if (!comment.trim()) return;
     
@@ -184,18 +192,27 @@ const TaskDetails: React.FC = () => {
   return (
     <AppLayout title={task.name}>
       <div className="space-y-6">
+        {/* Back button */}
+        <Button 
+          variant="ghost" 
+          className="mb-4" 
+          onClick={() => navigate("/projects/tasks")}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Tasks
+        </Button>
+
         {/* Task Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold">{task.name}</h1>
             <div className="flex flex-wrap items-center gap-2 text-muted-foreground mt-1">
-              {task.project_id && (
+              {task.project_id && project && (
                 <Button 
                   variant="link" 
                   className="p-0 h-auto text-muted-foreground"
                   onClick={() => navigate(`/projects/${task.project_id}`)}
                 >
-                  Project: {task.project_id.substring(0, 8)}...
+                  Project: {project.name}
                 </Button>
               )}
               <span className="text-muted-foreground mx-1">•</span>
@@ -228,7 +245,7 @@ const TaskDetails: React.FC = () => {
               onClick={() => handleStatusChange("completed")} 
               variant={task.status === "completed" ? "default" : "outline"}
             >
-              <CheckCircle className="h-4 w-4 mr-1" /> Complete
+              <CheckCircle className="h-4 w-4 mr-1" /> {task.status === "completed" ? "Completed" : "Complete"}
             </Button>
           </div>
         </div>
@@ -243,7 +260,7 @@ const TaskDetails: React.FC = () => {
                 <CardTitle>Description</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground whitespace-pre-wrap">
                   {task.description || "No description provided"}
                 </p>
               </CardContent>
@@ -367,18 +384,27 @@ const TaskDetails: React.FC = () => {
                   </p>
                 </div>
                 
-                <div>
-                  <h3 className="text-sm font-medium">Service</h3>
-                  <p className="text-muted-foreground flex items-center mt-1">
-                    {task.service_id ? "Linked to service" : "No service linked"}
-                  </p>
-                </div>
+                {task.service_id && (
+                  <div>
+                    <h3 className="text-sm font-medium">Service</h3>
+                    <p className="text-muted-foreground flex items-center mt-1">
+                      <FileText className="h-4 w-4 mr-1" />
+                      Linked to service
+                    </p>
+                  </div>
+                )}
               </CardContent>
               <CardFooter className="flex justify-between border-t pt-4">
-                <Button variant="outline" onClick={() => navigate("/projects/tasks")}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate("/projects/tasks")}
+                >
                   Back to Tasks
                 </Button>
-                <Button>
+                
+                <Button 
+                  onClick={() => navigate(`/projects/tasks/edit/${task.id}`)}
+                >
                   Edit Task
                 </Button>
               </CardFooter>

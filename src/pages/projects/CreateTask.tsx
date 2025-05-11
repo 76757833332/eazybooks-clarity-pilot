@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -6,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { projectService } from "@/services/projectService";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ type FormValues = z.infer<typeof formSchema>;
 const CreateTask: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   const projectId = location.state?.projectId || null;
   
   // Fetch projects for dropdown
@@ -117,6 +119,16 @@ const CreateTask: React.FC = () => {
   });
 
   const onSubmit = (data: FormValues) => {
+    // If "no-project" is selected, set project_id to null
+    if (data.project_id === "no-project") {
+      data.project_id = null;
+    }
+    
+    // If "no-service" is selected, set service_id to null
+    if (data.service_id === "no-service") {
+      data.service_id = null;
+    }
+    
     createTaskMutation.mutate({
       name: data.name,
       description: data.description || null,
@@ -191,7 +203,7 @@ const CreateTask: React.FC = () => {
                       <FormLabel>Project</FormLabel>
                       <Select 
                         onValueChange={field.onChange} 
-                        value={field.value || undefined}
+                        value={field.value || "no-project"}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -289,7 +301,7 @@ const CreateTask: React.FC = () => {
                       <FormLabel>Service</FormLabel>
                       <Select 
                         onValueChange={field.onChange} 
-                        value={field.value || undefined}
+                        value={field.value || "no-service"}
                       >
                         <FormControl>
                           <SelectTrigger>

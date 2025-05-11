@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { KanbanTask } from './KanbanBoard';
+import { useQuery } from '@tanstack/react-query';
 
 interface TaskModalProps {
   task: KanbanTask;
@@ -30,13 +31,6 @@ interface TaskModalProps {
   isNew: boolean;
 }
 
-const dummyUsers = [
-  { id: 'user1', name: 'Alex' },
-  { id: 'user2', name: 'Jordan' },
-  { id: 'user3', name: 'Taylor' },
-  { id: 'user4', name: 'Morgan' },
-];
-
 const TaskModal: React.FC<TaskModalProps> = ({
   task,
   isOpen,
@@ -46,7 +40,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   isNew,
 }) => {
   const [editedTask, setEditedTask] = useState<KanbanTask>(task);
-
+  
   // Reset form when task changes
   useEffect(() => {
     setEditedTask(task);
@@ -72,7 +66,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const handleAssigneeChange = (value: string) => {
     setEditedTask(prev => ({
       ...prev,
-      assigned_to: value,
+      assigned_to: value === 'unassigned' ? null : value,
     }));
   };
 
@@ -80,7 +74,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-black/80 backdrop-blur-xl text-white border-gray-700 max-w-md">
         <DialogHeader>
-          <DialogTitle>{isNew ? 'Add Task' : 'Task'}</DialogTitle>
+          <DialogTitle>{isNew ? 'Add Task' : 'Edit Task'}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 py-2">
@@ -120,11 +114,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
               </SelectTrigger>
               <SelectContent className="bg-black/90 border-gray-700">
                 <SelectItem value="unassigned">Unassigned</SelectItem>
-                {dummyUsers.map(user => (
-                  <SelectItem key={user.id} value={user.name}>
-                    {user.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="Alex">Alex</SelectItem>
+                <SelectItem value="Jordan">Jordan</SelectItem>
+                <SelectItem value="Taylor">Taylor</SelectItem>
+                <SelectItem value="Morgan">Morgan</SelectItem>
               </SelectContent>
             </Select>
           </div>

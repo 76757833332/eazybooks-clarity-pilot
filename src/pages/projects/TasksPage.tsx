@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -13,7 +14,8 @@ import {
   User,
   Trash2, 
   PenLine,
-  AlertCircle
+  AlertCircle,
+  FileText
 } from "lucide-react";
 import { Task } from "@/types/project";
 import { projectService } from "@/services/projectService";
@@ -193,6 +195,14 @@ const TasksPage: React.FC = () => {
     
     return dueDate < today;
   };
+
+  // Initialize the kanban board with task data
+  useEffect(() => {
+    if (tasks.length > 0 && viewMode === "board") {
+      // Just initialize the view - KanbanBoard will handle the data internally
+      console.log("Tasks available for Kanban view:", tasks.length);
+    }
+  }, [tasks, viewMode]);
 
   return (
     <AppLayout title="Tasks">

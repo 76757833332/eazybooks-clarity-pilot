@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   DndContext,
@@ -14,16 +15,19 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import KanbanColumn from './KanbanColumn';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, X } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import TaskCard from './TaskCard';
 import TaskModal from './TaskModal';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { projectService } from '@/services/projectService';
+import { Task } from '@/types/project';
 
 export interface KanbanTask {
   id: string;
   name: string;
   description?: string;
-  assigned_to?: string;
+  assigned_to?: string | null;
   column_id: string;
 }
 
@@ -35,23 +39,24 @@ export interface KanbanColumn {
 
 const defaultColumns: KanbanColumn[] = [
   {
-    id: 'backlog',
-    name: 'Backlog',
-    tasks: [
-      { id: 'task1', name: 'Proof of Concept', description: 'An exercise in which work is focused on determining whether an idea can be turned into a reality.', assigned_to: '', column_id: 'backlog' },
-      { id: 'task2', name: 'Regression Test', description: '', assigned_to: '', column_id: 'backlog' },
-      { id: 'task3', name: 'Set up Monitoring and Controlling processes', description: '', assigned_to: '', column_id: 'backlog' },
-      { id: 'task4', name: 'Requirements Analysis Completed', description: '', assigned_to: '', column_id: 'backlog' },
-    ],
-  },
-  {
     id: 'todo',
     name: 'To Do',
-    tasks: [
-      { id: 'task5', name: 'Final Check', description: '', assigned_to: '', column_id: 'todo' },
-      { id: 'task6', name: 'Desktop Publishing', description: '', assigned_to: '', column_id: 'todo' },
-      { id: 'task7', name: 'Linguistic Review', description: '', assigned_to: '', column_id: 'todo' },
-    ],
+    tasks: [],
+  },
+  {
+    id: 'in_progress',
+    name: 'In Progress',
+    tasks: [],
+  },
+  {
+    id: 'review',
+    name: 'Review',
+    tasks: [],
+  },
+  {
+    id: 'completed',
+    name: 'Completed',
+    tasks: [],
   },
 ];
 
@@ -63,6 +68,37 @@ const KanbanBoard: React.FC = () => {
   const [currentTask, setCurrentTask] = useState<KanbanTask | null>(null);
   const [isNewTask, setIsNewTask] = useState(false);
   const { toast } = useToast();
+
+  // Fetch tasks data
+  const { data: tasksData = [], isLoading, refetch } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: projectService.getAllTasks,
+  });
+
+  // Transform tasks data to KanbanBoard format
+  useEffect(() => {
+    if (!isLoading && tasksData.length > 0) {
+      const newColumns = defaultColumns.map(column => {
+        // Filter tasks by column_id (which is the status in our case)
+        const columnTasks = tasksData
+          .filter((task: Task) => task.status === column.id)
+          .map((task: Task) => ({
+            id: task.id,
+            name: task.name,
+            description: task.description || undefined,
+            assigned_to: task.assigned_to,
+            column_id: task.status
+          }));
+
+        return {
+          ...column,
+          tasks: columnTasks,
+        };
+      });
+
+      setColumns(newColumns);
+    }
+  }, [tasksData, isLoading]);
 
   // Save to localStorage when columns change
   useEffect(() => {
@@ -166,6 +202,20 @@ const KanbanBoard: React.FC = () => {
           if (col.id === destinationColumn!.id) {
             const task = sourceColumn.tasks.find(t => t.id === activeId)!;
             const updatedTask = { ...task, column_id: destinationColumn!.id };
+            
+            // Update the task status in the backend
+            projectService.updateTask(activeId, { status: destinationColumn!.id as any })
+              .then(() => {
+                toast({
+                  title: "Task updated",
+                  description: `Task moved to ${destinationColumn!.name}`,
+                });
+                refetch();
+              })
+              .catch(error => {
+                console.error("Error updating task:", error);
+              });
+              
             return {
               ...col,
               tasks: [...col.tasks, updatedTask]
@@ -248,6 +298,16 @@ const KanbanBoard: React.FC = () => {
 
   // Handle deleting a column
   const handleDeleteColumn = (columnId: string) => {
+    // Don't allow deleting default columns
+    if (['todo', 'in_progress', 'review', 'completed'].includes(columnId)) {
+      toast({
+        title: "Cannot delete default column",
+        description: "Default columns cannot be deleted.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setColumns(prev => prev.filter(col => col.id !== columnId));
   };
 
@@ -287,68 +347,119 @@ const KanbanBoard: React.FC = () => {
   const handleSaveTask = (task: KanbanTask) => {
     if (isNewTask) {
       // Add new task
-      setColumns(prev => 
-        prev.map(col => {
-          if (col.id === task.column_id) {
+      projectService.createTask({
+        name: task.name,
+        description: task.description || null,
+        status: task.column_id as any,
+        assigned_to: task.assigned_to || null,
+        priority: 'medium',
+        billable: true,
+      }).then(() => {
+        toast({
+          title: "Task created",
+          description: "The task has been created successfully.",
+        });
+        refetch();
+      }).catch(error => {
+        console.error("Error creating task:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to create task.",
+        });
+      });
+    } else {
+      // Update existing task
+      projectService.updateTask(task.id, {
+        name: task.name,
+        description: task.description || null,
+        status: task.column_id as any,
+        assigned_to: task.assigned_to || null,
+      }).then(() => {
+        toast({
+          title: "Task updated",
+          description: "The task has been updated successfully.",
+        });
+        refetch();
+      }).catch(error => {
+        console.error("Error updating task:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to update task.",
+        });
+      });
+    }
+    
+    // Update UI optimistically
+    setColumns(prev => 
+      prev.map(col => {
+        if (col.id === task.column_id) {
+          if (isNewTask) {
             return {
               ...col,
               tasks: [...col.tasks, task],
             };
-          }
-          return col;
-        })
-      );
-      toast({
-        title: "Task created",
-        description: "The task has been created successfully.",
-      });
-    } else {
-      // Update existing task
-      setColumns(prev => 
-        prev.map(col => {
-          if (col.id === task.column_id) {
+          } else {
             return {
               ...col,
               tasks: col.tasks.map(t => 
                 t.id === task.id ? task : t
               ),
             };
-          } else {
-            // Check if task moved to a different column
-            const taskIndex = col.tasks.findIndex(t => t.id === task.id);
-            if (taskIndex >= 0) {
-              // Remove from this column
-              return {
-                ...col,
-                tasks: col.tasks.filter(t => t.id !== task.id),
-              };
-            }
           }
-          return col;
-        })
-      );
-      toast({
-        title: "Task updated",
-        description: "The task has been updated successfully.",
-      });
-    }
+        } else if (!isNewTask) {
+          // Remove task from other columns if it was moved
+          const taskIndex = col.tasks.findIndex(t => t.id === task.id);
+          if (taskIndex >= 0) {
+            return {
+              ...col,
+              tasks: col.tasks.filter(t => t.id !== task.id),
+            };
+          }
+        }
+        return col;
+      })
+    );
+    
     setIsTaskModalOpen(false);
   };
 
   // Handle deleting task
   const handleDeleteTask = (taskId: string) => {
+    projectService.deleteTask(taskId).then(() => {
+      toast({
+        title: "Task deleted",
+        description: "The task has been removed successfully.",
+      });
+      refetch();
+    }).catch(error => {
+      console.error("Error deleting task:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete task.",
+      });
+    });
+    
+    // Update UI optimistically
     setColumns(prev => 
       prev.map(col => ({
         ...col,
         tasks: col.tasks.filter(task => task.id !== taskId),
       }))
     );
+    
     setIsTaskModalOpen(false);
-    toast({
-      title: "Task deleted",
-      description: "The task has been removed successfully.",
-    });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <div>Loading tasks...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full">

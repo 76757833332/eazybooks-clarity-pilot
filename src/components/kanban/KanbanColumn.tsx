@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { PlusCircle, X } from 'lucide-react';
 import TaskCard from './TaskCard';
 import { KanbanColumn as ColumnType, KanbanTask } from './KanbanBoard';
+import { Badge } from '@/components/ui/badge';
 
 interface KanbanColumnProps {
   column: ColumnType;
@@ -59,6 +60,10 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
   };
   
   const handleEditStart = () => {
+    // Don't allow editing default column names
+    if (['todo', 'in_progress', 'review', 'completed'].includes(column.id)) {
+      return;
+    }
     setIsEditing(true);
   };
   
@@ -81,6 +86,16 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
     setSortableRef(node);
     setDroppableRef(node);
   };
+
+  const getColumnHeaderColor = (columnId: string) => {
+    switch(columnId) {
+      case 'todo': return 'bg-gray-500/20';
+      case 'in_progress': return 'bg-blue-500/20';
+      case 'review': return 'bg-orange-500/20';
+      case 'completed': return 'bg-green-500/20';
+      default: return 'bg-gray-500/20';
+    }
+  };
   
   return (
     <div
@@ -90,7 +105,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
       {...attributes}
     >
       <Card className="bg-black/40 backdrop-blur-sm border-gray-700 h-full">
-        <CardHeader className="p-3 flex flex-row justify-between items-center space-y-0">
+        <CardHeader className={`p-3 flex flex-row justify-between items-center space-y-0 ${getColumnHeaderColor(column.id)}`}>
           {isEditing ? (
             <Input
               value={columnName}
@@ -102,18 +117,25 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
             />
           ) : (
             <CardTitle
-              className="text-base font-semibold cursor-pointer"
+              className="text-base font-semibold cursor-pointer flex items-center gap-2"
               onClick={handleEditStart}
               {...listeners}
             >
               {column.name}
+              <Badge variant="outline" className="text-xs">
+                {column.tasks.length}
+              </Badge>
             </CardTitle>
           )}
-          <X 
-            className="h-4 w-4 cursor-pointer hover:text-red-500" 
-            onClick={() => onDeleteColumn(column.id)}
-            aria-label="Delete column"
-          />
+          
+          {/* Only show delete button for non-default columns */}
+          {!['todo', 'in_progress', 'review', 'completed'].includes(column.id) && (
+            <X 
+              className="h-4 w-4 cursor-pointer hover:text-red-500" 
+              onClick={() => onDeleteColumn(column.id)}
+              aria-label="Delete column"
+            />
+          )}
         </CardHeader>
         <CardContent className="p-2 space-y-2 min-h-[100px]">
           <SortableContext
