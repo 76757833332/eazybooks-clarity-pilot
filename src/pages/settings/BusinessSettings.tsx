@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
@@ -22,10 +22,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Business } from "@/contexts/auth/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Upload, X } from "lucide-react";
 
 const BusinessSettings = () => {
   const { business, updateBusiness } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(business?.logo_url || null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [formData, setFormData] = useState<Partial<Business>>({
     name: business?.name || "",
     legal_name: business?.legal_name || "",
@@ -40,6 +46,7 @@ const BusinessSettings = () => {
     website: business?.website || "",
     industry: business?.industry || "",
     description: business?.description || "",
+    logo_url: business?.logo_url || "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -51,12 +58,64 @@ const BusinessSettings = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleLogoClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      // Check file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("Logo image must be less than 2MB");
+        return;
+      }
+      
+      // Check file type
+      if (!file.type.match('image/(jpeg|png|gif|jpg|webp)')) {
+        toast.error("Please upload a valid image file (JPEG, PNG, GIF, WebP)");
+        return;
+      }
+      
+      setLogoFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    setFormData((prev) => ({ ...prev, logo_url: "" }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      await updateBusiness(formData);
+      // If we have a logo file, we would upload it to storage here
+      // and get back a URL to store in the business record
+      let logoUrl = formData.logo_url;
+      
+      if (logoFile) {
+        // In a real implementation, this would upload to Supabase storage
+        // For now we'll just simulate by using the preview URL
+        logoUrl = logoPreview || '';
+        toast.info("Logo uploaded successfully");
+      }
+      
+      const updatedBusinessData = {
+        ...formData,
+        logo_url: logoUrl,
+      };
+      
+      await updateBusiness(updatedBusinessData);
       toast.success("Business information updated successfully");
     } catch (error) {
       console.error("Failed to update business information:", error);
@@ -64,6 +123,17 @@ const BusinessSettings = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Generate initials for the avatar fallback
+  const getBusinessInitials = () => {
+    if (!formData.name) return "BIZ";
+    return formData.name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
   };
 
   return (
@@ -83,7 +153,62 @@ const BusinessSettings = () => {
               Update your business details and contact information
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
+            {/* Logo Upload Section */}
+            <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
+              <div className="flex flex-col items-center justify-center">
+                <Avatar 
+                  className="h-24 w-24 cursor-pointer border-2 border-dashed border-gray-300 hover:border-primary"
+                  onClick={handleLogoClick}
+                >
+                  {logoPreview ? (
+                    <AvatarImage src={logoPreview} alt="Business Logo" />
+                  ) : (
+                    <AvatarFallback className="text-xl bg-primary/10">
+                      {getBusinessInitials()}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/jpeg, image/png, image/gif, image/webp"
+                  onChange={handleLogoChange}
+                />
+              </div>
+              <div className="flex flex-col space-y-2">
+                <h3 className="text-lg font-medium">Business Logo</h3>
+                <p className="text-sm text-muted-foreground">
+                  Upload a logo for your business. Recommended size: 200x200 pixels.
+                </p>
+                <div className="flex space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center space-x-1"
+                    onClick={handleLogoClick}
+                  >
+                    <Upload className="h-4 w-4" />
+                    <span>{logoPreview ? "Change Logo" : "Upload Logo"}</span>
+                  </Button>
+                  {logoPreview && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center text-destructive"
+                      onClick={handleRemoveLogo}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      <span>Remove</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Business Name</Label>

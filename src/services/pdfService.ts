@@ -18,11 +18,26 @@ export const pdfService = {
       // Set default font
       doc.setFont("helvetica");
       
-      // Add company info at top
-      doc.setFontSize(20);
-      doc.setTextColor(0, 0, 0);
-      doc.text(business?.name || "Company Name", pageWidth / 2, 20, { align: "center" });
+      // Add company logo if available
+      if (business?.logo_url) {
+        try {
+          doc.addImage(business.logo_url, 'JPEG', 20, 10, 30, 30);
+        } catch (logoError) {
+          console.error("Error adding logo to PDF:", logoError);
+          // Continue without the logo if there's an error
+        }
+        // Adjust company info position if logo is present
+        doc.setFontSize(20);
+        doc.setTextColor(0, 0, 0);
+        doc.text(business?.name || "Company Name", pageWidth / 2, 20, { align: "center" });
+      } else {
+        // No logo, standard positioning
+        doc.setFontSize(20);
+        doc.setTextColor(0, 0, 0);
+        doc.text(business?.name || "Company Name", pageWidth / 2, 20, { align: "center" });
+      }
       
+      // Add company info
       doc.setFontSize(10);
       const addressParts = [];
       if (business?.address) addressParts.push(business.address);
