@@ -4,7 +4,6 @@ import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { Payroll } from "@/types/payroll";
 import { Employee } from "@/types/employee";
-import { useAuth } from "@/contexts/auth";
 
 export const pdfService = {
   /**
@@ -56,12 +55,14 @@ export const pdfService = {
       
       // Employee details
       const employee = payroll.employee as Employee;
-      doc.text("Employee:", 20, 60);
-      doc.text(`${employee?.first_name || ""} ${employee?.last_name || ""}`, 70, 60);
-      doc.text("Position:", 20, 65);
-      doc.text(employee?.position || "", 70, 65);
-      doc.text("Employee ID:", 20, 70);
-      doc.text(employee?.id?.substring(0, 8) || "", 70, 70);
+      if (employee) {
+        doc.text("Employee:", 20, 60);
+        doc.text(`${employee?.first_name || ""} ${employee?.last_name || ""}`, 70, 60);
+        doc.text("Position:", 20, 65);
+        doc.text(employee?.position || "", 70, 65);
+        doc.text("Employee ID:", 20, 70);
+        doc.text(employee?.id?.substring(0, 8) || "", 70, 70);
+      }
       
       // Payroll details
       doc.text("Pay Period:", 20, 80);
@@ -176,6 +177,7 @@ export const pdfService = {
         new Date(payroll.payment_date),
         "yyyyMMdd"
       )}.pdf`;
+      
       doc.save(fileName);
     } catch (error) {
       console.error("Error generating PDF:", error);
