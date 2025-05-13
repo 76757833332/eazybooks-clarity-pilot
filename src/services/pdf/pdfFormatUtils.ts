@@ -1,6 +1,6 @@
 
 import { jsPDF } from "jspdf";
-import autoTable, { TableStyles, RowInput, ColumnInput, ThemeType } from "jspdf-autotable";
+import autoTable, { CellDef, Styles, StyleProp } from "jspdf-autotable";
 
 /**
  * Utility functions for formatting PDF documents
@@ -28,17 +28,17 @@ export const pdfFormatUtils = {
     headers: string[],
     data: (string | number)[][],
     options: {
-      theme?: ThemeType; 
-      styles?: Partial<TableStyles>;
-      headStyles?: Partial<TableStyles>;
-      columnStyles?: { [key: number]: Partial<TableStyles> };
+      theme?: string; 
+      styles?: Partial<Styles>;
+      headStyles?: Partial<Styles>;
+      columnStyles?: { [key: number]: Partial<Styles> };
     } = {}
   ): any {
     return autoTable(doc, {
       startY,
       head: [headers],
       body: data,
-      theme: options.theme || "plain" as ThemeType, 
+      theme: options.theme || "plain", 
       styles: options.styles || {
         cellPadding: 5,
         fontSize: 10,
