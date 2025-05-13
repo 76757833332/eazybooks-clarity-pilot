@@ -10,7 +10,7 @@ interface AppLayoutProps {
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children, title }) => {
   return (
-    <div className="flex h-screen bg-gradient-to-br from-background to-eazybooks-purple-dark/80 dark:from-black dark:to-eazybooks-purple-dark/80 light:from-white light:to-[#e5e6e7]">
+    <div className="flex h-screen bg-gradient-to-br from-background to-eazybooks-purple-light dark:from-black dark:to-eazybooks-purple-dark/80">
       <Sidebar />
       
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
