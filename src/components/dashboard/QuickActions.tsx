@@ -24,7 +24,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({ icon, label, onClick, class
     <button
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center justify-center space-y-2 rounded-lg bg-secondary/40 p-3 transition-all hover:bg-secondary/60",
+        "flex flex-col items-center justify-center space-y-2 rounded-lg bg-white/80 dark:bg-secondary/40 p-3 transition-all hover:bg-gray-50 dark:hover:bg-secondary/60",
         className
       )}
     >
@@ -40,7 +40,7 @@ const QuickActions: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-secondary/40 rounded-lg p-4">
+    <div className="bg-white dark:bg-secondary/40 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-transparent">
       <h3 className="text-sm font-medium mb-4">Quick Actions</h3>
       <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
         <ActionButton

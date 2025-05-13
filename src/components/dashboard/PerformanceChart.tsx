@@ -29,8 +29,8 @@ interface CustomTooltipProps {
 const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
-      <div className="glass-card p-3 text-sm">
-        <p className="text-white font-medium">{label}</p>
+      <div className="dark:glass-card bg-white border border-gray-200 shadow-md p-3 text-sm dark:text-white text-gray-800">
+        <p className="font-medium">{label}</p>
         <p className="text-[#A78BFF]">
           Revenue: € {payload[0].value.toFixed(2)}
         </p>
@@ -46,7 +46,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 
 const PerformanceChart: React.FC = () => {
   return (
-    <div className="bg-secondary/40 rounded-lg p-4 h-80">
+    <div className="bg-white dark:bg-secondary/40 rounded-lg p-4 h-80 shadow-sm border border-gray-100 dark:border-transparent">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-sm font-medium">Performance</h3>
         <div className="flex gap-6">
@@ -75,7 +75,7 @@ const PerformanceChart: React.FC = () => {
               <stop offset="95%" stopColor="#FF9F7A" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#333" opacity={0.1} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" opacity={0.3} />
           <XAxis
             dataKey="name"
             tickLine={false}

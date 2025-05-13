@@ -20,7 +20,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions = 
   const safeTransactions = transactions || [];
   
   return (
-    <div className="bg-secondary/40 rounded-lg p-4">
+    <div className="bg-white dark:bg-secondary/40 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-transparent">
       <h3 className="text-sm font-medium mb-4">Recent Transactions</h3>
       {safeTransactions.length > 0 ? (
         <div className="space-y-3">

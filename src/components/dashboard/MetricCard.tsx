@@ -24,7 +24,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
   isLoading = false,
 }) => {
   return (
-    <div className={cn("rounded-lg bg-secondary/40 p-4", className)}>
+    <div className={cn("rounded-lg bg-white dark:bg-secondary/40 p-4 shadow-sm border border-gray-100 dark:border-transparent", className)}>
       <div className="text-sm text-muted-foreground mb-2">{title}</div>
       <div className="flex items-end justify-between">
         {isLoading ? (
