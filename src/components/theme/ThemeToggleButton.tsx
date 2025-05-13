@@ -10,7 +10,7 @@ interface ThemeToggleButtonProps {
 }
 
 export function ThemeToggleButton({ className }: ThemeToggleButtonProps) {
-  const { toggleTheme, theme } = useTheme();
+  const { toggleTheme, resolvedTheme } = useTheme();
 
   return (
     <Button
@@ -18,9 +18,9 @@ export function ThemeToggleButton({ className }: ThemeToggleButtonProps) {
       size="icon"
       onClick={toggleTheme}
       className={cn("rounded-full", className)}
-      title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+      title={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
     >
-      {theme === 'dark' ? (
+      {resolvedTheme === 'dark' ? (
         <Sun className="h-[1.2rem] w-[1.2rem]" />
       ) : (
         <Moon className="h-[1.2rem] w-[1.2rem]" />

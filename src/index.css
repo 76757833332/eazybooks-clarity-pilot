@@ -71,9 +71,26 @@
   * {
     @apply border-border;
   }
+  
+  /* Add transitions for smooth theme switching */
+  :root {
+    --theme-transition-duration: 0.3s;
+  }
+  
+  html {
+    @apply transition-colors duration-300;
+  }
+  
   body {
-    @apply bg-background text-foreground dark;
+    @apply bg-background text-foreground transition-colors duration-300;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Transition for common UI elements */
+  button, a, input, select, textarea, 
+  div[class*='bg-'], div[class*='text-'],
+  div[class*='border-'], div[class*='shadow'] {
+    @apply transition-colors duration-300;
   }
 }
 

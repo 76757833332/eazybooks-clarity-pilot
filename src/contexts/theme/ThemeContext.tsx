@@ -1,10 +1,11 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark';
+type Theme = 'light' | 'dark' | 'system';
 
 interface ThemeContextType {
   theme: Theme;
+  resolvedTheme: 'light' | 'dark'; // The actual applied theme after resolving system preference
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
 }
@@ -16,25 +17,50 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Try to get the theme from localStorage
     const savedTheme = localStorage.getItem('theme') as Theme;
     
-    // Check if there's a saved preference or if the user prefers dark mode
-    if (savedTheme) {
+    if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
       return savedTheme;
     } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
+      return 'system';
     }
     
-    // Default to dark theme as per current app design
-    return 'dark';
+    // Default to system theme if no preference is saved
+    return 'system';
   });
-
+  
+  // Determine the resolved theme based on system preference when 'system' is selected
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
+  
   // Update the document class when theme changes
   useEffect(() => {
     const root = window.document.documentElement;
     
-    if (theme === 'dark') {
-      root.classList.add('dark');
+    // Function to apply the theme
+    const applyTheme = (theme: 'light' | 'dark') => {
+      if (theme === 'dark') {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+      
+      setResolvedTheme(theme);
+    };
+    
+    if (theme === 'system') {
+      // If system theme, check the media query
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(isDark ? 'dark' : 'light');
+      
+      // Listen for system theme changes
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = (e: MediaQueryListEvent) => {
+        applyTheme(e.matches ? 'dark' : 'light');
+      };
+      
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
     } else {
-      root.classList.remove('dark');
+      // If explicit theme, just apply it
+      applyTheme(theme as 'light' | 'dark');
     }
     
     // Save the theme preference to localStorage
@@ -42,11 +68,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+    if (resolvedTheme === 'dark') {
+      setTheme('light');
+    } else {
+      setTheme('dark');
+    }
   };
 
   const value = {
     theme,
+    resolvedTheme,
     setTheme,
     toggleTheme,
   };
