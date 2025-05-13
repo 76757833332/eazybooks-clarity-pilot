@@ -1,7 +1,9 @@
+
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Toaster as SonnerToaster } from "sonner";
+import { ThemeProvider } from "./contexts/theme";
 
 // Auth
 import { AuthProvider } from "./contexts/auth/AuthProvider";
@@ -86,86 +88,88 @@ import AdminPages from "./pages/admin/AdminPages";
 
 function App() {
   return (
-    <TooltipProvider>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/role" element={<RoleSelection />} />
-          <Route path="/invite/:token" element={<InviteAccept />} />
-          <Route path="/*" element={
-            <ProtectedRoute>
-              <Routes>
-                <Route path="/dashboard" element={<Dashboard />} />
-                
-                <Route path="/invoices" element={<InvoicesPage />} />
-                <Route path="/invoices/:id" element={<InvoiceDetails />} />
-                <Route path="/invoices/create" element={<CreateInvoice />} />
-                
-                <Route path="/customers" element={<CustomersPage />} />
-                <Route path="/customers/:id" element={<CustomerDetails />} />
-                <Route path="/customers/add" element={<CreateCustomer />} />
-                
-                <Route path="/expenses" element={<ExpensesPage />} />
-                <Route path="/expenses/:id" element={<ExpenseDetails />} />
-                <Route path="/expenses/add" element={<CreateExpense />} />
-                
-                <Route path="/income" element={<IncomePage />} />
-                <Route path="/income/:id" element={<IncomeDetails />} />
-                <Route path="/income/add" element={<CreateIncome />} />
-                
-                <Route path="/projects" element={<ProjectsPage />} />
-                <Route path="/projects/:id" element={<ProjectDetails />} />
-                <Route path="/projects/create" element={<CreateProject />} />
-                
-                <Route path="/projects/services" element={<ServicesPage />} />
-                <Route path="/projects/services/:id" element={<ServiceDetails />} />
-                <Route path="/projects/services/create" element={<CreateService />} />
-                
-                <Route path="/projects/tasks" element={<TasksPage />} />
-                <Route path="/projects/tasks/:id" element={<TaskDetails />} />
-                <Route path="/projects/tasks/create" element={<CreateTask />} />
-                
-                <Route path="/projects/job-requests" element={<JobRequestsPage />} />
-                <Route path="/projects/job-requests/:id" element={<JobRequestDetails />} />
-                <Route path="/projects/job-requests/create" element={<CreateJobRequest />} />
-                
-                <Route path="/payroll" element={<PayrollPage />} />
-                <Route path="/payroll/:id" element={<PayrollDetails />} />
-                <Route path="/payroll/create" element={<CreatePayroll />} />
-                
-                <Route path="/payroll/employees" element={<EmployeesPage />} />
-                <Route path="/payroll/employees/:id" element={<EmployeeDetails />} />
-                <Route path="/payroll/employees/create" element={<CreateEmployee />} />
-                <Route path="/payroll/employees/:id/edit" element={<EditEmployee />} />
-                
-                <Route path="/leaves" element={<LeavesPage />} />
-                <Route path="/leaves/apply" element={<ApplyForLeave />} />
-                
-                <Route path="/bank" element={<BankPage />} />
-                <Route path="/reports" element={<ReportsPage />} />
-                
-                <Route path="/taxes" element={<TaxesPage />} />
-                <Route path="/taxes/:id" element={<TaxDetails />} />
-                <Route path="/taxes/create" element={<CreateTax />} />
-                <Route path="/taxes/:id/edit" element={<EditTax />} />
-                
-                <Route path="/settings/*" element={<Settings />} />
-                <Route path="/upgrade" element={<UpgradePage />} />
-                
-                {/* Admin routes */}
-                <Route path="/admin/*" element={<AdminPages />} />
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </AuthProvider>
-      <SonnerToaster />
-      <Toaster />
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/role" element={<RoleSelection />} />
+            <Route path="/invite/:token" element={<InviteAccept />} />
+            <Route path="/*" element={
+              <ProtectedRoute>
+                <Routes>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  
+                  <Route path="/invoices" element={<InvoicesPage />} />
+                  <Route path="/invoices/:id" element={<InvoiceDetails />} />
+                  <Route path="/invoices/create" element={<CreateInvoice />} />
+                  
+                  <Route path="/customers" element={<CustomersPage />} />
+                  <Route path="/customers/:id" element={<CustomerDetails />} />
+                  <Route path="/customers/add" element={<CreateCustomer />} />
+                  
+                  <Route path="/expenses" element={<ExpensesPage />} />
+                  <Route path="/expenses/:id" element={<ExpenseDetails />} />
+                  <Route path="/expenses/add" element={<CreateExpense />} />
+                  
+                  <Route path="/income" element={<IncomePage />} />
+                  <Route path="/income/:id" element={<IncomeDetails />} />
+                  <Route path="/income/add" element={<CreateIncome />} />
+                  
+                  <Route path="/projects" element={<ProjectsPage />} />
+                  <Route path="/projects/:id" element={<ProjectDetails />} />
+                  <Route path="/projects/create" element={<CreateProject />} />
+                  
+                  <Route path="/projects/services" element={<ServicesPage />} />
+                  <Route path="/projects/services/:id" element={<ServiceDetails />} />
+                  <Route path="/projects/services/create" element={<CreateService />} />
+                  
+                  <Route path="/projects/tasks" element={<TasksPage />} />
+                  <Route path="/projects/tasks/:id" element={<TaskDetails />} />
+                  <Route path="/projects/tasks/create" element={<CreateTask />} />
+                  
+                  <Route path="/projects/job-requests" element={<JobRequestsPage />} />
+                  <Route path="/projects/job-requests/:id" element={<JobRequestDetails />} />
+                  <Route path="/projects/job-requests/create" element={<CreateJobRequest />} />
+                  
+                  <Route path="/payroll" element={<PayrollPage />} />
+                  <Route path="/payroll/:id" element={<PayrollDetails />} />
+                  <Route path="/payroll/create" element={<CreatePayroll />} />
+                  
+                  <Route path="/payroll/employees" element={<EmployeesPage />} />
+                  <Route path="/payroll/employees/:id" element={<EmployeeDetails />} />
+                  <Route path="/payroll/employees/create" element={<CreateEmployee />} />
+                  <Route path="/payroll/employees/:id/edit" element={<EditEmployee />} />
+                  
+                  <Route path="/leaves" element={<LeavesPage />} />
+                  <Route path="/leaves/apply" element={<ApplyForLeave />} />
+                  
+                  <Route path="/bank" element={<BankPage />} />
+                  <Route path="/reports" element={<ReportsPage />} />
+                  
+                  <Route path="/taxes" element={<TaxesPage />} />
+                  <Route path="/taxes/:id" element={<TaxDetails />} />
+                  <Route path="/taxes/create" element={<CreateTax />} />
+                  <Route path="/taxes/:id/edit" element={<EditTax />} />
+                  
+                  <Route path="/settings/*" element={<Settings />} />
+                  <Route path="/upgrade" element={<UpgradePage />} />
+                  
+                  {/* Admin routes */}
+                  <Route path="/admin/*" element={<AdminPages />} />
+                  
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </AuthProvider>
+        <SonnerToaster />
+        <Toaster />
+      </TooltipProvider>
+    </ThemeProvider>
   );
 }
 

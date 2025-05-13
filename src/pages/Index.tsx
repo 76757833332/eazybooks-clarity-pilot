@@ -2,12 +2,16 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black to-eazybooks-purple-dark flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-white to-eazybooks-purple-light dark:from-black dark:to-eazybooks-purple-dark flex items-center justify-center p-4">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="max-w-md w-full space-y-8 text-center">
         <div className="flex flex-col items-center justify-center space-y-4">
           <Logo size="lg" />
