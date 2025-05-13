@@ -165,9 +165,9 @@ function App() {
               </ProtectedRoute>
             } />
           </Routes>
+          <SonnerToaster />
+          <Toaster />
         </AuthProvider>
-        <SonnerToaster />
-        <Toaster />
       </TooltipProvider>
     </ThemeProvider>
   );
