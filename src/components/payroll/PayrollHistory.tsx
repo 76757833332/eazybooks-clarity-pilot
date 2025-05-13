@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Download } from "lucide-react";
 import { payrollService } from "@/services/payrollService";
-import { pdfService } from "@/services/pdfService";
+import { pdfService } from "@/services/pdf";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "@/hooks/use-toast";
 import { Payroll } from "@/types/payroll";

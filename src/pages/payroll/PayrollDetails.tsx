@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import AppLayout from "@/components/layout/AppLayout";
 import { useAuth } from "@/contexts/auth";
 import { payrollService } from "@/services/payrollService";
-import { pdfService } from "@/services/pdfService";
+import { pdfService } from "@/services/pdf";
 import { toast } from "@/hooks/use-toast";
 import { Download } from "lucide-react";
 
