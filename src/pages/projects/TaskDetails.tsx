@@ -40,11 +40,14 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useTheme } from "@/contexts/theme/ThemeContext";
 
 const TaskDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { resolvedTheme } = useTheme();
+  const isLightMode = resolvedTheme === 'light';
   const [comment, setComment] = useState("");
   const [isTracking, setIsTracking] = useState(false);
   const [trackingStartTime, setTrackingStartTime] = useState<Date | null>(null);
@@ -167,25 +170,35 @@ const TaskDetails: React.FC = () => {
     );
   }
 
-  // Get status badge variant
-  const getStatusBadgeVariant = (status: string) => {
+  // Get status badge classes
+  const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case "todo": return "warning";
-      case "in_progress": return "info";
-      case "review": return "secondary";
-      case "completed": return "success";
-      default: return "default";
+      case "todo": 
+        return isLightMode ? "bg-yellow-100 text-yellow-700" : "bg-yellow-500/20 text-yellow-500";
+      case "in_progress":
+        return isLightMode ? "bg-blue-100 text-blue-700" : "bg-blue-500/20 text-blue-500";
+      case "review":
+        return isLightMode ? "bg-purple-100 text-purple-700" : "bg-purple-500/20 text-purple-500";
+      case "completed":
+        return isLightMode ? "bg-green-100 text-green-700" : "bg-green-500/20 text-green-500";
+      default:
+        return isLightMode ? "bg-gray-100 text-gray-700" : "bg-gray-500/20 text-gray-500";
     }
   };
 
-  // Get priority badge variant
-  const getPriorityBadgeVariant = (priority: string) => {
+  // Get priority badge classes
+  const getPriorityBadgeClass = (priority: string) => {
     switch (priority) {
-      case "low": return "default";
-      case "medium": return "info";
-      case "high": return "warning";
-      case "urgent": return "destructive";
-      default: return "default";
+      case "low":
+        return isLightMode ? "bg-gray-100 text-gray-700" : "bg-gray-500/20 text-gray-500";
+      case "medium":
+        return isLightMode ? "bg-blue-100 text-blue-700" : "bg-blue-500/20 text-blue-500";
+      case "high":
+        return isLightMode ? "bg-orange-100 text-orange-700" : "bg-orange-500/20 text-orange-500";
+      case "urgent":
+        return isLightMode ? "bg-red-100 text-red-700" : "bg-red-500/20 text-red-500";
+      default:
+        return isLightMode ? "bg-gray-100 text-gray-700" : "bg-gray-500/20 text-gray-500";
     }
   };
 
@@ -227,7 +240,10 @@ const TaskDetails: React.FC = () => {
               <Button 
                 onClick={startTimeTracking} 
                 variant="outline" 
-                className="text-green-500 border-green-500 hover:bg-green-500/10"
+                className={isLightMode ? 
+                  "text-green-600 border-green-600 hover:bg-green-50" : 
+                  "text-green-500 border-green-500 hover:bg-green-500/10"
+                }
               >
                 <Play className="h-4 w-4 mr-1" /> Start Timer
               </Button>
@@ -235,7 +251,10 @@ const TaskDetails: React.FC = () => {
               <Button 
                 onClick={stopTimeTracking} 
                 variant="outline" 
-                className="text-red-500 border-red-500 hover:bg-red-500/10"
+                className={isLightMode ?
+                  "text-red-600 border-red-600 hover:bg-red-50" :
+                  "text-red-500 border-red-500 hover:bg-red-500/10"
+                }
               >
                 <Square className="h-4 w-4 mr-1" /> Stop Timer
               </Button>
@@ -255,7 +274,7 @@ const TaskDetails: React.FC = () => {
           {/* Main Content - Left Side */}
           <div className="md:col-span-2 space-y-6">
             {/* Task Description */}
-            <Card>
+            <Card className={isLightMode ? "border-gray-200 shadow-sm" : ""}>
               <CardHeader>
                 <CardTitle>Description</CardTitle>
               </CardHeader>
@@ -267,7 +286,7 @@ const TaskDetails: React.FC = () => {
             </Card>
             
             {/* Task Comments */}
-            <Card>
+            <Card className={isLightMode ? "border-gray-200 shadow-sm" : ""}>
               <CardHeader>
                 <CardTitle>Comments</CardTitle>
                 <CardDescription>
@@ -293,7 +312,7 @@ const TaskDetails: React.FC = () => {
                       placeholder="Add a comment..."
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
-                      className="min-h-[80px]"
+                      className={`min-h-[80px] ${isLightMode ? "border-gray-300" : ""}`}
                     />
                     <div className="flex justify-end">
                       <Button onClick={handleAddComment}>
@@ -308,7 +327,7 @@ const TaskDetails: React.FC = () => {
           
           {/* Task Details - Right Side */}
           <div>
-            <Card>
+            <Card className={isLightMode ? "border-gray-200 shadow-sm" : ""}>
               <CardHeader>
                 <CardTitle>Details</CardTitle>
               </CardHeader>
@@ -317,7 +336,7 @@ const TaskDetails: React.FC = () => {
                   <h3 className="text-sm font-medium">Status</h3>
                   <div className="mt-1">
                     <Select value={task.status} onValueChange={handleStatusChange}>
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className={`w-full ${isLightMode ? "border-gray-300" : ""}`}>
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -337,7 +356,7 @@ const TaskDetails: React.FC = () => {
                   <h3 className="text-sm font-medium">Priority</h3>
                   <div className="mt-1">
                     <Select value={task.priority} onValueChange={handlePriorityChange}>
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className={`w-full ${isLightMode ? "border-gray-300" : ""}`}>
                         <SelectValue placeholder="Priority" />
                       </SelectTrigger>
                       <SelectContent>
@@ -394,7 +413,7 @@ const TaskDetails: React.FC = () => {
                   </div>
                 )}
               </CardContent>
-              <CardFooter className="flex justify-between border-t pt-4">
+              <CardFooter className={`flex justify-between border-t pt-4 ${isLightMode ? "border-gray-200" : ""}`}>
                 <Button 
                   variant="outline" 
                   onClick={() => navigate("/projects/tasks")}

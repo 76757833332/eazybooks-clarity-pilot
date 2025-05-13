@@ -59,17 +59,46 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import KanbanBoard from "@/components/kanban/KanbanBoard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTheme } from "@/contexts/theme/ThemeContext";
 
 const TaskStatusBadge = ({ status }: { status: string }) => {
+  const { resolvedTheme } = useTheme();
+  const isLightMode = resolvedTheme === 'light';
+
   const statusMap = {
-    todo: { label: "To Do", className: "bg-gray-500/20 text-gray-500 hover:bg-gray-500/20" },
-    "in_progress": { label: "In Progress", className: "bg-blue-500/20 text-blue-500 hover:bg-blue-500/20" },
-    review: { label: "Review", className: "bg-orange-500/20 text-orange-500 hover:bg-orange-500/20" },
-    completed: { label: "Completed", className: "bg-green-500/20 text-green-500 hover:bg-green-500/20" },
+    todo: { 
+      label: "To Do", 
+      className: isLightMode ? 
+        "bg-gray-100 text-gray-600 hover:bg-gray-100" : 
+        "bg-gray-500/20 text-gray-500 hover:bg-gray-500/20" 
+    },
+    "in_progress": { 
+      label: "In Progress", 
+      className: isLightMode ? 
+        "bg-blue-100 text-blue-600 hover:bg-blue-100" : 
+        "bg-blue-500/20 text-blue-500 hover:bg-blue-500/20" 
+    },
+    review: { 
+      label: "Review", 
+      className: isLightMode ? 
+        "bg-orange-100 text-orange-600 hover:bg-orange-100" : 
+        "bg-orange-500/20 text-orange-500 hover:bg-orange-500/20" 
+    },
+    completed: { 
+      label: "Completed", 
+      className: isLightMode ? 
+        "bg-green-100 text-green-600 hover:bg-green-100" : 
+        "bg-green-500/20 text-green-500 hover:bg-green-500/20" 
+    },
   };
 
   const { label, className } = statusMap[status as keyof typeof statusMap] || 
-    { label: status, className: "bg-gray-500/20 text-gray-500 hover:bg-gray-500/20" };
+    { 
+      label: status, 
+      className: isLightMode ? 
+        "bg-gray-100 text-gray-600 hover:bg-gray-100" : 
+        "bg-gray-500/20 text-gray-500 hover:bg-gray-500/20" 
+    };
 
   return (
     <Badge variant="outline" className={className}>
@@ -79,15 +108,43 @@ const TaskStatusBadge = ({ status }: { status: string }) => {
 };
 
 const TaskPriorityBadge = ({ priority }: { priority: string }) => {
+  const { resolvedTheme } = useTheme();
+  const isLightMode = resolvedTheme === 'light';
+
   const priorityMap = {
-    low: { label: "Low", className: "bg-gray-500/20 text-gray-500 hover:bg-gray-500/20" },
-    medium: { label: "Medium", className: "bg-blue-500/20 text-blue-500 hover:bg-blue-500/20" },
-    high: { label: "High", className: "bg-orange-500/20 text-orange-500 hover:bg-orange-500/20" },
-    urgent: { label: "Urgent", className: "bg-red-500/20 text-red-500 hover:bg-red-500/20" },
+    low: { 
+      label: "Low", 
+      className: isLightMode ? 
+        "bg-gray-100 text-gray-600 hover:bg-gray-100" : 
+        "bg-gray-500/20 text-gray-500 hover:bg-gray-500/20" 
+    },
+    medium: { 
+      label: "Medium", 
+      className: isLightMode ? 
+        "bg-blue-100 text-blue-600 hover:bg-blue-100" : 
+        "bg-blue-500/20 text-blue-500 hover:bg-blue-500/20" 
+    },
+    high: { 
+      label: "High", 
+      className: isLightMode ? 
+        "bg-orange-100 text-orange-600 hover:bg-orange-100" : 
+        "bg-orange-500/20 text-orange-500 hover:bg-orange-500/20" 
+    },
+    urgent: { 
+      label: "Urgent", 
+      className: isLightMode ? 
+        "bg-red-100 text-red-600 hover:bg-red-100" : 
+        "bg-red-500/20 text-red-500 hover:bg-red-500/20" 
+    },
   };
 
   const { label, className } = priorityMap[priority as keyof typeof priorityMap] || 
-    { label: priority, className: "bg-gray-500/20 text-gray-500 hover:bg-gray-500/20" };
+    { 
+      label: priority, 
+      className: isLightMode ? 
+        "bg-gray-100 text-gray-600 hover:bg-gray-100" : 
+        "bg-gray-500/20 text-gray-500 hover:bg-gray-500/20" 
+    };
 
   return (
     <Badge variant="outline" className={className}>
@@ -99,6 +156,8 @@ const TaskPriorityBadge = ({ priority }: { priority: string }) => {
 const TasksPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { resolvedTheme } = useTheme();
+  const isLightMode = resolvedTheme === 'light';
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [viewMode, setViewMode] = useState("list");
@@ -220,7 +279,7 @@ const TasksPage: React.FC = () => {
               />
             </div>
             <Tabs value={viewMode} onValueChange={setViewMode} className="w-full sm:w-auto">
-              <TabsList className="bg-background/5">
+              <TabsList className={isLightMode ? "bg-gray-100" : "bg-background/5"}>
                 <TabsTrigger value="list">List</TabsTrigger>
                 <TabsTrigger value="board">Board</TabsTrigger>
               </TabsList>
@@ -252,7 +311,7 @@ const TasksPage: React.FC = () => {
           </Button>
         </div>
 
-        <Card>
+        <Card className={isLightMode ? "border border-gray-200 shadow-sm" : ""}>
           <CardHeader>
             <CardTitle>All Tasks</CardTitle>
             <CardDescription>
@@ -271,9 +330,9 @@ const TasksPage: React.FC = () => {
                       : "No tasks found. Create your first task to get started."}
                   </div>
                 ) : (
-                  <div className="rounded-md border">
+                  <div className={`rounded-md border ${isLightMode ? "border-gray-200" : ""}`}>
                     <Table>
-                      <TableHeader>
+                      <TableHeader className={isLightMode ? "bg-gray-50" : ""}>
                         <TableRow>
                           <TableHead>Task</TableHead>
                           <TableHead className="hidden md:table-cell">Project</TableHead>
@@ -289,16 +348,24 @@ const TasksPage: React.FC = () => {
                           <TableRow 
                             key={task.id} 
                             className={`cursor-pointer ${
-                              isOverdue(task) ? 'bg-red-50/10' : ''
-                            }`}
+                              isOverdue(task) 
+                                ? isLightMode 
+                                  ? 'bg-red-50' 
+                                  : 'bg-red-50/10'
+                                : ''
+                            } ${isLightMode ? 'hover:bg-gray-50' : 'hover:bg-muted/10'}`}
                             onClick={() => navigate(`/projects/tasks/${task.id}`)}
                           >
                             <TableCell className="font-medium">
                               <div className="flex items-center">
                                 <div className={`h-8 w-8 rounded-full flex items-center justify-center mr-2 ${
                                   task.status === 'completed' 
-                                    ? 'bg-green-500/20 text-green-500' 
-                                    : 'bg-eazybooks-purple bg-opacity-15 text-eazybooks-purple'
+                                    ? isLightMode 
+                                      ? 'bg-green-100 text-green-600'
+                                      : 'bg-green-500/20 text-green-500'
+                                    : isLightMode
+                                      ? 'bg-eazybooks-purple bg-opacity-15 text-eazybooks-purple'
+                                      : 'bg-eazybooks-purple bg-opacity-15 text-eazybooks-purple'
                                 }`}>
                                   {task.status === 'completed' ? (
                                     <CheckCircle size={16} />
@@ -366,7 +433,10 @@ const TasksPage: React.FC = () => {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-green-500 border-green-500 hover:bg-green-500/10"
+                                    className={isLightMode ? 
+                                      "text-green-600 border-green-600 hover:bg-green-50" : 
+                                      "text-green-500 border-green-500 hover:bg-green-500/10"
+                                    }
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleStatusChange(task.id, 'completed');
@@ -379,7 +449,10 @@ const TasksPage: React.FC = () => {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-blue-500 border-blue-500 hover:bg-blue-500/10"
+                                    className={isLightMode ? 
+                                      "text-blue-600 border-blue-600 hover:bg-blue-50" : 
+                                      "text-blue-500 border-blue-500 hover:bg-blue-500/10"
+                                    }
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleStatusChange(task.id, 'todo');
