@@ -9,26 +9,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PlusCircle, X } from 'lucide-react';
 import TaskCard from './TaskCard';
-import { KanbanColumn as ColumnType, KanbanTask } from './KanbanBoard';
+import { KanbanColumn as ColumnType } from './KanbanContext';
 import { Badge } from '@/components/ui/badge';
+import { useKanban } from './KanbanContext';
 
 interface KanbanColumnProps {
   column: ColumnType;
-  onDeleteColumn: (columnId: string) => void;
-  onUpdateColumnName: (columnId: string, newName: string) => void;
-  onAddTask: (columnId: string) => void;
-  onEditTask: (task: KanbanTask) => void;
 }
 
-const KanbanColumn: React.FC<KanbanColumnProps> = ({
-  column,
-  onDeleteColumn,
-  onUpdateColumnName,
-  onAddTask,
-  onEditTask,
-}) => {
+const KanbanColumn: React.FC<KanbanColumnProps> = ({ column }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [columnName, setColumnName] = useState(column.name);
+  
+  const { 
+    handleDeleteColumn, 
+    handleUpdateColumnName, 
+    handleAddTask, 
+    handleEditTask 
+  } = useKanban();
   
   const { setNodeRef: setDroppableRef } = useDroppable({
     id: column.id,
@@ -70,7 +68,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
   const handleEditEnd = () => {
     setIsEditing(false);
     if (columnName.trim() !== '') {
-      onUpdateColumnName(column.id, columnName);
+      handleUpdateColumnName(column.id, columnName);
     } else {
       setColumnName(column.name);
     }
@@ -132,7 +130,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
           {!['todo', 'in_progress', 'review', 'completed'].includes(column.id) && (
             <X 
               className="h-4 w-4 cursor-pointer hover:text-red-500" 
-              onClick={() => onDeleteColumn(column.id)}
+              onClick={() => handleDeleteColumn(column.id)}
               aria-label="Delete column"
             />
           )}
@@ -146,7 +144,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
               <TaskCard
                 key={task.id}
                 task={task}
-                onClick={() => onEditTask(task)}
+                onClick={() => handleEditTask(task)}
               />
             ))}
           </SortableContext>
@@ -154,7 +152,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
           <Button 
             variant="ghost" 
             className="w-full justify-start text-muted-foreground hover:text-foreground"
-            onClick={() => onAddTask(column.id)}
+            onClick={() => handleAddTask(column.id)}
           >
             <PlusCircle className="mr-2 h-4 w-4" />
             Add task
