@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { KanbanTask } from './KanbanBoard';
+import { KanbanTask } from './types';
 import TaskForm from './TaskForm';
 import TaskAssigneeSelect from './TaskAssigneeSelect';
 import TaskModalFooter from './TaskModalFooter';
