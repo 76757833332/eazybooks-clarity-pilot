@@ -1,8 +1,7 @@
 
 import React, { createContext, useContext, useState } from 'react';
 import { KanbanContextProps } from './KanbanContextTypes';
-import { KanbanTask } from './types';
-import { KanbanColumn } from './KanbanContextTypes';
+import { KanbanTask, KanbanColumn } from './types';
 import { useTasksData } from './useTasksData';
 import { useColumnHandlers } from './useColumnHandlers';
 import { useTaskHandlers } from './useTaskHandlers';

@@ -1,9 +1,8 @@
 
 import { useState } from 'react';
-import { KanbanColumn } from './KanbanContextTypes';
-import { KanbanTask } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { projectService } from '@/services/projectService';
+import { KanbanTask, KanbanColumn } from './types';
 
 export function useTaskHandlers(
   columns: KanbanColumn[], 

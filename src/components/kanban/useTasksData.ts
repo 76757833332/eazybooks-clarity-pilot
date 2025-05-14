@@ -3,9 +3,8 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { projectService } from '@/services/projectService';
 import { Task } from '@/types/project';
-import { KanbanColumn } from './KanbanContextTypes';
 import { defaultColumns } from './constants';
-import { KanbanTask } from './types';
+import { KanbanTask, KanbanColumn } from './types';
 
 export function useTasksData() {
   const [columns, setColumns] = useState<KanbanColumn[]>(defaultColumns);

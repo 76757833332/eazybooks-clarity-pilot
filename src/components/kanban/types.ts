@@ -15,5 +15,4 @@ export interface KanbanColumn {
   tasks: KanbanTask[];
 }
 
-// Re-export KanbanContextTypes to prevent circular dependencies
-export * from './KanbanContextTypes';
+// Note: Removed circular dependency by not re-exporting KanbanContextTypes

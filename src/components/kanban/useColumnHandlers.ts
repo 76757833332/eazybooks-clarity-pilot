@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
-import { KanbanColumn } from './KanbanContextTypes';
 import { useToast } from '@/hooks/use-toast';
+import { KanbanColumn } from './types';
 
 export function useColumnHandlers(columns: KanbanColumn[], setColumns: React.Dispatch<React.SetStateAction<KanbanColumn[]>>) {
   const { toast } = useToast();
