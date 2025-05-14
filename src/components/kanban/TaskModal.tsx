@@ -55,7 +55,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       name: task.name,
       description: task.description || '',
       assigned_to: task.assigned_to,
-      status: task.status,
+      status: task.status || task.column_id, // Use whichever is available
     },
   });
 
@@ -69,7 +69,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         name: task.name,
         description: task.description || '',
         assigned_to: task.assigned_to,
-        status: task.status,
+        status: task.status || task.column_id, // Use whichever is available
       });
     }
   }, [task, reset, isOpen]);
@@ -80,6 +80,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
       name: data.name,
       description: data.description || null,
       assigned_to: data.assigned_to,
+      status: data.status,
+      column_id: data.status, // Ensure both properties are updated
     };
     
     onSave(updatedTask);

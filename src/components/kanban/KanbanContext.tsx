@@ -1,17 +1,9 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { projectService } from '@/services/projectService';
 import { Task } from '@/types/project';
-
-export interface KanbanTask {
-  id: string;
-  name: string;
-  description?: string;
-  assigned_to?: string | null;
-  column_id: string;
-}
+import { KanbanTask } from './types';
 
 export interface KanbanColumn {
   id: string;
@@ -97,7 +89,9 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             name: task.name,
             description: task.description || undefined,
             assigned_to: task.assigned_to,
-            column_id: task.status
+            column_id: task.status,
+            status: task.status, // Add status property to match the unified interface
+            priority: task.priority
           }));
 
         return {
@@ -182,6 +176,7 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       description: '',
       assigned_to: '',
       column_id: columnId,
+      status: columnId, // Add status to match the unified interface
     });
     setIsNewTask(true);
     setIsTaskModalOpen(true);
@@ -203,7 +198,7 @@ export const KanbanProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         description: task.description || null,
         status: task.column_id as any,
         assigned_to: task.assigned_to || null,
-        priority: 'medium',
+        priority: task.priority || 'medium',
         billable: true,
         project_id: null,
         service_id: null,

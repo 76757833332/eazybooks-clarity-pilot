@@ -84,7 +84,11 @@ export const useKanbanDnd = () => {
           // Add to destination column
           if (col.id === destinationColumn!.id) {
             const task = sourceColumn.tasks.find(t => t.id === activeId)!;
-            const updatedTask = { ...task, column_id: destinationColumn!.id };
+            const updatedTask = { 
+              ...task, 
+              column_id: destinationColumn!.id,
+              status: destinationColumn!.id // Update both column_id and status
+            };
             
             // Update the task status in the backend
             projectService.updateTask(activeId, { status: destinationColumn!.id as any })
