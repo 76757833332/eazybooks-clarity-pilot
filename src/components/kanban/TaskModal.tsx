@@ -5,22 +5,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { KanbanTask } from './KanbanBoard';
-import { useQuery } from '@tanstack/react-query';
+import TaskForm from './TaskForm';
+import TaskAssigneeSelect from './TaskAssigneeSelect';
+import TaskModalFooter from './TaskModalFooter';
 
 interface TaskModalProps {
   task: KanbanTask;
@@ -77,74 +66,22 @@ const TaskModal: React.FC<TaskModalProps> = ({
           <DialogTitle>{isNew ? 'Add Task' : 'Edit Task'}</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              name="name"
-              value={editedTask.name}
-              onChange={handleChange}
-              placeholder="Task name"
-              className="bg-black/30 border-gray-700"
-              autoFocus
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              name="description"
-              value={editedTask.description || ''}
-              onChange={handleChange}
-              placeholder="Add a more detailed description..."
-              className="bg-black/30 border-gray-700 min-h-24"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="assignee">Assigned to</Label>
-            <Select 
-              value={editedTask.assigned_to || 'unassigned'} 
-              onValueChange={handleAssigneeChange}
-            >
-              <SelectTrigger className="bg-black/30 border-gray-700">
-                <SelectValue placeholder="Assign to..." />
-              </SelectTrigger>
-              <SelectContent className="bg-black/90 border-gray-700">
-                <SelectItem value="unassigned">Unassigned</SelectItem>
-                <SelectItem value="Alex">Alex</SelectItem>
-                <SelectItem value="Jordan">Jordan</SelectItem>
-                <SelectItem value="Taylor">Taylor</SelectItem>
-                <SelectItem value="Morgan">Morgan</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <TaskForm 
+          task={editedTask}
+          onChange={handleChange}
+        />
         
-        <DialogFooter className="sm:justify-between">
-          {!isNew && (
-            <Button 
-              variant="destructive"
-              onClick={() => onDelete(task.id)}
-              className="mr-auto"
-            >
-              Delete
-            </Button>
-          )}
-          
-          <div>
-            <DialogClose asChild>
-              <Button variant="outline" className="mr-2">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button onClick={handleSave}>
-              Save
-            </Button>
-          </div>
-        </DialogFooter>
+        <TaskAssigneeSelect 
+          assignedTo={editedTask.assigned_to} 
+          onAssigneeChange={handleAssigneeChange}
+        />
+        
+        <TaskModalFooter 
+          isNew={isNew}
+          onSave={handleSave}
+          onDelete={onDelete}
+          taskId={task.id}
+        />
       </DialogContent>
     </Dialog>
   );
