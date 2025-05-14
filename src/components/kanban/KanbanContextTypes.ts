@@ -1,12 +1,6 @@
 
-import { KanbanTask } from './types';
+import { KanbanTask, KanbanColumn } from './types';
 import { Task } from '@/types/project';
-
-export interface KanbanColumn {
-  id: string;
-  name: string;
-  tasks: KanbanTask[];
-}
 
 export interface KanbanContextProps {
   columns: KanbanColumn[];

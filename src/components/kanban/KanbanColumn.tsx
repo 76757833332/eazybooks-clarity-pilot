@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PlusCircle, X } from 'lucide-react';
 import TaskCard from './TaskCard';
-import { KanbanColumn as ColumnType } from './KanbanContext';
+import { KanbanColumn as ColumnType } from './types';
 import { Badge } from '@/components/ui/badge';
 import { useKanban } from './KanbanContext';
 

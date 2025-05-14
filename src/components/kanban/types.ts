@@ -3,11 +3,17 @@ export interface KanbanTask {
   id: string;
   name: string;
   description?: string | null;
-  status?: string;
+  status: string;
   column_id: string;
   assigned_to?: string | null;
   priority?: 'low' | 'medium' | 'high' | 'urgent';
 }
 
-// Re-export KanbanContext types to prevent circular dependencies
+export interface KanbanColumn {
+  id: string;
+  name: string;
+  tasks: KanbanTask[];
+}
+
+// Re-export KanbanContextTypes to prevent circular dependencies
 export * from './KanbanContextTypes';
