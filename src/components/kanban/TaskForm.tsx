@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { FieldErrors, UseFormRegister } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useTheme } from '@/contexts/theme/ThemeContext';
 
 interface TaskFormProps {
   register: UseFormRegister<any>;
@@ -13,6 +14,9 @@ interface TaskFormProps {
 }
 
 const TaskForm: React.FC<TaskFormProps> = ({ register, errors, values }) => {
+  const { resolvedTheme } = useTheme();
+  const isLightMode = resolvedTheme === 'light';
+
   return (
     <div className="space-y-4 py-2">
       <div className="space-y-2">
@@ -21,7 +25,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ register, errors, values }) => {
           id="name"
           {...register('name')}
           placeholder="Task name"
-          className={`bg-black/30 border-gray-700 ${errors.name ? 'border-destructive' : ''}`}
+          className={`${isLightMode ? 'bg-white border-gray-200' : 'bg-black/30 border-gray-700'} ${errors.name ? 'border-destructive' : ''}`}
           autoFocus
         />
         {errors.name && (
@@ -35,7 +39,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ register, errors, values }) => {
           id="description"
           {...register('description')}
           placeholder="Add a more detailed description..."
-          className={`bg-black/30 border-gray-700 min-h-24 ${errors.description ? 'border-destructive' : ''}`}
+          className={`${isLightMode ? 'bg-white border-gray-200' : 'bg-black/30 border-gray-700'} min-h-24 ${errors.description ? 'border-destructive' : ''}`}
         />
         {errors.description && (
           <p className="text-sm font-medium text-destructive">{errors.description.message as string}</p>
