@@ -23,6 +23,7 @@ const TaskModalFooter: React.FC<TaskModalFooterProps> = ({
           variant="destructive"
           onClick={() => onDelete(taskId)}
           className="mr-auto"
+          type="button"
         >
           Delete
         </Button>
@@ -30,11 +31,11 @@ const TaskModalFooter: React.FC<TaskModalFooterProps> = ({
       
       <div>
         <DialogClose asChild>
-          <Button variant="outline" className="mr-2">
+          <Button variant="outline" className="mr-2" type="button">
             Cancel
           </Button>
         </DialogClose>
-        <Button onClick={onSave}>
+        <Button type="submit" onClick={onSave}>
           Save
         </Button>
       </div>

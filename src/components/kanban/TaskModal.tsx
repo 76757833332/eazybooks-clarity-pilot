@@ -1,5 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { toast } from '@/components/ui/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +14,16 @@ import { KanbanTask } from './types';
 import TaskForm from './TaskForm';
 import TaskAssigneeSelect from './TaskAssigneeSelect';
 import TaskModalFooter from './TaskModalFooter';
+
+// Define Zod schema for task validation
+const taskSchema = z.object({
+  name: z.string().min(1, { message: 'Task name is required' }),
+  description: z.string().optional(),
+  assigned_to: z.string().nullable(),
+  status: z.string(),
+});
+
+type TaskFormValues = z.infer<typeof taskSchema>;
 
 interface TaskModalProps {
   task: KanbanTask;
@@ -28,35 +42,55 @@ const TaskModal: React.FC<TaskModalProps> = ({
   onDelete,
   isNew,
 }) => {
-  const [editedTask, setEditedTask] = useState<KanbanTask>(task);
-  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+    watch,
+  } = useForm<TaskFormValues>({
+    resolver: zodResolver(taskSchema),
+    defaultValues: {
+      name: task.name,
+      description: task.description || '',
+      assigned_to: task.assigned_to,
+      status: task.status,
+    },
+  });
+
+  // Watch the form values for changes
+  const watchedValues = watch();
+
   // Reset form when task changes
   useEffect(() => {
-    setEditedTask(task);
-  }, [task]);
-
-  const handleSave = () => {
-    // Validate required fields
-    if (!editedTask.name.trim()) {
-      return;
+    if (isOpen) {
+      reset({
+        name: task.name,
+        description: task.description || '',
+        assigned_to: task.assigned_to,
+        status: task.status,
+      });
     }
-    
-    onSave(editedTask);
-  };
+  }, [task, reset, isOpen]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setEditedTask(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+  const onSubmit = (data: TaskFormValues) => {
+    const updatedTask: KanbanTask = {
+      ...task,
+      name: data.name,
+      description: data.description || null,
+      assigned_to: data.assigned_to,
+    };
+    
+    onSave(updatedTask);
+    toast({
+      title: isNew ? "Task created" : "Task updated",
+      description: `Successfully ${isNew ? 'created' : 'updated'} task: ${data.name}`,
+    });
   };
 
   const handleAssigneeChange = (value: string) => {
-    setEditedTask(prev => ({
-      ...prev,
-      assigned_to: value === 'unassigned' ? null : value,
-    }));
+    setValue('assigned_to', value === 'unassigned' ? null : value);
   };
 
   return (
@@ -66,22 +100,25 @@ const TaskModal: React.FC<TaskModalProps> = ({
           <DialogTitle>{isNew ? 'Add Task' : 'Edit Task'}</DialogTitle>
         </DialogHeader>
         
-        <TaskForm 
-          task={editedTask}
-          onChange={handleChange}
-        />
-        
-        <TaskAssigneeSelect 
-          assignedTo={editedTask.assigned_to} 
-          onAssigneeChange={handleAssigneeChange}
-        />
-        
-        <TaskModalFooter 
-          isNew={isNew}
-          onSave={handleSave}
-          onDelete={onDelete}
-          taskId={task.id}
-        />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <TaskForm 
+            register={register}
+            errors={errors}
+            values={watchedValues}
+          />
+          
+          <TaskAssigneeSelect 
+            assignedTo={watchedValues.assigned_to} 
+            onAssigneeChange={handleAssigneeChange}
+          />
+          
+          <TaskModalFooter 
+            isNew={isNew}
+            onSave={handleSubmit(onSubmit)}
+            onDelete={onDelete}
+            taskId={task.id}
+          />
+        </form>
       </DialogContent>
     </Dialog>
   );
