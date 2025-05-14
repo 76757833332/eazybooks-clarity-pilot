@@ -10,4 +10,4 @@ export interface KanbanTask {
 }
 
 // Re-export KanbanContext types to prevent circular dependencies
-export * from './KanbanContext';
+export * from './KanbanContextTypes';
