@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useTheme } from '@/contexts/theme/ThemeContext';
 
 interface TaskAssigneeSelectProps {
   assignedTo: string | null;
@@ -18,6 +19,9 @@ const TaskAssigneeSelect: React.FC<TaskAssigneeSelectProps> = ({
   assignedTo, 
   onAssigneeChange 
 }) => {
+  const { resolvedTheme } = useTheme();
+  const isLightMode = resolvedTheme === 'light';
+  
   return (
     <div className="space-y-2">
       <Label htmlFor="assignee">Assigned to</Label>
@@ -25,10 +29,14 @@ const TaskAssigneeSelect: React.FC<TaskAssigneeSelectProps> = ({
         value={assignedTo || 'unassigned'} 
         onValueChange={onAssigneeChange}
       >
-        <SelectTrigger className="bg-black/30 border-gray-700">
+        <SelectTrigger className={`${isLightMode 
+          ? 'bg-white border-gray-200' 
+          : 'bg-black/30 border-gray-700'}`}>
           <SelectValue placeholder="Assign to..." />
         </SelectTrigger>
-        <SelectContent className="bg-black/90 border-gray-700">
+        <SelectContent className={`${isLightMode 
+          ? 'bg-white border-gray-200' 
+          : 'bg-black/90 border-gray-700'}`}>
           <SelectItem value="unassigned">Unassigned</SelectItem>
           <SelectItem value="Alex">Alex</SelectItem>
           <SelectItem value="Jordan">Jordan</SelectItem>
