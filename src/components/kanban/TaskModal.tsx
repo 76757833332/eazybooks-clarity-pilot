@@ -14,6 +14,7 @@ import { KanbanTask } from './types';
 import TaskForm from './TaskForm';
 import TaskAssigneeSelect from './TaskAssigneeSelect';
 import TaskModalFooter from './TaskModalFooter';
+import { useTheme } from '@/contexts/theme/ThemeContext';
 
 // Define Zod schema for task validation
 const taskSchema = z.object({
@@ -42,6 +43,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
   onDelete,
   isNew,
 }) => {
+  const { resolvedTheme } = useTheme();
+  const isLightMode = resolvedTheme === 'light';
+  
   const {
     register,
     handleSubmit,
@@ -97,7 +101,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-black/80 backdrop-blur-xl text-white border-gray-700 max-w-md">
+      <DialogContent className={`${isLightMode 
+        ? 'bg-white text-gray-800 border-gray-200' 
+        : 'bg-black/80 backdrop-blur-xl text-white border-gray-700'} max-w-md`}>
         <DialogHeader>
           <DialogTitle>{isNew ? 'Add Task' : 'Edit Task'}</DialogTitle>
         </DialogHeader>

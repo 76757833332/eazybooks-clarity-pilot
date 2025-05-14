@@ -5,6 +5,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { KanbanTask } from './types';
 import { Card } from '@/components/ui/card';
 import { User } from 'lucide-react';
+import { useTheme } from '@/contexts/theme/ThemeContext';
 
 interface TaskCardProps {
   task: KanbanTask;
@@ -13,6 +14,9 @@ interface TaskCardProps {
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, isDragging = false }) => {
+  const { resolvedTheme } = useTheme();
+  const isLightMode = resolvedTheme === 'light';
+  
   const {
     attributes,
     listeners,
@@ -42,7 +46,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, isDragging = false }
       className="mb-2 touch-none"
     >
       <Card
-        className="p-3 bg-black/30 backdrop-blur-sm border-gray-800 hover:border-gray-700 cursor-pointer transition-colors shadow-sm"
+        className={`p-3 ${isLightMode 
+          ? 'bg-gray-50 border-gray-200 hover:border-gray-300' 
+          : 'bg-black/30 backdrop-blur-sm border-gray-800 hover:border-gray-700'} 
+          cursor-pointer transition-colors shadow-sm`}
         onClick={onClick}
       >
         <div className="text-sm font-medium">{task.name}</div>

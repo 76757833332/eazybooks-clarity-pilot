@@ -17,6 +17,7 @@ import TaskCard from './TaskCard';
 import TaskModal from './TaskModal';
 import { KanbanProvider, useKanban } from './KanbanContext';
 import { useKanbanDnd } from './useKanbanDnd';
+import { useTheme } from '@/contexts/theme/ThemeContext';
 
 const KanbanBoardContent = () => {
   const {
@@ -32,6 +33,7 @@ const KanbanBoardContent = () => {
     isLoading
   } = useKanban();
   
+  const { resolvedTheme } = useTheme();
   const { handleDragStart, handleDragOver, handleDragEnd } = useKanbanDnd();
 
   const sensors = useSensors(
@@ -62,7 +64,11 @@ const KanbanBoardContent = () => {
         </Button>
       </div>
       
-      <div className="relative overflow-x-auto pb-4">
+      <div className={`relative overflow-x-auto pb-4 ${
+        resolvedTheme === 'light' 
+          ? 'bg-white/70 rounded-lg p-4 border border-gray-200 shadow-sm' 
+          : ''
+      }`}>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}

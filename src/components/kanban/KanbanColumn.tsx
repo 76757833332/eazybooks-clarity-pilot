@@ -12,6 +12,7 @@ import TaskCard from './TaskCard';
 import { KanbanColumn as ColumnType } from './types';
 import { Badge } from '@/components/ui/badge';
 import { useKanban } from './KanbanContext';
+import { useTheme } from '@/contexts/theme/ThemeContext';
 
 interface KanbanColumnProps {
   column: ColumnType;
@@ -20,6 +21,8 @@ interface KanbanColumnProps {
 const KanbanColumn: React.FC<KanbanColumnProps> = ({ column }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [columnName, setColumnName] = useState(column.name);
+  const { resolvedTheme } = useTheme();
+  const isLightMode = resolvedTheme === 'light';
   
   const { 
     handleDeleteColumn, 
@@ -87,11 +90,11 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ column }) => {
 
   const getColumnHeaderColor = (columnId: string) => {
     switch(columnId) {
-      case 'todo': return 'bg-gray-500/20';
-      case 'in_progress': return 'bg-blue-500/20';
-      case 'review': return 'bg-orange-500/20';
-      case 'completed': return 'bg-green-500/20';
-      default: return 'bg-gray-500/20';
+      case 'todo': return isLightMode ? 'bg-gray-200' : 'bg-gray-500/20';
+      case 'in_progress': return isLightMode ? 'bg-blue-200' : 'bg-blue-500/20';
+      case 'review': return isLightMode ? 'bg-orange-200' : 'bg-orange-500/20';
+      case 'completed': return isLightMode ? 'bg-green-200' : 'bg-green-500/20';
+      default: return isLightMode ? 'bg-gray-200' : 'bg-gray-500/20';
     }
   };
   
@@ -102,7 +105,9 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ column }) => {
       className="flex-shrink-0 w-[280px]"
       {...attributes}
     >
-      <Card className="bg-black/40 backdrop-blur-sm border-gray-700 h-full">
+      <Card className={`${isLightMode 
+        ? 'bg-white shadow-md border-gray-200' 
+        : 'bg-black/40 backdrop-blur-sm border-gray-700'} h-full`}>
         <CardHeader className={`p-3 flex flex-row justify-between items-center space-y-0 ${getColumnHeaderColor(column.id)}`}>
           {isEditing ? (
             <Input
@@ -111,7 +116,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ column }) => {
               onBlur={handleEditEnd}
               onKeyDown={handleKeyDown}
               autoFocus
-              className="text-base font-semibold h-8 bg-transparent"
+              className={`text-base font-semibold h-8 ${isLightMode ? 'bg-white/70' : 'bg-transparent'}`}
             />
           ) : (
             <CardTitle

@@ -98,7 +98,7 @@ const TasksPage: React.FC = () => {
           <TaskActions />
         </div>
 
-        <Card className={isLightMode ? "border border-gray-200 shadow-sm" : ""}>
+        <Card className={isLightMode ? "bg-white border border-gray-200 shadow-sm" : ""}>
           <CardHeader>
             <CardTitle>All Tasks</CardTitle>
             <CardDescription>
