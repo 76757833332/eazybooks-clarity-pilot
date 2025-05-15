@@ -17,8 +17,8 @@ export const invoiceQueryService = {
       
       console.log("Fetching invoices for user:", userId, "in tenant:", tenantId);
       
-      // Create a base query without chaining
-      let query = supabase
+      // Create the base query with essential parameters
+      const baseQuery = supabase
         .from("invoices")
         .select(`
           *,
@@ -27,14 +27,11 @@ export const invoiceQueryService = {
         .eq("user_id", userId)
         .order("issue_date", { ascending: false });
       
-      // Add tenant filter if available
-      if (tenantId) {
-        query = query.eq("tenant_id", tenantId);
-      }
+      // Execute appropriate query with or without tenant filter
+      const { data, error } = tenantId 
+        ? await baseQuery.eq("tenant_id", tenantId)
+        : await baseQuery;
       
-      // Execute the query
-      const { data, error } = await query;
-        
       if (error) {
         console.error("Error fetching invoices:", error);
         throw error;
@@ -50,20 +47,17 @@ export const invoiceQueryService = {
         const tenantId = await baseService.getCurrentTenantId();
         
         // Create a fallback base query
-        let fallbackQuery = supabase
+        const fallbackQuery = supabase
           .from("invoices")
           .select("*")
           .eq("user_id", userId)
           .order("issue_date", { ascending: false });
         
-        // Add tenant filter if available
-        if (tenantId) {
-          fallbackQuery = fallbackQuery.eq("tenant_id", tenantId);
-        }
+        // Execute appropriate fallback query with or without tenant filter
+        const { data, error: fallbackError } = tenantId
+          ? await fallbackQuery.eq("tenant_id", tenantId)
+          : await fallbackQuery;
         
-        // Execute the fallback query
-        const { data, error: fallbackError } = await fallbackQuery;
-          
         if (fallbackError) {
           console.error("Error in fallback query:", fallbackError);
           throw fallbackError;
@@ -87,8 +81,8 @@ export const invoiceQueryService = {
       const userId = await baseService.getCurrentUserId();
       const tenantId = await baseService.getCurrentTenantId();
       
-      // Create a base query
-      let query = supabase
+      // Create the base query
+      const query = supabase
         .from("invoices")
         .select(`
           *,
@@ -96,17 +90,13 @@ export const invoiceQueryService = {
           items:invoice_items(*)
         `)
         .eq("id", id)
-        .eq("user_id", userId)
-        .maybeSingle();
+        .eq("user_id", userId);
       
-      // Add tenant filter if available
-      if (tenantId) {
-        query = query.eq("tenant_id", tenantId);
-      }
+      // Add tenant filter if available and execute
+      const { data, error } = tenantId
+        ? await query.eq("tenant_id", tenantId).maybeSingle()
+        : await query.maybeSingle();
       
-      // Execute the query
-      const { data, error } = await query;
-        
       if (error) {
         console.error("Error fetching invoice:", error);
         throw error;
@@ -134,19 +124,17 @@ export const invoiceQueryService = {
       const tenantId = await baseService.getCurrentTenantId();
       
       // Build the verification query
-      let verificationQuery = supabase
+      const verificationQuery = supabase
         .from("invoices")
         .select("id")
         .eq("id", invoiceId)
-        .eq("user_id", userId)
-        .maybeSingle();
-        
-      if (tenantId) {
-        verificationQuery = verificationQuery.eq("tenant_id", tenantId);
-      }
+        .eq("user_id", userId);
       
-      // Execute the verification query
-      const result = await verificationQuery;
+      // Execute verification query with or without tenant filter
+      const result = tenantId
+        ? await verificationQuery.eq("tenant_id", tenantId).maybeSingle()
+        : await verificationQuery.maybeSingle();
+        
       const invoiceData = result.data;
       const invoiceError = result.error;
       
