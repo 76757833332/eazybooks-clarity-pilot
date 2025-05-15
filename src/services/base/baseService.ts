@@ -23,5 +23,16 @@ export const baseService = {
     if (error) throw error;
     if (!data.session?.user) throw new Error("No active user found");
     return data.session.user.id;
+  },
+
+  /**
+   * Get current user safely (compatibility method)
+   * @deprecated Use getCurrentUserId instead
+   */
+  getCurrentUser: async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    if (!data.session?.user) throw new Error("No active user found");
+    return { id: data.session.user.id };
   }
 };

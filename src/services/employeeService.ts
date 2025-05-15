@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Employee } from "@/types/employee";
 import { baseService } from "./base/baseService";
@@ -8,12 +7,12 @@ export const employeeService = {
    * Get all employees for the current user
    */
   getEmployees: async () => {
-    const user = await baseService.getCurrentUser();
+    const userId = await baseService.getCurrentUserId();
     
     const { data, error } = await supabase
       .from("employees")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .order("last_name", { ascending: true });
       
     if (error) throw error;
@@ -38,11 +37,11 @@ export const employeeService = {
    * Create employee
    */
   createEmployee: async (employee: Omit<Employee, "id" | "created_at" | "updated_at">) => {
-    const user = await baseService.getCurrentUser();
+    const userId = await baseService.getCurrentUserId();
     
     const { data, error } = await supabase
       .from("employees")
-      .insert([{ ...employee, user_id: user.id }])
+      .insert([{ ...employee, user_id: userId }])
       .select()
       .single();
       

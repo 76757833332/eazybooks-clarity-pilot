@@ -11,7 +11,7 @@ export const invoiceQueryService = {
    * Get all invoices for the current user
    */
   getInvoices: async () => {
-    const user = await baseService.getCurrentUser();
+    const userId = await baseService.getCurrentUserId();
     
     try {
       const { data, error } = await supabase
@@ -20,7 +20,7 @@ export const invoiceQueryService = {
           *,
           customer:customers(*)
         `)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("issue_date", { ascending: false });
         
       if (error) throw error;
@@ -31,7 +31,7 @@ export const invoiceQueryService = {
       const { data, error: fallbackError } = await supabase
         .from("invoices")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("issue_date", { ascending: false });
         
       if (fallbackError) throw fallbackError;

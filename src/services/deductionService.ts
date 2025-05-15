@@ -8,12 +8,12 @@ export const deductionService = {
    * Get deduction types
    */
   getDeductionTypes: async () => {
-    const user = await baseService.getCurrentUser();
+    const userId = await baseService.getCurrentUserId();
     
     const { data, error } = await supabase
       .from("deduction_types")
       .select("*")
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
       
     if (error) throw error;
     return data as DeductionType[];
@@ -23,11 +23,11 @@ export const deductionService = {
    * Create deduction type
    */
   createDeductionType: async (deductionType: Omit<DeductionType, "id" | "created_at" | "updated_at">) => {
-    const user = await baseService.getCurrentUser();
+    const userId = await baseService.getCurrentUserId();
     
     const { data, error } = await supabase
       .from("deduction_types")
-      .insert([{ ...deductionType, user_id: user.id }])
+      .insert([{ ...deductionType, user_id: userId }])
       .select()
       .single();
       

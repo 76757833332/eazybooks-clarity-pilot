@@ -57,14 +57,14 @@ export const GlobalSearch = () => {
       }
 
       try {
-        const user = await baseService.getCurrentUser();
+        const userId = await baseService.getCurrentUserId();
         const searchResults: SearchResultItem[] = [];
 
         // Search invoices
         const { data: invoices } = await supabase
           .from("invoices")
           .select("id, invoice_number, total_amount, customer:customers(name)")
-          .eq("user_id", user.id)
+          .eq("user_id", userId)
           .or(`invoice_number.ilike.%${debouncedSearchTerm}%`)
           .limit(5);
 
@@ -84,7 +84,7 @@ export const GlobalSearch = () => {
         const { data: customers } = await supabase
           .from("customers")
           .select("id, name, email")
-          .eq("user_id", user.id)
+          .eq("user_id", userId)
           .or(`name.ilike.%${debouncedSearchTerm}%,email.ilike.%${debouncedSearchTerm}%`)
           .limit(5);
 
@@ -104,7 +104,7 @@ export const GlobalSearch = () => {
         const { data: expenses } = await supabase
           .from("expenses")
           .select("id, description, amount, date")
-          .eq("user_id", user.id)
+          .eq("user_id", userId)
           .or(`description.ilike.%${debouncedSearchTerm}%`)
           .limit(5);
 

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Payroll, PayrollDeduction } from "@/types/payroll";
 import { baseService } from "./base/baseService";
@@ -8,12 +7,12 @@ export const payrollManagementService = {
    * Get all payrolls
    */
   getPayrolls: async () => {
-    const user = await baseService.getCurrentUser();
+    const userId = await baseService.getCurrentUserId();
     
     const { data, error } = await supabase
       .from("payrolls")
       .select("*, employee:employee_id(*)")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .order("payment_date", { ascending: false });
       
     if (error) throw error;
@@ -53,12 +52,12 @@ export const payrollManagementService = {
     payroll: Omit<Payroll, "id" | "created_at" | "updated_at" | "employee" | "payroll_deductions">,
     deductions?: Omit<PayrollDeduction, "id" | "created_at" | "payroll_id" | "deduction_type">[]
   ) => {
-    const user = await baseService.getCurrentUser();
+    const userId = await baseService.getCurrentUserId();
     
     // Start a transaction
     const { data: newPayroll, error } = await supabase
       .from("payrolls")
-      .insert([{ ...payroll, user_id: user.id }])
+      .insert([{ ...payroll, user_id: userId }])
       .select()
       .single();
       
