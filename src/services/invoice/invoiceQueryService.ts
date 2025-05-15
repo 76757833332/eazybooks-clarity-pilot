@@ -23,13 +23,13 @@ export const invoiceQueryService = {
         customer:customers(*)
       `;
       
-      // Build the query conditions separately to avoid deep type instantiation
+      // Build the query without chaining to avoid deep type instantiation
       let query = supabase
         .from("invoices")
         .select(selectQuery)
         .eq("user_id", userId);
       
-      // Apply tenant filter if needed
+      // Apply tenant filter if needed - avoiding ternary to prevent deep instantiation
       if (tenantId) {
         query = query.eq("tenant_id", tenantId);
       }
@@ -143,7 +143,7 @@ export const invoiceQueryService = {
         .eq("id", invoiceId)
         .eq("user_id", userId);
       
-      // Apply tenant filter if needed
+      // Apply tenant filter if needed - avoiding ternary to prevent deep instantiation
       if (tenantId) {
         verificationQuery = verificationQuery.eq("tenant_id", tenantId);
       }
