@@ -96,19 +96,19 @@ export const invoiceQueryService = {
       `;
       
       // Create base query
-      let baseQuery = supabase
+      let query = supabase
         .from("invoices")
         .select(selectQuery)
         .eq("id", id)
         .eq("user_id", userId);
       
-      // Apply tenant filter if needed
-      let finalQuery = tenantId ? 
-        baseQuery.eq("tenant_id", tenantId) : 
-        baseQuery;
+      // Apply tenant filter if needed - avoiding ternary to prevent deep instantiation
+      if (tenantId) {
+        query = query.eq("tenant_id", tenantId);
+      }
       
       // Execute the query
-      const { data, error } = await finalQuery.maybeSingle();
+      const { data, error } = await query.maybeSingle();
       
       if (error) {
         console.error("Error fetching invoice:", error);
