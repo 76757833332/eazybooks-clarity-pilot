@@ -25,6 +25,7 @@ export const useBusinessSettingsForm = () => {
     industry: business?.industry || "",
     description: business?.description || "",
     logo_url: business?.logo_url || "",
+    currency: business?.currency || "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

@@ -10,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { africanCountries } from "@/lib/data/africa";
+import { Globe } from "lucide-react";
 
 interface BusinessInfoFormProps {
   formData: {
@@ -26,6 +28,7 @@ interface BusinessInfoFormProps {
     phone: string;
     email: string;
     website: string;
+    currency: string;
     [key: string]: string;
   };
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -37,6 +40,20 @@ export const BusinessInfoForm = ({
   handleChange,
   handleSelectChange,
 }: BusinessInfoFormProps) => {
+  // Get selected country data
+  const selectedCountry = africanCountries.find(
+    country => country.code === formData.country
+  );
+
+  // When country changes, update currency if it's not already set
+  const handleCountryChange = (code: string) => {
+    handleSelectChange("country", code);
+    const country = africanCountries.find(c => c.code === code);
+    if (country && (!formData.currency || formData.currency === "")) {
+      handleSelectChange("currency", country.currency.code);
+    }
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -110,6 +127,53 @@ export const BusinessInfoForm = ({
         />
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="country" className="flex items-center gap-1">
+            <Globe className="h-4 w-4" />
+            Country
+          </Label>
+          <Select
+            value={formData.country}
+            onValueChange={handleCountryChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select your country" />
+            </SelectTrigger>
+            <SelectContent className="max-h-80">
+              {africanCountries.map((country) => (
+                <SelectItem key={country.code} value={country.code}>
+                  {country.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="currency">Currency</Label>
+          <Select
+            value={formData.currency}
+            onValueChange={(value) => handleSelectChange("currency", value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select currency" />
+            </SelectTrigger>
+            <SelectContent className="max-h-80">
+              {africanCountries.map((country) => (
+                <SelectItem key={country.currency.code} value={country.currency.code}>
+                  {country.currency.name} ({country.currency.symbol})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedCountry && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Default currency for {selectedCountry.name}: {selectedCountry.currency.name} ({selectedCountry.currency.symbol})
+            </p>
+          )}
+        </div>
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="address">Address</Label>
         <Input
@@ -151,29 +215,6 @@ export const BusinessInfoForm = ({
             onChange={handleChange}
             placeholder="Postal Code"
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="country">Country</Label>
-          <Select
-            value={formData.country}
-            onValueChange={(value) => handleSelectChange("country", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select country" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="us">United States</SelectItem>
-              <SelectItem value="ca">Canada</SelectItem>
-              <SelectItem value="uk">United Kingdom</SelectItem>
-              <SelectItem value="au">Australia</SelectItem>
-              <SelectItem value="de">Germany</SelectItem>
-              <SelectItem value="fr">France</SelectItem>
-              <SelectItem value="es">Spain</SelectItem>
-              <SelectItem value="it">Italy</SelectItem>
-              <SelectItem value="nl">Netherlands</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
