@@ -17,8 +17,8 @@ export const invoiceQueryService = {
       
       console.log("Fetching invoices for user:", userId, "in tenant:", tenantId);
       
-      // Base query with userId filter
-      const query = supabase
+      // Build the query step-by-step to avoid deep type instantiation
+      let query = supabase
         .from("invoices")
         .select(`
           *,
@@ -28,11 +28,10 @@ export const invoiceQueryService = {
         .order("issue_date", { ascending: false });
       
       // If tenant ID is available, add it as a filter
-      if (tenantId) {
-        query.eq("tenant_id", tenantId);
-      }
-        
-      const { data, error } = await query;
+      // Using a separate statement to avoid deep type instantiation
+      const { data, error } = tenantId 
+        ? await query.eq("tenant_id", tenantId)
+        : await query;
         
       if (error) {
         console.error("Error fetching invoices:", error);
@@ -49,18 +48,17 @@ export const invoiceQueryService = {
         const tenantId = await baseService.getCurrentTenantId();
         
         // Create base fallback query
-        const fallbackQuery = supabase
+        let fallbackQuery = supabase
           .from("invoices")
           .select("*")
           .eq("user_id", userId)
           .order("issue_date", { ascending: false });
           
         // Apply tenant filter to fallback query too if we have a tenantId
-        if (tenantId) {
-          fallbackQuery.eq("tenant_id", tenantId);
-        }
-        
-        const { data, error: fallbackError } = await fallbackQuery;
+        // Using a separate statement to avoid deep type instantiation
+        const { data, error: fallbackError } = tenantId
+          ? await fallbackQuery.eq("tenant_id", tenantId)
+          : await fallbackQuery;
           
         if (fallbackError) {
           console.error("Error in fallback query:", fallbackError);
@@ -85,25 +83,22 @@ export const invoiceQueryService = {
       const userId = await baseService.getCurrentUserId();
       const tenantId = await baseService.getCurrentTenantId();
       
-      // Create base query
-      const query = supabase
+      // Create base query with user_id filter to ensure data isolation
+      let query = supabase
         .from("invoices")
         .select(`
           *,
           customer:customers(*),
           items:invoice_items(*)
         `)
-        .eq("id", id);
-      
-      // Ensure multi-tenant data isolation
-      query.eq("user_id", userId);
+        .eq("id", id)
+        .eq("user_id", userId);
       
       // Apply tenant filter if we have a tenantId
-      if (tenantId) {
-        query.eq("tenant_id", tenantId);
-      }
-      
-      const { data, error } = await query.maybeSingle();
+      // Using a separate statement to avoid deep type instantiation
+      const { data, error } = tenantId
+        ? await query.eq("tenant_id", tenantId).maybeSingle()
+        : await query.maybeSingle();
         
       if (error) {
         console.error("Error fetching invoice:", error);
@@ -131,19 +126,18 @@ export const invoiceQueryService = {
       const userId = await baseService.getCurrentUserId();
       const tenantId = await baseService.getCurrentTenantId();
       
-      // Create base invoice query
-      const invoiceQuery = supabase
+      // Create base invoice query with user_id filter
+      let invoiceQuery = supabase
         .from("invoices")
         .select("id")
         .eq("id", invoiceId)
         .eq("user_id", userId);
       
       // Apply tenant filter if we have a tenantId
-      if (tenantId) {
-        invoiceQuery.eq("tenant_id", tenantId);
-      }
-      
-      const { data: invoiceData, error: invoiceError } = await invoiceQuery.maybeSingle();
+      // Using a separate statement to avoid deep type instantiation
+      const { data: invoiceData, error: invoiceError } = tenantId
+        ? await invoiceQuery.eq("tenant_id", tenantId).maybeSingle()
+        : await invoiceQuery.maybeSingle();
       
       if (invoiceError || !invoiceData) {
         console.error("Error: Not authorized to access this invoice or invoice not found");
