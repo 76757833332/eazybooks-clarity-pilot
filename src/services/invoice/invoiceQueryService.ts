@@ -23,7 +23,7 @@ export const invoiceQueryService = {
         customer:customers(*)
       `;
       
-      // Create the base query
+      // Build the query conditions separately to avoid deep type instantiation
       let query = supabase
         .from("invoices")
         .select(selectQuery)
@@ -34,7 +34,7 @@ export const invoiceQueryService = {
         query = query.eq("tenant_id", tenantId);
       }
       
-      // Order the results
+      // Execute the query with ordering
       const { data, error } = await query.order("issue_date", { ascending: false });
       
       if (error) {
@@ -96,19 +96,19 @@ export const invoiceQueryService = {
       `;
       
       // Create base query
-      let query = supabase
+      let baseQuery = supabase
         .from("invoices")
         .select(selectQuery)
         .eq("id", id)
         .eq("user_id", userId);
       
       // Apply tenant filter if needed
-      if (tenantId) {
-        query = query.eq("tenant_id", tenantId);
-      }
+      let finalQuery = tenantId ? 
+        baseQuery.eq("tenant_id", tenantId) : 
+        baseQuery;
       
       // Execute the query
-      const { data, error } = await query.maybeSingle();
+      const { data, error } = await finalQuery.maybeSingle();
       
       if (error) {
         console.error("Error fetching invoice:", error);
@@ -136,7 +136,7 @@ export const invoiceQueryService = {
       const userId = await baseService.getCurrentUserId();
       const tenantId = await baseService.getCurrentTenantId();
       
-      // Build base verification query
+      // Build verification query conditions separately
       let verificationQuery = supabase
         .from("invoices")
         .select("id")
