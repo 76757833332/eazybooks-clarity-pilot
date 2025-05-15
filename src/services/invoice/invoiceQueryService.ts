@@ -17,29 +17,45 @@ export const invoiceQueryService = {
       
       console.log("Fetching invoices for user:", userId, "in tenant:", tenantId);
       
-      // Build the query step-by-step to avoid deep type instantiation
-      let query = supabase
-        .from("invoices")
-        .select(`
-          *,
-          customer:customers(*)
-        `)
-        .eq("user_id", userId)
-        .order("issue_date", { ascending: false });
-      
-      // If tenant ID is available, add it as a filter
-      // Using a separate statement to avoid deep type instantiation
-      const { data, error } = tenantId 
-        ? await query.eq("tenant_id", tenantId)
-        : await query;
+      // Execute the query differently based on whether we have a tenant ID
+      if (tenantId) {
+        // With tenant ID filter
+        const { data, error } = await supabase
+          .from("invoices")
+          .select(`
+            *,
+            customer:customers(*)
+          `)
+          .eq("user_id", userId)
+          .eq("tenant_id", tenantId)
+          .order("issue_date", { ascending: false });
+          
+        if (error) {
+          console.error("Error fetching invoices:", error);
+          throw error;
+        }
         
-      if (error) {
-        console.error("Error fetching invoices:", error);
-        throw error;
+        console.log("Invoices retrieved:", data?.length || 0);
+        return data as Invoice[];
+      } else {
+        // Without tenant ID filter
+        const { data, error } = await supabase
+          .from("invoices")
+          .select(`
+            *,
+            customer:customers(*)
+          `)
+          .eq("user_id", userId)
+          .order("issue_date", { ascending: false });
+          
+        if (error) {
+          console.error("Error fetching invoices:", error);
+          throw error;
+        }
+        
+        console.log("Invoices retrieved:", data?.length || 0);
+        return data as Invoice[];
       }
-      
-      console.log("Invoices retrieved:", data?.length || 0);
-      return data as Invoice[]; 
     } catch (error) {
       console.error("Error in getInvoices:", error);
       // If there's an error with the join query, fall back to just invoices
@@ -47,26 +63,38 @@ export const invoiceQueryService = {
         const userId = await baseService.getCurrentUserId();
         const tenantId = await baseService.getCurrentTenantId();
         
-        // Create base fallback query
-        let fallbackQuery = supabase
-          .from("invoices")
-          .select("*")
-          .eq("user_id", userId)
-          .order("issue_date", { ascending: false });
+        if (tenantId) {
+          // With tenant ID filter
+          const { data, error: fallbackError } = await supabase
+            .from("invoices")
+            .select("*")
+            .eq("user_id", userId)
+            .eq("tenant_id", tenantId)
+            .order("issue_date", { ascending: false });
+            
+          if (fallbackError) {
+            console.error("Error in fallback query:", fallbackError);
+            throw fallbackError;
+          }
           
-        // Apply tenant filter to fallback query too if we have a tenantId
-        // Using a separate statement to avoid deep type instantiation
-        const { data, error: fallbackError } = tenantId
-          ? await fallbackQuery.eq("tenant_id", tenantId)
-          : await fallbackQuery;
+          console.log("Fallback invoices retrieved:", data?.length || 0);
+          return data as Invoice[];
+        } else {
+          // Without tenant ID filter
+          const { data, error: fallbackError } = await supabase
+            .from("invoices")
+            .select("*")
+            .eq("user_id", userId)
+            .order("issue_date", { ascending: false });
+            
+          if (fallbackError) {
+            console.error("Error in fallback query:", fallbackError);
+            throw fallbackError;
+          }
           
-        if (fallbackError) {
-          console.error("Error in fallback query:", fallbackError);
-          throw fallbackError;
+          console.log("Fallback invoices retrieved:", data?.length || 0);
+          return data as Invoice[];
         }
-        
-        console.log("Fallback invoices retrieved:", data?.length || 0);
-        return data as Invoice[];
       } catch (secondError) {
         console.error("Error in fallback query:", secondError);
         throw secondError;
@@ -83,33 +111,54 @@ export const invoiceQueryService = {
       const userId = await baseService.getCurrentUserId();
       const tenantId = await baseService.getCurrentTenantId();
       
-      // Create base query with user_id filter to ensure data isolation
-      let query = supabase
-        .from("invoices")
-        .select(`
-          *,
-          customer:customers(*),
-          items:invoice_items(*)
-        `)
-        .eq("id", id)
-        .eq("user_id", userId);
-      
-      // Apply tenant filter if we have a tenantId
-      // Using a separate statement to avoid deep type instantiation
-      const { data, error } = tenantId
-        ? await query.eq("tenant_id", tenantId).maybeSingle()
-        : await query.maybeSingle();
+      if (tenantId) {
+        // With tenant ID filter
+        const { data, error } = await supabase
+          .from("invoices")
+          .select(`
+            *,
+            customer:customers(*),
+            items:invoice_items(*)
+          `)
+          .eq("id", id)
+          .eq("user_id", userId)
+          .eq("tenant_id", tenantId)
+          .maybeSingle();
+          
+        if (error) {
+          console.error("Error fetching invoice:", error);
+          throw error;
+        }
         
-      if (error) {
-        console.error("Error fetching invoice:", error);
-        throw error;
+        if (!data) {
+          throw new Error(`Invoice not found or you don't have access to this invoice`);
+        }
+        
+        return data as Invoice & { items: InvoiceItem[] };
+      } else {
+        // Without tenant ID filter
+        const { data, error } = await supabase
+          .from("invoices")
+          .select(`
+            *,
+            customer:customers(*),
+            items:invoice_items(*)
+          `)
+          .eq("id", id)
+          .eq("user_id", userId)
+          .maybeSingle();
+          
+        if (error) {
+          console.error("Error fetching invoice:", error);
+          throw error;
+        }
+        
+        if (!data) {
+          throw new Error(`Invoice not found or you don't have access to this invoice`);
+        }
+        
+        return data as Invoice & { items: InvoiceItem[] };
       }
-      
-      if (!data) {
-        throw new Error(`Invoice not found or you don't have access to this invoice`);
-      }
-      
-      return data as Invoice & { items: InvoiceItem[] };
     } catch (error) {
       console.error("Error in getInvoiceById:", error);
       throw error;
@@ -126,18 +175,33 @@ export const invoiceQueryService = {
       const userId = await baseService.getCurrentUserId();
       const tenantId = await baseService.getCurrentTenantId();
       
-      // Create base invoice query with user_id filter
-      let invoiceQuery = supabase
-        .from("invoices")
-        .select("id")
-        .eq("id", invoiceId)
-        .eq("user_id", userId);
+      let invoiceData;
+      let invoiceError;
       
-      // Apply tenant filter if we have a tenantId
-      // Using a separate statement to avoid deep type instantiation
-      const { data: invoiceData, error: invoiceError } = tenantId
-        ? await invoiceQuery.eq("tenant_id", tenantId).maybeSingle()
-        : await invoiceQuery.maybeSingle();
+      if (tenantId) {
+        // With tenant ID filter
+        const result = await supabase
+          .from("invoices")
+          .select("id")
+          .eq("id", invoiceId)
+          .eq("user_id", userId)
+          .eq("tenant_id", tenantId)
+          .maybeSingle();
+          
+        invoiceData = result.data;
+        invoiceError = result.error;
+      } else {
+        // Without tenant ID filter
+        const result = await supabase
+          .from("invoices")
+          .select("id")
+          .eq("id", invoiceId)
+          .eq("user_id", userId)
+          .maybeSingle();
+          
+        invoiceData = result.data;
+        invoiceError = result.error;
+      }
       
       if (invoiceError || !invoiceData) {
         console.error("Error: Not authorized to access this invoice or invoice not found");
