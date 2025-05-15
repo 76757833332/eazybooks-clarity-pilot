@@ -17,40 +17,46 @@ export const invoiceQueryService = {
       
       console.log("Fetching invoices for user:", userId, "in tenant:", tenantId);
       
-      // Create base query
-      const query = supabase
-        .from("invoices")
-        .select(`
-          *,
-          customer:customers(*)
-        `)
-        .eq("user_id", userId);
+      // Define base select statement first
+      const selectQuery = `
+        *,
+        customer:customers(*)
+      `;
       
-      // Apply tenant filter if available
+      // Execute query based on whether tenant filter is needed
+      let data;
+      let error;
+      
       if (tenantId) {
-        const { data, error } = await query
+        // Query with tenant filter
+        const result = await supabase
+          .from("invoices")
+          .select(selectQuery)
+          .eq("user_id", userId)
           .eq("tenant_id", tenantId)
           .order("issue_date", { ascending: false });
-        
-        if (error) {
-          console.error("Error fetching invoices:", error);
-          throw error;
-        }
-        
-        console.log("Invoices retrieved:", data?.length || 0);
-        return data as Invoice[];
+          
+        data = result.data;
+        error = result.error;
       } else {
-        const { data, error } = await query
+        // Query without tenant filter
+        const result = await supabase
+          .from("invoices")
+          .select(selectQuery)
+          .eq("user_id", userId)
           .order("issue_date", { ascending: false });
-        
-        if (error) {
-          console.error("Error fetching invoices:", error);
-          throw error;
-        }
-        
-        console.log("Invoices retrieved:", data?.length || 0);
-        return data as Invoice[];
+          
+        data = result.data;
+        error = result.error;
       }
+      
+      if (error) {
+        console.error("Error fetching invoices:", error);
+        throw error;
+      }
+      
+      console.log("Invoices retrieved:", data?.length || 0);
+      return data as Invoice[];
     } catch (error) {
       console.error("Error in getInvoices:", error);
       // If there's an error with the join query, fall back to just invoices
@@ -58,28 +64,36 @@ export const invoiceQueryService = {
         const userId = await baseService.getCurrentUserId();
         const tenantId = await baseService.getCurrentTenantId();
         
-        // Build fallback query
-        const fallbackQuery = supabase
-          .from("invoices")
-          .select("*")
-          .eq("user_id", userId);
+        // Build fallback query without joins
+        let data;
+        let error;
         
-        // Apply tenant filter if available
-        let result;
         if (tenantId) {
-          result = await fallbackQuery
+          // Fallback query with tenant filter
+          const result = await supabase
+            .from("invoices")
+            .select("*")
+            .eq("user_id", userId)
             .eq("tenant_id", tenantId)
             .order("issue_date", { ascending: false });
+            
+          data = result.data;
+          error = result.error;
         } else {
-          result = await fallbackQuery
+          // Fallback query without tenant filter
+          const result = await supabase
+            .from("invoices")
+            .select("*")
+            .eq("user_id", userId)
             .order("issue_date", { ascending: false });
+            
+          data = result.data;
+          error = result.error;
         }
         
-        const { data, error: fallbackError } = result;
-        
-        if (fallbackError) {
-          console.error("Error in fallback query:", fallbackError);
-          throw fallbackError;
+        if (error) {
+          console.error("Error in fallback query:", error);
+          throw error;
         }
         
         console.log("Fallback invoices retrieved:", data?.length || 0);
@@ -100,23 +114,33 @@ export const invoiceQueryService = {
       const userId = await baseService.getCurrentUserId();
       const tenantId = await baseService.getCurrentTenantId();
       
-      // Build base query
-      const baseQuery = supabase
-        .from("invoices")
-        .select(`
-          *,
-          customer:customers(*),
-          items:invoice_items(*)
-        `)
-        .eq("id", id)
-        .eq("user_id", userId);
+      // Define the select query string
+      const selectQuery = `
+        *,
+        customer:customers(*),
+        items:invoice_items(*)
+      `;
       
-      // Execute query with or without tenant filter
+      // Execute query based on whether tenant filter is needed
       let result;
+      
       if (tenantId) {
-        result = await baseQuery.eq("tenant_id", tenantId).maybeSingle();
+        // Query with tenant filter
+        result = await supabase
+          .from("invoices")
+          .select(selectQuery)
+          .eq("id", id)
+          .eq("user_id", userId)
+          .eq("tenant_id", tenantId)
+          .maybeSingle();
       } else {
-        result = await baseQuery.maybeSingle();
+        // Query without tenant filter
+        result = await supabase
+          .from("invoices")
+          .select(selectQuery)
+          .eq("id", id)
+          .eq("user_id", userId)
+          .maybeSingle();
       }
       
       const { data, error } = result;
@@ -147,19 +171,26 @@ export const invoiceQueryService = {
       const userId = await baseService.getCurrentUserId();
       const tenantId = await baseService.getCurrentTenantId();
       
-      // Build verification query
-      const verificationQuery = supabase
-        .from("invoices")
-        .select("id")
-        .eq("id", invoiceId)
-        .eq("user_id", userId);
-      
-      // Execute verification query with or without tenant filter
+      // Build and execute verification query
       let verificationResult;
+      
       if (tenantId) {
-        verificationResult = await verificationQuery.eq("tenant_id", tenantId).maybeSingle();
+        // Verification query with tenant filter
+        verificationResult = await supabase
+          .from("invoices")
+          .select("id")
+          .eq("id", invoiceId)
+          .eq("user_id", userId)
+          .eq("tenant_id", tenantId)
+          .maybeSingle();
       } else {
-        verificationResult = await verificationQuery.maybeSingle();
+        // Verification query without tenant filter
+        verificationResult = await supabase
+          .from("invoices")
+          .select("id")
+          .eq("id", invoiceId)
+          .eq("user_id", userId)
+          .maybeSingle();
       }
       
       const { data: invoiceData, error: invoiceError } = verificationResult;
