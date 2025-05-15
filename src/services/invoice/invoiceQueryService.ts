@@ -11,9 +11,10 @@ export const invoiceQueryService = {
    * Get all invoices for the current user
    */
   getInvoices: async () => {
-    const userId = await baseService.getCurrentUserId();
-    
     try {
+      const userId = await baseService.getCurrentUserId();
+      console.log("Fetching invoices for user:", userId);
+      
       const { data, error } = await supabase
         .from("invoices")
         .select(`
@@ -23,19 +24,35 @@ export const invoiceQueryService = {
         .eq("user_id", userId)
         .order("issue_date", { ascending: false });
         
-      if (error) throw error;
-      return data as Invoice[]; // Simplified casting since we're using proper relationships
+      if (error) {
+        console.error("Error fetching invoices:", error);
+        throw error;
+      }
+      
+      console.log("Invoices retrieved:", data?.length || 0);
+      return data as Invoice[]; 
     } catch (error) {
-      console.error("Error fetching invoices:", error);
+      console.error("Error in getInvoices:", error);
       // If there's an error with the join query, fall back to just invoices
-      const { data, error: fallbackError } = await supabase
-        .from("invoices")
-        .select("*")
-        .eq("user_id", userId)
-        .order("issue_date", { ascending: false });
+      try {
+        const userId = await baseService.getCurrentUserId();
+        const { data, error: fallbackError } = await supabase
+          .from("invoices")
+          .select("*")
+          .eq("user_id", userId)
+          .order("issue_date", { ascending: false });
+          
+        if (fallbackError) {
+          console.error("Error in fallback query:", fallbackError);
+          throw fallbackError;
+        }
         
-      if (fallbackError) throw fallbackError;
-      return data as Invoice[];
+        console.log("Fallback invoices retrieved:", data?.length || 0);
+        return data as Invoice[];
+      } catch (secondError) {
+        console.error("Error in fallback query:", secondError);
+        throw secondError;
+      }
     }
   },
   
@@ -43,39 +60,49 @@ export const invoiceQueryService = {
    * Get invoice by ID with customer and item details
    */
   getInvoiceById: async (id: string) => {
-    const { data, error } = await supabase
-      .from("invoices")
-      .select(`
-        *,
-        customer:customers(*),
-        items:invoice_items(*)
-      `)
-      .eq("id", id)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("invoices")
+        .select(`
+          *,
+          customer:customers(*),
+          items:invoice_items(*)
+        `)
+        .eq("id", id)
+        .single();
+        
+      if (error) {
+        console.error("Error fetching invoice:", error);
+        throw error;
+      }
       
-    if (error) {
-      console.error("Error fetching invoice:", error);
+      return data as Invoice & { items: InvoiceItem[] };
+    } catch (error) {
+      console.error("Error in getInvoiceById:", error);
       throw error;
     }
-    
-    return data as Invoice & { items: InvoiceItem[] };
   },
   
   /**
    * Get all items for a specific invoice
    */
   getInvoiceItems: async (invoiceId: string) => {
-    const { data, error } = await supabase
-      .from("invoice_items")
-      .select("*")
-      .eq("invoice_id", invoiceId)
-      .order("created_at");
+    try {
+      const { data, error } = await supabase
+        .from("invoice_items")
+        .select("*")
+        .eq("invoice_id", invoiceId)
+        .order("created_at");
+        
+      if (error) {
+        console.error("Error fetching invoice items:", error);
+        throw error;
+      }
       
-    if (error) {
-      console.error("Error fetching invoice items:", error);
+      return data as InvoiceItem[];
+    } catch (error) {
+      console.error("Error in getInvoiceItems:", error);
       throw error;
     }
-    
-    return data as InvoiceItem[];
   },
 };

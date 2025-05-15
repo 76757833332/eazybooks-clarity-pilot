@@ -9,20 +9,42 @@ export const baseService = {
    * Get current user session
    */
   getCurrentSession: async () => {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    if (!data.session) throw new Error("No active session found");
-    return data.session;
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Session error:", error);
+        throw error;
+      }
+      if (!data.session) {
+        console.error("No active session found");
+        throw new Error("No active session found");
+      }
+      return data.session;
+    } catch (error) {
+      console.error("Failed to get current session:", error);
+      throw error;
+    }
   },
   
   /**
    * Get current user ID safely without requiring direct users table access
    */
   getCurrentUserId: async () => {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    if (!data.session?.user) throw new Error("No active user found");
-    return data.session.user.id;
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Session error:", error);
+        throw error;
+      }
+      if (!data.session?.user) {
+        console.error("No active user found");
+        throw new Error("No active user found");
+      }
+      return data.session.user.id;
+    } catch (error) {
+      console.error("Failed to get current user ID:", error);
+      throw error;
+    }
   },
 
   /**
@@ -30,9 +52,20 @@ export const baseService = {
    * @deprecated Use getCurrentUserId instead
    */
   getCurrentUser: async () => {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    if (!data.session?.user) throw new Error("No active user found");
-    return { id: data.session.user.id };
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Session error:", error);
+        throw error;
+      }
+      if (!data.session?.user) {
+        console.error("No active user found");
+        throw new Error("No active user found");
+      }
+      return { id: data.session.user.id };
+    } catch (error) {
+      console.error("Failed to get current user:", error);
+      throw error;
+    }
   }
 };
