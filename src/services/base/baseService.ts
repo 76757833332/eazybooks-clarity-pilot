@@ -1,15 +1,27 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Base service for common operations
+ */
 export const baseService = {
   /**
-   * Gets the current authenticated user
-   * @returns The current authenticated user
-   * @throws Error if user is not authenticated
+   * Get current user session
    */
-  getCurrentUser: async () => {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) throw new Error("User not authenticated");
-    return user.user;
+  getCurrentSession: async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    if (!data.session) throw new Error("No active session found");
+    return data.session;
+  },
+  
+  /**
+   * Get current user ID safely without requiring direct users table access
+   */
+  getCurrentUserId: async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    if (!data.session?.user) throw new Error("No active user found");
+    return data.session.user.id;
   }
 };

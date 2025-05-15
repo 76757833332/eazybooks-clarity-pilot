@@ -12,7 +12,7 @@ export const invoiceCreateService = {
    * Create a new invoice with items
    */
   createInvoice: async (invoice: Omit<Invoice, "id" | "created_at" | "updated_at">, items: Omit<InvoiceItem, "id" | "invoice_id" | "created_at" | "updated_at">[]) => {
-    const user = await baseService.getCurrentUser();
+    const userId = await baseService.getCurrentUserId();
     
     // Calculate total amount from items
     const totalAmount = invoiceCalculationService.calculateItemsTotal(items);
@@ -22,7 +22,7 @@ export const invoiceCreateService = {
       .from("invoices")
       .insert([{ 
         ...invoice, 
-        user_id: user.id,
+        user_id: userId,
         total_amount: totalAmount  // Set the calculated total
       }])
       .select()
@@ -54,12 +54,12 @@ export const invoiceCreateService = {
    * Generate a sequential invoice number
    */
   generateInvoiceNumber: async () => {
-    const user = await baseService.getCurrentUser();
+    const userId = await baseService.getCurrentUserId();
     
     const { data, error } = await supabase
       .from("invoices")
       .select("invoice_number")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(1);
       
