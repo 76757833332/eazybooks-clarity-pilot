@@ -1,4 +1,3 @@
-
 import { User, Session } from '@supabase/supabase-js';
 
 export type UserRole = 'business_owner' | 'employee' | 'client';
@@ -21,6 +20,7 @@ export interface Profile {
   tenant_id?: string;
 }
 
+// Since we don't have a businesses table yet, we'll keep this interface for future implementation
 export interface Business {
   id: string;
   name: string;

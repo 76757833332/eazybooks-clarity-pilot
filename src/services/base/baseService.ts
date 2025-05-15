@@ -63,20 +63,10 @@ export const baseService = {
         return businessId;
       }
       
-      // If not found in metadata, check if user is a business owner
-      if (userData.user.user_metadata?.role === 'business_owner') {
-        // Attempt to find their business
-        const { data: businessData } = await supabase
-          .from('businesses')
-          .select('id')
-          .eq('owner_id', userData.user.id)
-          .maybeSingle();
-          
-        if (businessData?.id) {
-          return businessData.id;
-        }
-      }
+      // If not found in metadata and user is a business owner, we'll need to implement
+      // a different approach since the businesses table doesn't exist in the schema
       
+      // For now, return undefined if no tenant ID is found
       console.warn("No tenant ID found for user");
       return undefined;
     } catch (error) {

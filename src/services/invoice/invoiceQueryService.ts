@@ -17,6 +17,7 @@ export const invoiceQueryService = {
       
       console.log("Fetching invoices for user:", userId, "in tenant:", tenantId);
       
+      // Base query with userId filter
       let query = supabase
         .from("invoices")
         .select(`
@@ -26,7 +27,7 @@ export const invoiceQueryService = {
         .eq("user_id", userId)
         .order("issue_date", { ascending: false });
       
-      // If tenant ID is available, filter by it
+      // If tenant ID is available, add it as a filter
       if (tenantId) {
         query = query.eq("tenant_id", tenantId);
       }
@@ -47,13 +48,14 @@ export const invoiceQueryService = {
         const userId = await baseService.getCurrentUserId();
         const tenantId = await baseService.getCurrentTenantId();
         
+        // Create base fallback query
         let fallbackQuery = supabase
           .from("invoices")
           .select("*")
           .eq("user_id", userId)
           .order("issue_date", { ascending: false });
           
-        // Apply tenant filter to fallback query too
+        // Apply tenant filter to fallback query too if we have a tenantId
         if (tenantId) {
           fallbackQuery = fallbackQuery.eq("tenant_id", tenantId);
         }
@@ -83,6 +85,7 @@ export const invoiceQueryService = {
       const userId = await baseService.getCurrentUserId();
       const tenantId = await baseService.getCurrentTenantId();
       
+      // Create base query
       let query = supabase
         .from("invoices")
         .select(`
@@ -95,6 +98,7 @@ export const invoiceQueryService = {
       // Ensure multi-tenant data isolation
       query = query.eq("user_id", userId);
       
+      // Apply tenant filter if we have a tenantId
       if (tenantId) {
         query = query.eq("tenant_id", tenantId);
       }
@@ -127,12 +131,14 @@ export const invoiceQueryService = {
       const userId = await baseService.getCurrentUserId();
       const tenantId = await baseService.getCurrentTenantId();
       
+      // Create base invoice query
       let invoiceQuery = supabase
         .from("invoices")
         .select("id")
         .eq("id", invoiceId)
         .eq("user_id", userId);
-        
+      
+      // Apply tenant filter if we have a tenantId
       if (tenantId) {
         invoiceQuery = invoiceQuery.eq("tenant_id", tenantId);
       }
