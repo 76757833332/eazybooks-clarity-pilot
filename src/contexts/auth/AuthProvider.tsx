@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Profile, Business, UserRole, EmployeeRole } from '@/contexts/auth/types';
 import { AuthContext } from './AuthContext';
 import * as authService from '@/services/authService';
+import { baseService } from '@/services/base/baseService';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -38,7 +39,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const fetchUserBusiness = async (businessId: string) => {
     const businessData = await authService.fetchUserBusiness(businessId);
     if (businessData) {
-      setBusiness(businessData as Business);
+      // Ensure the tenant_id is set to the business_id for multi-tenancy
+      const businessWithTenant = {
+        ...businessData,
+        tenant_id: businessData.id
+      };
+      setBusiness(businessWithTenant as Business);
     }
   };
 
@@ -115,8 +121,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     
     const newBusiness = await authService.createBusiness(user.id, businessData);
     if (newBusiness) {
+      // Add tenant_id to the business
+      const businessWithTenant = {
+        ...newBusiness,
+        tenant_id: newBusiness.id
+      };
+      
       // Update local state
-      setBusiness(newBusiness as Business);
+      setBusiness(businessWithTenant as Business);
       
       // After business creation, update user profile
       await fetchUserProfile(user.id);
@@ -132,6 +144,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     await authService.inviteUser(user.id, business.id, email, role, employeeRole);
   };
 
+  // New multi-tenant methods
+  const getCurrentTenantId = () => {
+    // For business owners and employees, the tenant ID is the business ID
+    return business?.id || profile?.belongs_to_business_id;
+  };
+
+  const switchTenant = async (tenantId: string) => {
+    if (!user) return;
+    
+    try {
+      // Update the user's belongs_to_business_id in their profile
+      await authService.updateProfile(user.id, {
+        belongs_to_business_id: tenantId
+      });
+      
+      // Fetch the new business
+      await fetchUserBusiness(tenantId);
+      
+      toast.success('Switched to different business successfully');
+    } catch (error) {
+      console.error('Failed to switch tenant:', error);
+      toast.error('Failed to switch business');
+    }
+  };
+
   const value = {
     user,
     session,
@@ -145,7 +182,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     updateProfile,
     updateBusiness,
     createBusiness,
-    inviteUser
+    inviteUser,
+    getCurrentTenantId,
+    switchTenant
   };
 
   return (

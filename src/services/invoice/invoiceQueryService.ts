@@ -8,14 +8,16 @@ import { baseService } from "@/services/base/baseService";
  */
 export const invoiceQueryService = {
   /**
-   * Get all invoices for the current user
+   * Get all invoices for the current user and tenant
    */
   getInvoices: async () => {
     try {
       const userId = await baseService.getCurrentUserId();
-      console.log("Fetching invoices for user:", userId);
+      const tenantId = await baseService.getCurrentTenantId();
       
-      const { data, error } = await supabase
+      console.log("Fetching invoices for user:", userId, "in tenant:", tenantId);
+      
+      let query = supabase
         .from("invoices")
         .select(`
           *,
@@ -23,6 +25,13 @@ export const invoiceQueryService = {
         `)
         .eq("user_id", userId)
         .order("issue_date", { ascending: false });
+      
+      // If tenant ID is available, filter by it
+      if (tenantId) {
+        query = query.eq("tenant_id", tenantId);
+      }
+        
+      const { data, error } = await query;
         
       if (error) {
         console.error("Error fetching invoices:", error);
@@ -36,11 +45,20 @@ export const invoiceQueryService = {
       // If there's an error with the join query, fall back to just invoices
       try {
         const userId = await baseService.getCurrentUserId();
-        const { data, error: fallbackError } = await supabase
+        const tenantId = await baseService.getCurrentTenantId();
+        
+        let fallbackQuery = supabase
           .from("invoices")
           .select("*")
           .eq("user_id", userId)
           .order("issue_date", { ascending: false });
+          
+        // Apply tenant filter to fallback query too
+        if (tenantId) {
+          fallbackQuery = fallbackQuery.eq("tenant_id", tenantId);
+        }
+        
+        const { data, error: fallbackError } = await fallbackQuery;
           
         if (fallbackError) {
           console.error("Error in fallback query:", fallbackError);
@@ -58,22 +76,38 @@ export const invoiceQueryService = {
   
   /**
    * Get invoice by ID with customer and item details
+   * Makes sure the invoice belongs to the current tenant
    */
   getInvoiceById: async (id: string) => {
     try {
-      const { data, error } = await supabase
+      const userId = await baseService.getCurrentUserId();
+      const tenantId = await baseService.getCurrentTenantId();
+      
+      let query = supabase
         .from("invoices")
         .select(`
           *,
           customer:customers(*),
           items:invoice_items(*)
         `)
-        .eq("id", id)
-        .single();
+        .eq("id", id);
+      
+      // Ensure multi-tenant data isolation
+      query = query.eq("user_id", userId);
+      
+      if (tenantId) {
+        query = query.eq("tenant_id", tenantId);
+      }
+      
+      const { data, error } = await query.maybeSingle();
         
       if (error) {
         console.error("Error fetching invoice:", error);
         throw error;
+      }
+      
+      if (!data) {
+        throw new Error(`Invoice not found or you don't have access to this invoice`);
       }
       
       return data as Invoice & { items: InvoiceItem[] };
@@ -85,9 +119,32 @@ export const invoiceQueryService = {
   
   /**
    * Get all items for a specific invoice
+   * Ensures the items belong to an invoice in the current tenant
    */
   getInvoiceItems: async (invoiceId: string) => {
     try {
+      // First, verify this invoice belongs to the current user/tenant
+      const userId = await baseService.getCurrentUserId();
+      const tenantId = await baseService.getCurrentTenantId();
+      
+      let invoiceQuery = supabase
+        .from("invoices")
+        .select("id")
+        .eq("id", invoiceId)
+        .eq("user_id", userId);
+        
+      if (tenantId) {
+        invoiceQuery = invoiceQuery.eq("tenant_id", tenantId);
+      }
+      
+      const { data: invoiceData, error: invoiceError } = await invoiceQuery.maybeSingle();
+      
+      if (invoiceError || !invoiceData) {
+        console.error("Error: Not authorized to access this invoice or invoice not found");
+        throw new Error("Not authorized to access this invoice");
+      }
+      
+      // If invoice verification passed, get the items
       const { data, error } = await supabase
         .from("invoice_items")
         .select("*")

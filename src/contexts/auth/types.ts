@@ -17,6 +17,8 @@ export interface Profile {
   updated_at: string;
   subscription_tier: SubscriptionTier;
   email?: string;
+  // Add tenant-specific fields
+  tenant_id?: string;
 }
 
 export interface Business {
@@ -43,6 +45,8 @@ export interface Business {
   default_tax_percentage: number;
   created_at: string;
   updated_at: string;
+  // Make the business ID act as a tenant ID
+  tenant_id?: string;
 }
 
 export interface AuthContextType {
@@ -59,4 +63,7 @@ export interface AuthContextType {
   updateBusiness: (business: Partial<Business>) => Promise<void>;
   createBusiness: (business: Partial<Business>) => Promise<void>;
   inviteUser: (email: string, role: UserRole, employeeRole?: EmployeeRole) => Promise<void>;
+  // Add multi-tenant specific methods
+  getCurrentTenantId: () => string | undefined;
+  switchTenant: (tenantId: string) => Promise<void>;
 }
