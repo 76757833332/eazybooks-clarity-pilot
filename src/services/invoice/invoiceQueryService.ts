@@ -18,7 +18,7 @@ export const invoiceQueryService = {
       console.log("Fetching invoices for user:", userId, "in tenant:", tenantId);
       
       // Base query with userId filter
-      let query = supabase
+      const query = supabase
         .from("invoices")
         .select(`
           *,
@@ -29,7 +29,7 @@ export const invoiceQueryService = {
       
       // If tenant ID is available, add it as a filter
       if (tenantId) {
-        query = query.eq("tenant_id", tenantId);
+        query.eq("tenant_id", tenantId);
       }
         
       const { data, error } = await query;
@@ -49,7 +49,7 @@ export const invoiceQueryService = {
         const tenantId = await baseService.getCurrentTenantId();
         
         // Create base fallback query
-        let fallbackQuery = supabase
+        const fallbackQuery = supabase
           .from("invoices")
           .select("*")
           .eq("user_id", userId)
@@ -57,7 +57,7 @@ export const invoiceQueryService = {
           
         // Apply tenant filter to fallback query too if we have a tenantId
         if (tenantId) {
-          fallbackQuery = fallbackQuery.eq("tenant_id", tenantId);
+          fallbackQuery.eq("tenant_id", tenantId);
         }
         
         const { data, error: fallbackError } = await fallbackQuery;
@@ -86,7 +86,7 @@ export const invoiceQueryService = {
       const tenantId = await baseService.getCurrentTenantId();
       
       // Create base query
-      let query = supabase
+      const query = supabase
         .from("invoices")
         .select(`
           *,
@@ -96,11 +96,11 @@ export const invoiceQueryService = {
         .eq("id", id);
       
       // Ensure multi-tenant data isolation
-      query = query.eq("user_id", userId);
+      query.eq("user_id", userId);
       
       // Apply tenant filter if we have a tenantId
       if (tenantId) {
-        query = query.eq("tenant_id", tenantId);
+        query.eq("tenant_id", tenantId);
       }
       
       const { data, error } = await query.maybeSingle();
@@ -132,7 +132,7 @@ export const invoiceQueryService = {
       const tenantId = await baseService.getCurrentTenantId();
       
       // Create base invoice query
-      let invoiceQuery = supabase
+      const invoiceQuery = supabase
         .from("invoices")
         .select("id")
         .eq("id", invoiceId)
@@ -140,7 +140,7 @@ export const invoiceQueryService = {
       
       // Apply tenant filter if we have a tenantId
       if (tenantId) {
-        invoiceQuery = invoiceQuery.eq("tenant_id", tenantId);
+        invoiceQuery.eq("tenant_id", tenantId);
       }
       
       const { data: invoiceData, error: invoiceError } = await invoiceQuery.maybeSingle();
