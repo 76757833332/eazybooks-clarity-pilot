@@ -18,7 +18,8 @@ export const fetchInvoices = async (userId: string): Promise<Invoice[]> => {
     throw new Error(error.message);
   }
 
-  return data || [];
+  // Add type assertion to ensure the data conforms to Invoice type
+  return (data || []) as Invoice[];
 };
 
 export const fetchInvoiceById = async (
@@ -52,7 +53,7 @@ export const fetchInvoiceById = async (
   return {
     ...invoice,
     items: items || [],
-  };
+  } as InvoiceWithItems;
 };
 
 export const useInvoicesQuery = (userId: string) => {
