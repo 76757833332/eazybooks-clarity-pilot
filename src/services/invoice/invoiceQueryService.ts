@@ -23,19 +23,20 @@ export const invoiceQueryService = {
         customer:customers(*)
       `;
       
-      // Build the query without chaining to avoid deep type instantiation
-      let query = supabase
+      // Build the query - this approach avoids the deep type instantiation error
+      const query = supabase
         .from("invoices")
         .select(selectQuery)
         .eq("user_id", userId);
       
-      // Apply tenant filter if needed - avoiding ternary to prevent deep instantiation
+      // Apply tenant filter separately if needed
+      let finalQuery = query;
       if (tenantId) {
-        query = query.eq("tenant_id", tenantId);
+        finalQuery = query.eq("tenant_id", tenantId);
       }
       
-      // Execute the query with ordering
-      const { data, error } = await query.order("issue_date", { ascending: false });
+      // Execute the query with ordering - using the finalQuery variable
+      const { data, error } = await finalQuery.order("issue_date", { ascending: false });
       
       if (error) {
         console.error("Error fetching invoices:", error);
@@ -52,18 +53,19 @@ export const invoiceQueryService = {
         const tenantId = await baseService.getCurrentTenantId();
         
         // Create a base fallback query
-        let fallbackQuery = supabase
+        const fallbackQuery = supabase
           .from("invoices")
           .select("*")
           .eq("user_id", userId);
         
-        // Apply tenant filter if needed
+        // Apply tenant filter separately
+        let finalFallbackQuery = fallbackQuery;
         if (tenantId) {
-          fallbackQuery = fallbackQuery.eq("tenant_id", tenantId);
+          finalFallbackQuery = fallbackQuery.eq("tenant_id", tenantId);
         }
         
         // Execute the query
-        const { data, error } = await fallbackQuery.order("issue_date", { ascending: false });
+        const { data, error } = await finalFallbackQuery.order("issue_date", { ascending: false });
         
         if (error) {
           console.error("Error in fallback query:", error);
@@ -96,19 +98,20 @@ export const invoiceQueryService = {
       `;
       
       // Create base query
-      let query = supabase
+      const query = supabase
         .from("invoices")
         .select(selectQuery)
         .eq("id", id)
         .eq("user_id", userId);
       
-      // Apply tenant filter if needed - avoiding ternary to prevent deep instantiation
+      // Apply tenant filter separately
+      let finalQuery = query;
       if (tenantId) {
-        query = query.eq("tenant_id", tenantId);
+        finalQuery = query.eq("tenant_id", tenantId);
       }
       
       // Execute the query
-      const { data, error } = await query.maybeSingle();
+      const { data, error } = await finalQuery.maybeSingle();
       
       if (error) {
         console.error("Error fetching invoice:", error);
@@ -136,20 +139,21 @@ export const invoiceQueryService = {
       const userId = await baseService.getCurrentUserId();
       const tenantId = await baseService.getCurrentTenantId();
       
-      // Build verification query conditions separately
-      let verificationQuery = supabase
+      // Build verification query
+      const verificationQuery = supabase
         .from("invoices")
         .select("id")
         .eq("id", invoiceId)
         .eq("user_id", userId);
       
-      // Apply tenant filter if needed - avoiding ternary to prevent deep instantiation
+      // Apply tenant filter separately
+      let finalVerificationQuery = verificationQuery;
       if (tenantId) {
-        verificationQuery = verificationQuery.eq("tenant_id", tenantId);
+        finalVerificationQuery = verificationQuery.eq("tenant_id", tenantId);
       }
       
       // Execute the verification query
-      const { data: invoiceData, error: invoiceError } = await verificationQuery.maybeSingle();
+      const { data: invoiceData, error: invoiceError } = await finalVerificationQuery.maybeSingle();
       
       if (invoiceError || !invoiceData) {
         console.error("Error: Not authorized to access this invoice or invoice not found");
