@@ -17,21 +17,28 @@ export const invoiceQueryService = {
       
       console.log("Fetching invoices for user:", userId, "in tenant:", tenantId);
       
-      // Create the base query
-      const query = supabase.from("invoices");
-      
       // Prepare the selection string
       const selection = `
         *,
         customer:customers(*)
       `;
       
-      // Execute query with appropriate filters
-      const { data, error } = await query
-        .select(selection)
-        .eq("user_id", userId)
-        .eq(tenantId ? "tenant_id" : "user_id", tenantId ? tenantId : userId)
-        .order("issue_date", { ascending: false });
+      // Create the base query
+      const query = supabase.from("invoices").select(selection);
+      
+      // Add user filter
+      const userFiltered = query.eq("user_id", userId);
+      
+      // Add tenant filter if needed
+      let finalQuery;
+      if (tenantId) {
+        finalQuery = userFiltered.eq("tenant_id", tenantId);
+      } else {
+        finalQuery = userFiltered;
+      }
+      
+      // Execute query with order
+      const { data, error } = await finalQuery.order("issue_date", { ascending: false });
       
       if (error) {
         console.error("Error fetching invoices:", error);
@@ -47,12 +54,17 @@ export const invoiceQueryService = {
         const userId = await baseService.getCurrentUserId();
         const tenantId = await baseService.getCurrentTenantId();
         
-        const { data, error } = await supabase
+        let query = supabase
           .from("invoices")
           .select("*")
-          .eq("user_id", userId)
-          .eq(tenantId ? "tenant_id" : "user_id", tenantId ? tenantId : userId)
-          .order("issue_date", { ascending: false });
+          .eq("user_id", userId);
+        
+        // Add tenant filter if needed
+        if (tenantId) {
+          query = query.eq("tenant_id", tenantId);
+        }
+        
+        const { data, error } = await query.order("issue_date", { ascending: false });
         
         if (error) {
           console.error("Error in fallback query:", error);
@@ -84,14 +96,23 @@ export const invoiceQueryService = {
         items:invoice_items(*)
       `;
       
-      // Execute the query with all filters
-      const { data, error } = await supabase
+      // Create the base query
+      const query = supabase
         .from("invoices")
         .select(selection)
         .eq("id", id)
-        .eq("user_id", userId)
-        .eq(tenantId ? "tenant_id" : "user_id", tenantId ? tenantId : userId)
-        .maybeSingle();
+        .eq("user_id", userId);
+        
+      // Add tenant filter if needed
+      let finalQuery;
+      if (tenantId) {
+        finalQuery = query.eq("tenant_id", tenantId);
+      } else {
+        finalQuery = query;
+      }
+      
+      // Execute the query
+      const { data, error } = await finalQuery.maybeSingle();
       
       if (error) {
         console.error("Error fetching invoice:", error);
@@ -119,14 +140,23 @@ export const invoiceQueryService = {
       const userId = await baseService.getCurrentUserId();
       const tenantId = await baseService.getCurrentTenantId();
       
-      // Verify invoice access
-      const { data: invoiceData, error: invoiceError } = await supabase
+      // Create the base query for validation
+      const validationQuery = supabase
         .from("invoices")
         .select("id")
         .eq("id", invoiceId)
-        .eq("user_id", userId)
-        .eq(tenantId ? "tenant_id" : "user_id", tenantId ? tenantId : userId)
-        .maybeSingle();
+        .eq("user_id", userId);
+        
+      // Add tenant filter if needed
+      let finalValidationQuery;
+      if (tenantId) {
+        finalValidationQuery = validationQuery.eq("tenant_id", tenantId);
+      } else {
+        finalValidationQuery = validationQuery;
+      }
+      
+      // Execute validation query
+      const { data: invoiceData, error: invoiceError } = await finalValidationQuery.maybeSingle();
       
       if (invoiceError || !invoiceData) {
         console.error("Error: Not authorized to access this invoice or invoice not found");
