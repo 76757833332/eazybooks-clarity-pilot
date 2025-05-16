@@ -17,25 +17,24 @@ export const invoiceQueryService = {
       
       console.log("Fetching invoices for user:", userId, "in tenant:", tenantId);
       
-      // Define base select statement
-      const selectQuery = `
+      // Build the base query without any filters first
+      const baseQuery = supabase.from("invoices");
+      
+      // Apply filters one by one to avoid deep chaining
+      const withUserFilter = baseQuery.select(`
         *,
         customer:customers(*)
-      `;
+      `).eq("user_id", userId);
       
-      // Build the query - this approach avoids the deep type instantiation error
-      const query = supabase
-        .from("invoices")
-        .select(selectQuery)
-        .eq("user_id", userId);
-      
-      // Apply tenant filter separately if needed
-      let finalQuery = query;
+      // Create a separate query with tenant filter if applicable
+      let finalQuery;
       if (tenantId) {
-        finalQuery = query.eq("tenant_id", tenantId);
+        finalQuery = withUserFilter.eq("tenant_id", tenantId);
+      } else {
+        finalQuery = withUserFilter;
       }
       
-      // Execute the query with ordering - using the finalQuery variable
+      // Execute the query with ordering as the final operation
       const { data, error } = await finalQuery.order("issue_date", { ascending: false });
       
       if (error) {
@@ -52,20 +51,22 @@ export const invoiceQueryService = {
         const userId = await baseService.getCurrentUserId();
         const tenantId = await baseService.getCurrentTenantId();
         
-        // Create a base fallback query
-        const fallbackQuery = supabase
-          .from("invoices")
-          .select("*")
-          .eq("user_id", userId);
+        // Create a base fallback query without any filters first
+        const baseQuery = supabase.from("invoices");
         
-        // Apply tenant filter separately
-        let finalFallbackQuery = fallbackQuery;
+        // Apply user filter
+        const withUserFilter = baseQuery.select("*").eq("user_id", userId);
+        
+        // Create a separate query with tenant filter if applicable
+        let finalQuery;
         if (tenantId) {
-          finalFallbackQuery = fallbackQuery.eq("tenant_id", tenantId);
+          finalQuery = withUserFilter.eq("tenant_id", tenantId);
+        } else {
+          finalQuery = withUserFilter;
         }
         
         // Execute the query
-        const { data, error } = await finalFallbackQuery.order("issue_date", { ascending: false });
+        const { data, error } = await finalQuery.order("issue_date", { ascending: false });
         
         if (error) {
           console.error("Error in fallback query:", error);
@@ -90,24 +91,24 @@ export const invoiceQueryService = {
       const userId = await baseService.getCurrentUserId();
       const tenantId = await baseService.getCurrentTenantId();
       
-      // Define the select query string
-      const selectQuery = `
+      // Create base query without filters first
+      const baseQuery = supabase.from("invoices");
+      
+      // Apply basic filters one by one
+      const withFilters = baseQuery.select(`
         *,
         customer:customers(*),
         items:invoice_items(*)
-      `;
+      `)
+      .eq("id", id)
+      .eq("user_id", userId);
       
-      // Create base query
-      const query = supabase
-        .from("invoices")
-        .select(selectQuery)
-        .eq("id", id)
-        .eq("user_id", userId);
-      
-      // Apply tenant filter separately
-      let finalQuery = query;
+      // Apply tenant filter separately if needed
+      let finalQuery;
       if (tenantId) {
-        finalQuery = query.eq("tenant_id", tenantId);
+        finalQuery = withFilters.eq("tenant_id", tenantId);
+      } else {
+        finalQuery = withFilters;
       }
       
       // Execute the query
@@ -139,17 +140,21 @@ export const invoiceQueryService = {
       const userId = await baseService.getCurrentUserId();
       const tenantId = await baseService.getCurrentTenantId();
       
-      // Build verification query
-      const verificationQuery = supabase
-        .from("invoices")
+      // Build verification query without filters first
+      const baseVerificationQuery = supabase.from("invoices");
+      
+      // Apply basic filters
+      const withUserFilter = baseVerificationQuery
         .select("id")
         .eq("id", invoiceId)
         .eq("user_id", userId);
       
       // Apply tenant filter separately
-      let finalVerificationQuery = verificationQuery;
+      let finalVerificationQuery;
       if (tenantId) {
-        finalVerificationQuery = verificationQuery.eq("tenant_id", tenantId);
+        finalVerificationQuery = withUserFilter.eq("tenant_id", tenantId);
+      } else {
+        finalVerificationQuery = withUserFilter;
       }
       
       // Execute the verification query
