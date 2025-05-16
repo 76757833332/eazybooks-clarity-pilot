@@ -1,9 +1,12 @@
 
-import { createClient } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Invoice, InvoiceWithItems } from "@/types/invoice";
+import { Invoice, InvoiceItem } from "@/types/invoice";
 
-const supabase = createClient();
+// Define the InvoiceWithItems type that was missing
+export type InvoiceWithItems = Invoice & {
+  items: InvoiceItem[];
+};
 
 export const fetchInvoices = async (userId: string): Promise<Invoice[]> => {
   const { data, error } = await supabase
