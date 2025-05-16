@@ -1,5 +1,5 @@
 
-import { invoiceQueryService } from "./invoiceQueryService";
+import { fetchInvoices, fetchInvoiceById, useInvoicesQuery, useInvoiceQuery } from "./invoiceQueryService";
 import { invoiceCalculationService } from "./invoiceCalculationService";
 import { invoiceCreateService } from "./invoiceCreateService";
 import { invoiceUpdateService } from "./invoiceUpdateService";
@@ -8,10 +8,10 @@ import { invoiceDeleteService } from "./invoiceDeleteService";
 // Create and export a unified invoiceService object that combines all the specialized services
 export const invoiceService = {
   // Query operations
-  getInvoices: invoiceQueryService.fetchInvoices,
-  getInvoiceById: invoiceQueryService.fetchInvoiceById,
+  getInvoices: fetchInvoices,
+  getInvoiceById: fetchInvoiceById,
   getInvoiceItems: async (invoiceId: string) => {
-    const invoice = await invoiceQueryService.fetchInvoiceById(invoiceId);
+    const invoice = await fetchInvoiceById(invoiceId);
     return invoice?.items || [];
   },
   
