@@ -10,13 +10,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { africanCountries } from "@/lib/data/africa";
+import { Business } from "@/contexts/auth/types";
 
 interface CountryCurrencySelectorProps {
-  formData: {
-    country: string;
-    currency: string;
-    [key: string]: string;
-  };
+  formData: Partial<Business>;
   handleSelectChange: (name: string, value: string) => void;
 }
 
@@ -46,7 +43,7 @@ export const CountryCurrencySelector = ({
           Country
         </Label>
         <Select
-          value={formData.country}
+          value={formData.country || ""}
           onValueChange={handleCountryChange}
         >
           <SelectTrigger>
@@ -64,7 +61,7 @@ export const CountryCurrencySelector = ({
       <div className="space-y-2">
         <Label htmlFor="currency">Currency</Label>
         <Select
-          value={formData.currency}
+          value={formData.currency || ""}
           onValueChange={(value) => handleSelectChange("currency", value)}
         >
           <SelectTrigger>

@@ -2,14 +2,10 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Business } from "@/contexts/auth/types";
 
 interface ContactFieldsProps {
-  formData: {
-    phone: string;
-    email: string;
-    website: string;
-    [key: string]: string;
-  };
+  formData: Partial<Business>;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
@@ -24,7 +20,7 @@ export const ContactFields = ({
         <Input
           id="phone"
           name="phone"
-          value={formData.phone}
+          value={formData.phone || ""}
           onChange={handleChange}
           placeholder="Business Phone Number"
         />
@@ -35,7 +31,7 @@ export const ContactFields = ({
           id="email"
           name="email"
           type="email"
-          value={formData.email}
+          value={formData.email || ""}
           onChange={handleChange}
           placeholder="business@example.com"
         />
@@ -45,7 +41,7 @@ export const ContactFields = ({
         <Input
           id="website"
           name="website"
-          value={formData.website}
+          value={formData.website || ""}
           onChange={handleChange}
           placeholder="https://yourbusiness.com"
         />

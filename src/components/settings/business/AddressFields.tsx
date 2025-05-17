@@ -2,15 +2,10 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Business } from "@/contexts/auth/types";
 
 interface AddressFieldsProps {
-  formData: {
-    address: string;
-    city: string;
-    state: string;
-    postal_code: string;
-    [key: string]: string;
-  };
+  formData: Partial<Business>;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
@@ -25,7 +20,7 @@ export const AddressFields = ({
         <Input
           id="address"
           name="address"
-          value={formData.address}
+          value={formData.address || ""}
           onChange={handleChange}
           placeholder="Street Address"
         />
@@ -37,7 +32,7 @@ export const AddressFields = ({
           <Input
             id="city"
             name="city"
-            value={formData.city}
+            value={formData.city || ""}
             onChange={handleChange}
             placeholder="City"
           />
@@ -47,7 +42,7 @@ export const AddressFields = ({
           <Input
             id="state"
             name="state"
-            value={formData.state}
+            value={formData.state || ""}
             onChange={handleChange}
             placeholder="State or Province"
           />
@@ -57,7 +52,7 @@ export const AddressFields = ({
           <Input
             id="postal_code"
             name="postal_code"
-            value={formData.postal_code}
+            value={formData.postal_code || ""}
             onChange={handleChange}
             placeholder="Postal Code"
           />

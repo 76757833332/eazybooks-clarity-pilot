@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -10,16 +9,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Business } from "@/contexts/auth/types";
 
 interface BasicBusinessInfoProps {
-  formData: {
-    name: string;
-    legal_name: string;
-    tax_id: string;
-    industry: string;
-    description: string;
-    [key: string]: string;
-  };
+  formData: Partial<Business>;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
 }
@@ -37,7 +30,7 @@ export const BasicBusinessInfo = ({
           <Input
             id="name"
             name="name"
-            value={formData.name}
+            value={formData.name || ""}
             onChange={handleChange}
             placeholder="Your Business Name"
           />
@@ -47,7 +40,7 @@ export const BasicBusinessInfo = ({
           <Input
             id="legal_name"
             name="legal_name"
-            value={formData.legal_name}
+            value={formData.legal_name || ""}
             onChange={handleChange}
             placeholder="Legal Business Name"
           />
@@ -57,7 +50,7 @@ export const BasicBusinessInfo = ({
           <Input
             id="tax_id"
             name="tax_id"
-            value={formData.tax_id}
+            value={formData.tax_id || ""}
             onChange={handleChange}
             placeholder="Tax ID or VAT Number"
           />
@@ -65,7 +58,7 @@ export const BasicBusinessInfo = ({
         <div className="space-y-2">
           <Label htmlFor="industry">Industry</Label>
           <Select
-            value={formData.industry}
+            value={formData.industry || ""}
             onValueChange={(value) => handleSelectChange("industry", value)}
           >
             <SelectTrigger>
@@ -95,7 +88,7 @@ export const BasicBusinessInfo = ({
         <Textarea
           id="description"
           name="description"
-          value={formData.description}
+          value={formData.description || ""}
           onChange={handleChange}
           placeholder="Brief description of your business"
           rows={3}

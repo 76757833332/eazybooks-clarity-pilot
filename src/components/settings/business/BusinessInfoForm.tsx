@@ -4,25 +4,10 @@ import { BasicBusinessInfo } from "./BasicBusinessInfo";
 import { CountryCurrencySelector } from "./CountryCurrencySelector";
 import { AddressFields } from "./AddressFields";
 import { ContactFields } from "./ContactFields";
+import { Business } from "@/contexts/auth/types";
 
 interface BusinessInfoFormProps {
-  formData: {
-    name: string;
-    legal_name: string;
-    tax_id: string;
-    industry: string;
-    description: string;
-    address: string;
-    city: string;
-    state: string;
-    postal_code: string;
-    country: string;
-    phone: string;
-    email: string;
-    website: string;
-    currency: string;
-    [key: string]: string;
-  };
+  formData: Partial<Business>;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
 }
