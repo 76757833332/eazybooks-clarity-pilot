@@ -4,10 +4,11 @@ import { Session, User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Profile, Business, UserRole, EmployeeRole } from '@/contexts/auth/types';
+import { UserRole, EmployeeRole } from '@/contexts/auth/types';
 import { AuthContext } from './AuthContext';
 import * as authService from '@/services/authService';
-import { baseService } from '@/services/base/baseService';
+import { useProfileData } from './hooks/useProfileData';
+import { inviteUser as inviteUserUtil, getCurrentTenantId } from './utils/authUtils';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -15,48 +16,21 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [business, setBusiness] = useState<Business | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  // Fetch user profile
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const profileData = await authService.fetchUserProfile(userId);
-      
-      if (profileData) {
-        setProfile(profileData);
-
-        // If user has a business, fetch it
-        if (profileData.belongs_to_business_id) {
-          fetchUserBusiness(profileData.belongs_to_business_id);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      toast.error("Failed to load user profile");
-    }
-  };
-
-  // Fetch user business
-  const fetchUserBusiness = async (businessId: string) => {
-    try {
-      const businessData = await authService.fetchUserBusiness(businessId);
-      if (businessData) {
-        // Ensure the tenant_id is set to the business_id for multi-tenancy
-        const businessWithTenant = {
-          ...businessData,
-          tenant_id: businessData.id
-        } as Business;
-        setBusiness(businessWithTenant);
-      }
-    } catch (error) {
-      console.error("Error fetching business:", error);
-      toast.error("Failed to load business data");
-    }
-  };
+  
+  // Use our custom hooks
+  const { 
+    profile, 
+    business, 
+    setProfile,
+    fetchUserProfile, 
+    updateProfile: updateProfileData, 
+    updateBusiness: updateBusinessData, 
+    createBusiness: createBusinessData,
+    switchTenant: switchTenantData
+  } = useProfileData();
 
   useEffect(() => {
     // Set up auth state listener
@@ -72,7 +46,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           }, 0);
         } else if (event === 'SIGNED_OUT') {
           setProfile(null);
-          setBusiness(null);
           navigate('/login');
         } else if (event === 'USER_UPDATED') {
           setUser(currentSession?.user ?? null);
@@ -120,58 +93,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     await authService.signOut();
   };
 
-  const updateProfile = async (updatedProfile: Partial<Profile>) => {
+  // Wrapper functions that use the userId from the current user
+  const updateProfile = async (updatedProfile: Partial<typeof profile>) => {
     if (!user) return;
-    
-    try {
-      await authService.updateProfile(user.id, updatedProfile);
-      // Update local state
-      setProfile(prev => prev ? { ...prev, ...updatedProfile } : null);
-      toast.success("Profile updated successfully");
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
-    }
+    return updateProfileData(user.id, updatedProfile);
   };
 
-  const updateBusiness = async (updatedBusiness: Partial<Business>) => {
+  const updateBusiness = async (updatedBusiness: Partial<typeof business>) => {
     if (!user || !business) return;
-    
-    try {
-      await authService.updateBusiness(business.id, updatedBusiness);
-      // Update local state
-      setBusiness(prev => prev ? { ...prev, ...updatedBusiness } : null);
-      toast.success("Business updated successfully");
-    } catch (error) {
-      console.error("Error updating business:", error);
-      toast.error("Failed to update business");
-    }
+    return updateBusinessData(business.id, updatedBusiness);
   };
 
-  const createBusiness = async (businessData: Partial<Business>) => {
+  const createBusiness = async (businessData: Partial<typeof business>) => {
     if (!user) return;
-    
-    try {
-      const newBusiness = await authService.createBusiness(user.id, businessData);
-      if (newBusiness) {
-        // Add tenant_id to the business
-        const businessWithTenant = {
-          ...newBusiness,
-          tenant_id: newBusiness.id
-        };
-        
-        // Update local state
-        setBusiness(businessWithTenant as Business);
-        
-        // After business creation, update user profile
-        await fetchUserProfile(user.id);
-        
-        toast.success("Business created successfully");
-      }
-    } catch (error) {
-      console.error("Error creating business:", error);
-      toast.error("Failed to create business");
-    }
+    return createBusinessData(user.id, businessData);
   };
 
   const inviteUser = async (email: string, role: UserRole, employeeRole?: EmployeeRole) => {
@@ -179,39 +114,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       toast.error('You need to create a business first');
       return;
     }
-    
-    try {
-      await authService.inviteUser(user.id, business.id, email, role, employeeRole);
-      toast.success(`Invitation sent to ${email}`);
-    } catch (error) {
-      console.error("Error inviting user:", error);
-      toast.error("Failed to send invitation");
-    }
-  };
-
-  // Multi-tenant methods
-  const getCurrentTenantId = () => {
-    // For business owners and employees, the tenant ID is the business ID
-    return business?.id || profile?.belongs_to_business_id;
+    return inviteUserUtil(user.id, business.id, email, role, employeeRole);
   };
 
   const switchTenant = async (tenantId: string) => {
     if (!user) return;
-    
-    try {
-      // Update the user's belongs_to_business_id in their profile
-      await authService.updateProfile(user.id, {
-        belongs_to_business_id: tenantId
-      });
-      
-      // Fetch the new business
-      await fetchUserBusiness(tenantId);
-      
-      toast.success('Switched to different business successfully');
-    } catch (error) {
-      console.error('Failed to switch tenant:', error);
-      toast.error('Failed to switch business');
-    }
+    return switchTenantData(user.id, tenantId);
   };
 
   const value = {
@@ -228,7 +136,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     updateBusiness,
     createBusiness,
     inviteUser,
-    getCurrentTenantId,
+    getCurrentTenantId: () => getCurrentTenantId(business?.id, profile?.belongs_to_business_id),
     switchTenant
   };
 

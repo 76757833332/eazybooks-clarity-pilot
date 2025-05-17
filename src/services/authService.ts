@@ -80,7 +80,7 @@ export const fetchUserProfile = async (userId: string): Promise<Profile | null> 
       throw error;
     }
 
-    return data as unknown as Profile;
+    return data as Profile;
   } catch (error) {
     console.error("Error in fetchUserProfile:", error);
     return null;
@@ -106,7 +106,7 @@ export const fetchUserBusiness = async (businessId: string): Promise<Business | 
       throw error;
     }
 
-    return data as unknown as Business;
+    return data as Business;
   } catch (error) {
     console.error("Error in fetchUserBusiness:", error);
     return null;
@@ -149,11 +149,17 @@ export const updateBusiness = async (businessId: string, updatedBusiness: Partia
 
 export const createBusiness = async (userId: string, businessData: Partial<Business>) => {
   try {
+    // Make sure the required field 'name' is present
+    if (!businessData.name) {
+      throw new Error("Business name is required");
+    }
+
     const { data, error } = await supabase
       .from('businesses')
       .insert({
         ...businessData,
-        owner_id: userId
+        owner_id: userId,
+        name: businessData.name // Ensure name is explicitly passed
       })
       .select()
       .single();
@@ -163,9 +169,24 @@ export const createBusiness = async (userId: string, businessData: Partial<Busin
       throw error;
     }
 
-    return data as unknown as Business;
+    return data as Business;
   } catch (error) {
     console.error("Error in createBusiness:", error);
+    throw error;
+  }
+};
+
+// Let's create the invitations table before using it
+// This would typically go in a SQL migration file
+export const createInvitationsTable = async () => {
+  try {
+    const { error } = await supabase.rpc('create_invitations_table');
+    if (error) {
+      console.error("Error creating invitations table:", error);
+      throw error;
+    }
+  } catch (error) {
+    console.error("Error in createInvitationsTable:", error);
     throw error;
   }
 };
@@ -177,21 +198,27 @@ export const inviteUser = async (
   role: UserRole,
   employeeRole?: EmployeeRole
 ) => {
-  // In a real implementation, this would send an invitation email
-  // For now, we'll just create an invitation record
-  const { error } = await supabase
-    .from('invitations')
-    .insert({
-      inviter_id: inviterId,
-      business_id: businessId,
-      email: email,
-      role: role,
-      employee_role: employeeRole,
-      status: 'pending'
-    });
+  try {
+    // Instead of trying to insert directly to the invitations table,
+    // let's check if it exists first and use a more flexible approach
+    const { error } = await supabase
+      .rpc('create_invitation', {
+        p_inviter_id: inviterId,
+        p_business_id: businessId,
+        p_email: email,
+        p_role: role,
+        p_employee_role: employeeRole || null,
+        p_status: 'pending'
+      });
 
-  if (error) {
-    console.error("Error sending invitation:", error);
+    if (error) {
+      console.error("Error sending invitation:", error);
+      throw error;
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error in inviteUser:", error);
     throw error;
   }
 };
