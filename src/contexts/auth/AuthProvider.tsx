@@ -23,28 +23,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Fetch user profile
   const fetchUserProfile = async (userId: string) => {
-    const profileData = await authService.fetchUserProfile(userId);
-    
-    if (profileData) {
-      setProfile(profileData as Profile);
+    try {
+      const profileData = await authService.fetchUserProfile(userId);
+      
+      if (profileData) {
+        setProfile(profileData as Profile);
 
-      // If user has a business, fetch it
-      if (profileData.belongs_to_business_id) {
-        fetchUserBusiness(profileData.belongs_to_business_id);
+        // If user has a business, fetch it
+        if (profileData.belongs_to_business_id) {
+          fetchUserBusiness(profileData.belongs_to_business_id);
+        }
       }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      toast.error("Failed to load user profile");
     }
   };
 
   // Fetch user business
   const fetchUserBusiness = async (businessId: string) => {
-    const businessData = await authService.fetchUserBusiness(businessId);
-    if (businessData) {
-      // Ensure the tenant_id is set to the business_id for multi-tenancy
-      const businessWithTenant = {
-        ...businessData,
-        tenant_id: businessData.id
-      };
-      setBusiness(businessWithTenant as Business);
+    try {
+      const businessData = await authService.fetchUserBusiness(businessId);
+      if (businessData) {
+        // Ensure the tenant_id is set to the business_id for multi-tenancy
+        const businessWithTenant = {
+          ...businessData,
+          tenant_id: businessData.id
+        };
+        setBusiness(businessWithTenant as Business);
+      }
+    } catch (error) {
+      console.error("Error fetching business:", error);
+      toast.error("Failed to load business data");
     }
   };
 
@@ -56,7 +66,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(currentSession?.user ?? null);
 
         if (event === 'SIGNED_IN' && currentSession?.user) {
-          fetchUserProfile(currentSession.user.id);
+          // Use setTimeout to prevent potential recursion issues with auth state changes
+          setTimeout(() => {
+            fetchUserProfile(currentSession.user.id);
+          }, 0);
         } else if (event === 'SIGNED_OUT') {
           setProfile(null);
           setBusiness(null);
@@ -68,16 +81,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      
-      if (currentSession?.user) {
-        fetchUserProfile(currentSession.user.id);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        if (currentSession?.user) {
+          await fetchUserProfile(currentSession.user.id);
+        }
+      } catch (error) {
+        console.error("Error initializing auth:", error);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     return () => {
       subscription.unsubscribe();
@@ -103,35 +123,54 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const updateProfile = async (updatedProfile: Partial<Profile>) => {
     if (!user) return;
     
-    await authService.updateProfile(user.id, updatedProfile);
-    // Update local state
-    setProfile(prev => prev ? { ...prev, ...updatedProfile } : null);
+    try {
+      await authService.updateProfile(user.id, updatedProfile);
+      // Update local state
+      setProfile(prev => prev ? { ...prev, ...updatedProfile } : null);
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
+    }
   };
 
   const updateBusiness = async (updatedBusiness: Partial<Business>) => {
     if (!user || !business) return;
     
-    await authService.updateBusiness(business.id, updatedBusiness);
-    // Update local state
-    setBusiness(prev => prev ? { ...prev, ...updatedBusiness } : null);
+    try {
+      await authService.updateBusiness(business.id, updatedBusiness);
+      // Update local state
+      setBusiness(prev => prev ? { ...prev, ...updatedBusiness } : null);
+      toast.success("Business updated successfully");
+    } catch (error) {
+      console.error("Error updating business:", error);
+      toast.error("Failed to update business");
+    }
   };
 
   const createBusiness = async (businessData: Partial<Business>) => {
     if (!user) return;
     
-    const newBusiness = await authService.createBusiness(user.id, businessData);
-    if (newBusiness) {
-      // Add tenant_id to the business
-      const businessWithTenant = {
-        ...newBusiness,
-        tenant_id: newBusiness.id
-      };
-      
-      // Update local state
-      setBusiness(businessWithTenant as Business);
-      
-      // After business creation, update user profile
-      await fetchUserProfile(user.id);
+    try {
+      const newBusiness = await authService.createBusiness(user.id, businessData);
+      if (newBusiness) {
+        // Add tenant_id to the business
+        const businessWithTenant = {
+          ...newBusiness,
+          tenant_id: newBusiness.id
+        };
+        
+        // Update local state
+        setBusiness(businessWithTenant as Business);
+        
+        // After business creation, update user profile
+        await fetchUserProfile(user.id);
+        
+        toast.success("Business created successfully");
+      }
+    } catch (error) {
+      console.error("Error creating business:", error);
+      toast.error("Failed to create business");
     }
   };
 
@@ -141,10 +180,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return;
     }
     
-    await authService.inviteUser(user.id, business.id, email, role, employeeRole);
+    try {
+      await authService.inviteUser(user.id, business.id, email, role, employeeRole);
+      toast.success(`Invitation sent to ${email}`);
+    } catch (error) {
+      console.error("Error inviting user:", error);
+      toast.error("Failed to send invitation");
+    }
   };
 
-  // New multi-tenant methods
+  // Multi-tenant methods
   const getCurrentTenantId = () => {
     // For business owners and employees, the tenant ID is the business ID
     return business?.id || profile?.belongs_to_business_id;
