@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth";
 import { Business } from "@/contexts/auth/types";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useBusinessSettingsForm = () => {
   const { business, updateBusiness } = useAuth();
@@ -45,20 +46,45 @@ export const useBusinessSettingsForm = () => {
     }
   };
 
+  const uploadLogo = async (): Promise<string | null> => {
+    if (!logoFile || !business?.id) return null;
+    
+    try {
+      // Generate a unique file name using current timestamp and random string
+      const filePath = `businesses/${business.id}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${logoFile.name.split('.').pop()}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('business-logos')
+        .upload(filePath, logoFile);
+      
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get the public URL for the uploaded image
+      const { data } = supabase.storage.from('business-logos').getPublicUrl(filePath);
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // If we have a logo file, we would upload it to storage here
-      // and get back a URL to store in the business record
+      // If we have a logo file, upload it to Supabase storage
       let logoUrl = formData.logo_url;
       
       if (logoFile) {
-        // In a real implementation, this would upload to Supabase storage
-        // For now we'll just simulate by using the preview URL
-        logoUrl = logoPreview || '';
-        toast.info("Logo uploaded successfully");
+        const uploadedUrl = await uploadLogo();
+        if (uploadedUrl) {
+          logoUrl = uploadedUrl;
+        } else {
+          toast.error("Failed to upload logo. Other information will still be saved.");
+        }
       }
       
       const updatedBusinessData = {

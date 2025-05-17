@@ -66,4 +66,5 @@ export interface AuthContextType {
   // Add multi-tenant specific methods
   getCurrentTenantId: () => string | undefined;
   switchTenant: (tenantId: string) => Promise<void>;
+  fetchUserBusiness: (businessId: string) => Promise<void>;
 }

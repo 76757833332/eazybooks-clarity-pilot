@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import AppLayout from "@/components/layout/AppLayout";
@@ -16,8 +15,15 @@ import { useQuery } from "@tanstack/react-query";
 import * as incomeService from "@/services/incomeService";
 
 const BusinessOwnerDashboard = () => {
-  const { user, profile, business } = useAuth();
+  const { user, profile, business, fetchUserBusiness } = useAuth();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  
+  // Re-fetch business data when component mounts to ensure latest data
+  useEffect(() => {
+    if (profile?.belongs_to_business_id) {
+      fetchUserBusiness(profile.belongs_to_business_id);
+    }
+  }, [profile?.belongs_to_business_id, fetchUserBusiness]);
   
   // Fetch real transactions from incomes and expenses
   const { data: transactions = [] } = useQuery({
@@ -69,6 +75,23 @@ const BusinessOwnerDashboard = () => {
     return tierHierarchy[userTier] >= tierHierarchy[requiredTier];
   };
 
+  // Determine business display name based on available info
+  const businessDisplayName = business?.name || "Your Business";
+  
+  // Helper to format incomplete address data
+  const formatBusinessAddress = () => {
+    if (!business) return null;
+    
+    const addressParts = [];
+    if (business.city) addressParts.push(business.city);
+    if (business.state) addressParts.push(business.state);
+    if (business.country) addressParts.push(business.country);
+    
+    return addressParts.length > 0 ? addressParts.join(', ') : null;
+  };
+  
+  const businessAddress = formatBusinessAddress();
+
   return (
     <AppLayout title="Business Dashboard">
       <div className="mb-6 flex flex-col gap-1">
@@ -82,9 +105,18 @@ const BusinessOwnerDashboard = () => {
             </Badge>
           )}
         </div>
-        <p className="text-muted-foreground">
-          {business?.name || "Your Business"} · Business Owner Dashboard
-        </p>
+        <div className="text-muted-foreground flex flex-col">
+          <p className="flex items-center gap-1">
+            <span className="font-medium">{businessDisplayName}</span>
+            {businessAddress && (
+              <>
+                <span className="mx-1">•</span>
+                <span>{businessAddress}</span>
+              </>
+            )}
+          </p>
+          <p>Business Owner Dashboard</p>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-4 justify-between mb-6">
@@ -110,6 +142,16 @@ const BusinessOwnerDashboard = () => {
             <PlusCircle size={16} />
             Invite User
           </Button>
+          <Button
+            variant="outline"
+            className="flex items-center gap-1 border-eazybooks-purple text-eazybooks-purple"
+            asChild
+          >
+            <Link to="/settings/business">
+              <Settings size={16} />
+              Business Settings
+            </Link>
+          </Button>
           {!isFeatureAvailable('premium') && (
             <Button
               variant="outline"
@@ -124,6 +166,48 @@ const BusinessOwnerDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Business Information Card */}
+      {business && (
+        <Card className="mb-8 border-eazybooks-purple/10 bg-eazybooks-purple/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Business Information</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {business.industry && (
+              <div>
+                <p className="text-sm text-muted-foreground">Industry</p>
+                <p className="font-medium">{business.industry}</p>
+              </div>
+            )}
+            {business.phone && (
+              <div>
+                <p className="text-sm text-muted-foreground">Phone</p>
+                <p className="font-medium">{business.phone}</p>
+              </div>
+            )}
+            {business.email && (
+              <div>
+                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="font-medium">{business.email}</p>
+              </div>
+            )}
+            {business.website && (
+              <div>
+                <p className="text-sm text-muted-foreground">Website</p>
+                <p className="font-medium">
+                  <a href={business.website.startsWith('http') ? business.website : `https://${business.website}`} 
+                     target="_blank" 
+                     rel="noopener noreferrer"
+                     className="text-eazybooks-purple hover:underline">
+                    {business.website}
+                  </a>
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Use real data or placeholder values */}

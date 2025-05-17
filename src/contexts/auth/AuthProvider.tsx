@@ -23,9 +23,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Use our custom hooks
   const { 
     profile, 
-    business, 
+    business,
     setProfile,
-    fetchUserProfile, 
+    fetchUserProfile,
+    fetchUserBusiness,
     updateProfile: updateProfileData, 
     updateBusiness: updateBusinessData, 
     createBusiness: createBusinessData,
@@ -137,7 +138,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     createBusiness,
     inviteUser,
     getCurrentTenantId: () => getCurrentTenantId(business?.id, profile?.belongs_to_business_id),
-    switchTenant
+    switchTenant,
+    fetchUserBusiness
   };
 
   return (
