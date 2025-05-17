@@ -20,16 +20,18 @@ import { Invoice } from "@/types/invoice";
 import AppLayout from "@/components/layout/AppLayout";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/auth";
 
 const InvoicesPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const { user } = useAuth();
 
   const { data: invoices, isLoading } = useQuery({
     queryKey: ["invoices", statusFilter, searchTerm],
     queryFn: async () => {
       try {
-        const invoiceData = await invoiceService.getInvoices();
+        const invoiceData = await invoiceService.getInvoices(user?.id || '');
         
         // Apply client-side filtering
         return invoiceData.filter(invoice => {

@@ -6,8 +6,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { customerService } from "@/services/customerService";
-import { invoiceService } from "@/services/invoiceService";
+import { invoiceService } from "@/services/invoice";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/auth";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,6 +65,7 @@ const CustomerDetails = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const { user } = useAuth();
 
   // Fetch customer data
   const { data: customer, isLoading: isLoadingCustomer } = useQuery({
@@ -75,7 +77,7 @@ const CustomerDetails = () => {
   // Fetch customer's invoices
   const { data: invoices = [], isLoading: isLoadingInvoices } = useQuery({
     queryKey: ["customerInvoices", id],
-    queryFn: () => invoiceService.getInvoices().then(invoices => 
+    queryFn: () => invoiceService.getInvoices(user?.id || '').then(invoices => 
       invoices.filter(invoice => invoice.customer_id === id)
     ),
     enabled: !!id,

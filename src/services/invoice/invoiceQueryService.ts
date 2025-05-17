@@ -8,7 +8,7 @@ export type InvoiceWithItems = Invoice & {
   items: InvoiceItem[];
 };
 
-export const fetchInvoices = async (userId: string): Promise<Invoice[]> => {
+export const fetchInvoices = async (userId: string = ''): Promise<Invoice[]> => {
   const { data, error } = await supabase
     .from("invoices")
     .select("*")
