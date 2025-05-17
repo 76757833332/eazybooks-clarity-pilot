@@ -83,7 +83,7 @@ const InvoicesSection: React.FC<InvoicesSectionProps> = ({ invoices, isLoading =
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  {(invoice.status === "Pending" || invoice.status === "sent") && (
+                  {(invoice.status.toLowerCase() === "pending" || invoice.status.toLowerCase() === "sent") && (
                     <Button
                       size="sm"
                       className="bg-eazybooks-purple hover:bg-eazybooks-purple-secondary"

@@ -12,35 +12,38 @@ import { PlusCircle, Crown, Settings, Lock } from "lucide-react";
 import InviteUserModal from "@/components/invite/InviteUserModal";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import { incomeService } from "@/services";
 
 const BusinessOwnerDashboard = () => {
   const { user, profile, business } = useAuth();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-
-  // Sample transactions
-  const transactions = [
-    {
-      id: '1',
-      name: 'Client Payment',
-      date: 'Today, 2:30 PM',
-      amount: 1250.00,
-      type: 'income' as const
+  
+  // Fetch real transactions from incomes and expenses
+  const { data: transactions = [] } = useQuery({
+    queryKey: ["dashboard-transactions", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      try {
+        // Fetch recent incomes
+        const incomes = await incomeService.getIncomes();
+        
+        // Transform to transaction format and return most recent 3
+        return incomes.slice(0, 3).map(income => ({
+          id: income.id,
+          name: income.description || income.source,
+          date: new Date(income.income_date).toLocaleDateString(),
+          amount: income.amount,
+          type: 'income' as const
+        }));
+      } catch (error) {
+        console.error("Error fetching transaction data for dashboard:", error);
+        return [];
+      }
     },
-    {
-      id: '2',
-      name: 'Software Subscription',
-      date: 'Today, 10:15 AM',
-      amount: 49.99,
-      type: 'expense' as const
-    },
-    {
-      id: '3',
-      name: 'Consulting Fee',
-      date: 'Yesterday',
-      amount: 750.00,
-      type: 'income' as const
-    }
-  ];
+    enabled: !!user?.id
+  });
 
   // Check if user has admin privileges
   const isAdmin = profile?.subscription_tier === 'enterprise' || 
@@ -123,24 +126,25 @@ const BusinessOwnerDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Use real data or placeholder values */}
         <MetricCard
           title="Total Revenue"
-          value="$24,320.50"
-          changeValue="+12.5%"
+          value="$0.00"
+          changeValue="0%"
           changeDirection="up"
           latestDate="this month"
         />
         <MetricCard
           title="Outstanding Invoices"
-          value="$8,540.25"
-          changeValue="+5.2%"
+          value="$0.00"
+          changeValue="0%"
           changeDirection="down"
           latestDate="since last month"
         />
         <MetricCard
           title="Team Members"
-          value="12"
-          changeValue="+2"
+          value="1"
+          changeValue="0"
           changeDirection="up"
           latestDate="this month"
         />

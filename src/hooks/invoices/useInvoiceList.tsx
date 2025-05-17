@@ -27,10 +27,15 @@ export const useInvoiceList = () => {
   };
 
   const { data: invoices, isLoading } = useQuery({
-    queryKey: ["invoices", statusFilter, searchTerm],
+    queryKey: ["invoices", statusFilter, searchTerm, user?.id],
     queryFn: async () => {
       try {
-        const invoiceData = await invoiceService.getInvoices(user?.id || '');
+        if (!user?.id) {
+          console.error("No user ID available");
+          return [];
+        }
+        
+        const invoiceData = await invoiceService.getInvoices(user.id);
         
         // Apply client-side filtering
         return invoiceData.filter(invoice => {
@@ -58,6 +63,7 @@ export const useInvoiceList = () => {
         return [];
       }
     },
+    enabled: !!user?.id,
   });
 
   return {

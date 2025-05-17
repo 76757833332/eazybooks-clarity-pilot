@@ -8,6 +8,8 @@ import { PlusCircle, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useFeatureAccess } from "@/hooks/useFeatureAccess";
+import { useQuery } from "@tanstack/react-query";
+import { invoiceService } from "@/services/invoice";
 
 // Import our components
 import WelcomeHeader from "@/components/dashboard/client/WelcomeHeader";
@@ -20,29 +22,31 @@ const ClientDashboard = () => {
   const navigate = useNavigate();
   const { isFeatureAvailable } = useFeatureAccess();
 
-  // Example data, in a real app this would come from an API
-  const projects = [
-    { id: 1, name: "Website Redesign", status: "In Progress", dueDate: "2023-05-30", progress: 65 },
-    { id: 2, name: "Mobile App Development", status: "Planning", dueDate: "2023-07-15", progress: 20 },
-  ];
+  // Fetch real projects data - for now using empty array until projects API is implemented
+  const projects = [];
 
-  // Updated mock invoices to match the Invoice type
-  const invoices = [
-    { 
-      id: "inv1", 
-      invoice_number: "INV-001", 
-      amount: "$2,500", 
-      status: "Paid", 
-      date: "2023-04-15"
+  // Fetch real invoices data
+  const { data: invoices = [], isLoading: isLoadingInvoices } = useQuery({
+    queryKey: ["dashboard-invoices", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      try {
+        const data = await invoiceService.getInvoices(user.id);
+        return data.slice(0, 3).map(invoice => ({
+          id: invoice.id,
+          invoice_number: invoice.invoice_number,
+          amount: `$${invoice.total_amount.toFixed(2)}`,
+          status: invoice.status,
+          date: new Date(invoice.issue_date).toLocaleDateString()
+        }));
+      } catch (error) {
+        console.error("Error fetching invoice data for dashboard:", error);
+        return [];
+      }
     },
-    { 
-      id: "inv2", 
-      invoice_number: "INV-002", 
-      amount: "$1,800", 
-      status: "Pending", 
-      date: "2023-05-01" 
-    },
-  ];
+    enabled: !!user?.id
+  });
 
   return (
     <AppLayout title="Client Dashboard">
@@ -51,21 +55,21 @@ const ClientDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <MetricCard
           title="Active Projects"
-          value="2"
+          value={projects.length.toString()}
           changeValue=""
           changeDirection="up"
           latestDate=""
         />
         <MetricCard
           title="Pending Invoices"
-          value="$1,800"
+          value={invoices.filter(inv => inv.status === "sent" || inv.status === "overdue").length.toString()}
           changeValue=""
           changeDirection="up"
           latestDate=""
         />
         <MetricCard
           title="Completed Projects"
-          value="3"
+          value="0"
           changeValue=""
           changeDirection="up"
           latestDate=""
@@ -100,7 +104,7 @@ const ClientDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ProjectsSection projects={projects} />
-        <InvoicesSection invoices={invoices} />
+        <InvoicesSection invoices={invoices} isLoading={isLoadingInvoices} />
       </div>
 
       <PremiumFeaturesPromo />
