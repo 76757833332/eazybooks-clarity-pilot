@@ -2,8 +2,40 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Upload } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const TransactionsTab = () => {
+  const navigate = useNavigate();
+  const hasTransactions = true; // This would be determined by your data
+  
+  const navigateToUpload = () => {
+    const uploadTab = document.querySelector('[data-value="upload"]') as HTMLElement;
+    if (uploadTab) uploadTab.click();
+  };
+
+  if (!hasTransactions) {
+    return (
+      <Card className="flex flex-col items-center text-center p-8">
+        <CardHeader>
+          <CardTitle className="text-xl">No Transactions Found</CardTitle>
+          <CardDescription>
+            You don't have any transactions yet. Import transactions from your bank or upload a transaction file to get started.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            className="flex items-center gap-1 bg-eazybooks-purple hover:bg-eazybooks-purple-secondary"
+            onClick={navigateToUpload}
+          >
+            <Upload className="h-4 w-4" />
+            Upload Transactions
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   return (
     <Card>
       <CardHeader>
@@ -68,7 +100,10 @@ const TransactionsTab = () => {
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline">Export Transactions</Button>
-        <Button>View All</Button>
+        <Button onClick={navigateToUpload} variant="outline" className="flex items-center gap-1">
+          <Upload className="h-4 w-4" />
+          Import More
+        </Button>
       </CardFooter>
     </Card>
   );

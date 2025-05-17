@@ -6,6 +6,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import BankAccountsTab from "@/components/bank/BankAccountsTab";
 import TransactionsTab from "@/components/bank/TransactionsTab";
 import ConnectBankTab from "@/components/bank/ConnectBankTab";
+import TransactionUpload from "@/components/bank/TransactionUpload";
 
 const BankPage = () => {
   const { user, business } = useAuth();
@@ -20,9 +21,10 @@ const BankPage = () => {
       </div>
 
       <Tabs defaultValue="accounts" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-8">
+        <TabsList className="grid w-full grid-cols-4 mb-8">
           <TabsTrigger value="accounts">Bank Accounts</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="upload">Upload Transactions</TabsTrigger>
           <TabsTrigger value="connect">Connect New Account</TabsTrigger>
         </TabsList>
 
@@ -32,6 +34,10 @@ const BankPage = () => {
 
         <TabsContent value="transactions">
           <TransactionsTab />
+        </TabsContent>
+
+        <TabsContent value="upload">
+          <TransactionUpload />
         </TabsContent>
 
         <TabsContent value="connect">
