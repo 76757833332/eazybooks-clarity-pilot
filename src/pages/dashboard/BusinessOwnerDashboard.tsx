@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -13,20 +14,35 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import * as incomeService from "@/services/incomeService";
+import { Spinner } from "@/components/ui/spinner";
 
 const BusinessOwnerDashboard = () => {
-  const { user, profile, business, fetchUserBusiness } = useAuth();
+  const { user, profile, business, fetchUserBusiness, loading } = useAuth();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   
   // Re-fetch business data when component mounts to ensure latest data
   useEffect(() => {
-    if (profile?.belongs_to_business_id) {
+    if (profile?.belongs_to_business_id && !business) {
       fetchUserBusiness(profile.belongs_to_business_id);
     }
-  }, [profile?.belongs_to_business_id, fetchUserBusiness]);
+  }, [profile?.belongs_to_business_id, fetchUserBusiness, business]);
+  
+  // Show loading state while fetching business data
+  if (loading) {
+    return (
+      <AppLayout title="Business Dashboard">
+        <div className="flex justify-center items-center h-[60vh]">
+          <div className="text-center">
+            <Spinner className="h-8 w-8 text-eazybooks-purple mx-auto mb-4" />
+            <p>Loading business data...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
   
   // Fetch real transactions from incomes and expenses
-  const { data: transactions = [] } = useQuery({
+  const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ["dashboard-transactions", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -97,7 +113,7 @@ const BusinessOwnerDashboard = () => {
       <div className="mb-6 flex flex-col gap-1">
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold">
-            Welcome back, {profile?.first_name || user?.email}
+            Welcome back, {profile?.first_name || user?.email?.split('@')[0] || 'User'}
           </h1>
           {profile?.subscription_tier && (
             <Badge className={getSubscriptionBadgeColor()}>
@@ -121,7 +137,7 @@ const BusinessOwnerDashboard = () => {
 
       <div className="flex flex-wrap gap-4 justify-between mb-6">
         <h2 className="text-xl font-semibold">Business Overview</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {isAdmin && (
             <Button
               variant="outline"
@@ -168,7 +184,7 @@ const BusinessOwnerDashboard = () => {
       </div>
 
       {/* Business Information Card */}
-      {business && (
+      {business ? (
         <Card className="mb-8 border-eazybooks-purple/10 bg-eazybooks-purple/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Business Information</CardTitle>
@@ -205,6 +221,24 @@ const BusinessOwnerDashboard = () => {
                 </p>
               </div>
             )}
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="mb-8 border-amber-300/30 bg-amber-50/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Complete Your Business Profile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4 text-muted-foreground">Add your business details to customize your dashboard and documents</p>
+            <Button 
+              className="bg-eazybooks-purple hover:bg-eazybooks-purple/90" 
+              asChild
+            >
+              <Link to="/settings/business">
+                <Settings className="mr-2 h-4 w-4" />
+                Set Up Business Profile
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       )}

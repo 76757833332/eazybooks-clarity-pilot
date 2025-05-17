@@ -12,8 +12,11 @@ import {
 import { LogoUpload } from "@/components/settings/business/LogoUpload";
 import { BusinessInfoForm } from "@/components/settings/business/BusinessInfoForm";
 import { useBusinessSettingsForm } from "@/hooks/useBusinessSettingsForm";
+import { useAuth } from "@/contexts/auth";
+import { Spinner } from "@/components/ui/spinner";
 
 const BusinessSettings = () => {
+  const { loading: authLoading } = useAuth();
   const {
     formData,
     isLoading,
@@ -23,6 +26,17 @@ const BusinessSettings = () => {
     handleLogoChange,
     handleSubmit,
   } = useBusinessSettingsForm();
+
+  if (authLoading) {
+    return (
+      <div className="flex justify-center items-center h-full py-20">
+        <div className="text-center">
+          <Spinner className="h-8 w-8 text-eazybooks-purple mx-auto mb-4" />
+          <p>Loading business information...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -51,7 +65,7 @@ const BusinessSettings = () => {
 
             {/* Business Information Form */}
             <BusinessInfoForm 
-              formData={formData as any}
+              formData={formData}
               handleChange={handleChange}
               handleSelectChange={handleSelectChange}
             />
@@ -62,7 +76,12 @@ const BusinessSettings = () => {
               className="bg-eazybooks-purple hover:bg-eazybooks-purple-secondary"
               disabled={isLoading}
             >
-              {isLoading ? "Saving..." : "Save Changes"}
+              {isLoading ? (
+                <>
+                  <Spinner className="mr-2 h-4 w-4" />
+                  Saving...
+                </>
+              ) : "Save Changes"}
             </Button>
           </CardFooter>
         </Card>

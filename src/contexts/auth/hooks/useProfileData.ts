@@ -8,10 +8,13 @@ import { baseService } from '@/services/base/baseService';
 export const useProfileData = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
+  const [profileLoading, setProfileLoading] = useState<boolean>(false);
+  const [businessLoading, setBusinessLoading] = useState<boolean>(false);
 
   // Fetch user profile
   const fetchUserProfile = async (userId: string) => {
     try {
+      setProfileLoading(true);
       const profileData = await authService.fetchUserProfile(userId);
       
       if (profileData) {
@@ -21,16 +24,22 @@ export const useProfileData = () => {
         if (profileData.belongs_to_business_id) {
           fetchUserBusiness(profileData.belongs_to_business_id);
         }
+      } else {
+        console.warn('No profile found for user ID:', userId);
+        // Handle missing profile - could create a new profile here if needed
       }
     } catch (error) {
       console.error("Error fetching user profile:", error);
-      toast.error("Failed to load user profile");
+      // Don't show toast for initial load as it could be a new user without profile
+    } finally {
+      setProfileLoading(false);
     }
   };
 
   // Fetch user business
   const fetchUserBusiness = async (businessId: string) => {
     try {
+      setBusinessLoading(true);
       const businessData = await authService.fetchUserBusiness(businessId);
       if (businessData) {
         // Ensure the tenant_id is set to the business_id for multi-tenancy
@@ -39,10 +48,14 @@ export const useProfileData = () => {
           tenant_id: businessData.id
         } as Business;
         setBusiness(businessWithTenant);
+      } else {
+        console.warn('No business found for business ID:', businessId);
       }
     } catch (error) {
       console.error("Error fetching business:", error);
-      toast.error("Failed to load business data");
+      // Don't show toast for initial load
+    } finally {
+      setBusinessLoading(false);
     }
   };
 
@@ -125,6 +138,8 @@ export const useProfileData = () => {
     updateProfile,
     updateBusiness,
     createBusiness,
-    switchTenant
+    switchTenant,
+    profileLoading,
+    businessLoading
   };
 };

@@ -24,6 +24,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { 
     profile, 
     business,
+    profileLoading,
+    businessLoading,
     setProfile,
     fetchUserProfile,
     fetchUserBusiness,
@@ -57,6 +59,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Check for existing session
     const initializeAuth = async () => {
       try {
+        setLoading(true);
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
@@ -123,12 +126,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return switchTenantData(user.id, tenantId);
   };
 
+  const isLoading = loading || profileLoading || businessLoading;
+
   const value = {
     user,
     session,
     profile,
     business,
-    loading,
+    loading: isLoading,
     signIn,
     signInWithGoogle,
     signUp,

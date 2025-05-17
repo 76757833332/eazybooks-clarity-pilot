@@ -1,33 +1,57 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth";
 import { Business } from "@/contexts/auth/types";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useBusinessSettingsForm = () => {
-  const { business, updateBusiness } = useAuth();
+  const { business, updateBusiness, createBusiness, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(business?.logo_url || null);
   
   const [formData, setFormData] = useState<Partial<Business>>({
-    name: business?.name || "",
-    legal_name: business?.legal_name || "",
-    tax_id: business?.tax_id || "",
-    address: business?.address || "",
-    city: business?.city || "",
-    state: business?.state || "",
-    postal_code: business?.postal_code || "",
-    country: business?.country || "",
-    phone: business?.phone || "",
-    email: business?.email || "",
-    website: business?.website || "",
-    industry: business?.industry || "",
-    description: business?.description || "",
-    logo_url: business?.logo_url || "",
-    currency: business?.currency || "",
+    name: "",
+    legal_name: "",
+    tax_id: "",
+    address: "",
+    city: "",
+    state: "",
+    postal_code: "",
+    country: "",
+    phone: "",
+    email: "",
+    website: "",
+    industry: "",
+    description: "",
+    logo_url: "",
+    currency: "USD",
   });
+
+  // Update form data when business information changes
+  useEffect(() => {
+    if (business) {
+      setFormData({
+        name: business.name || "",
+        legal_name: business.legal_name || "",
+        tax_id: business.tax_id || "",
+        address: business.address || "",
+        city: business.city || "",
+        state: business.state || "",
+        postal_code: business.postal_code || "",
+        country: business.country || "",
+        phone: business.phone || "",
+        email: business.email || "",
+        website: business.website || "",
+        industry: business.industry || "",
+        description: business.description || "",
+        logo_url: business.logo_url || "",
+        currency: business.currency || "USD",
+      });
+      setLogoPreview(business.logo_url || null);
+    }
+  }, [business]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -47,11 +71,19 @@ export const useBusinessSettingsForm = () => {
   };
 
   const uploadLogo = async (): Promise<string | null> => {
-    if (!logoFile || !business?.id) return null;
+    if (!logoFile) return null;
     
     try {
+      // Create business-logos bucket if it doesn't exist
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.some(bucket => bucket.name === 'business-logos');
+      
+      if (!bucketExists) {
+        await supabase.storage.createBucket('business-logos', { public: true });
+      }
+      
       // Generate a unique file name using current timestamp and random string
-      const filePath = `businesses/${business.id}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${logoFile.name.split('.').pop()}`;
+      const filePath = `businesses/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${logoFile.name.split('.').pop()}`;
       
       const { error: uploadError } = await supabase.storage
         .from('business-logos')
@@ -92,11 +124,18 @@ export const useBusinessSettingsForm = () => {
         logo_url: logoUrl,
       };
       
-      await updateBusiness(updatedBusinessData);
-      toast.success("Business information updated successfully");
+      if (business?.id) {
+        // Update existing business
+        await updateBusiness(updatedBusinessData);
+      } else if (user) {
+        // Create new business
+        await createBusiness(updatedBusinessData);
+      }
+      
+      toast.success(business?.id ? "Business information updated successfully" : "Business created successfully");
     } catch (error) {
-      console.error("Failed to update business information:", error);
-      toast.error("Failed to update business information");
+      console.error("Failed to save business information:", error);
+      toast.error("Failed to save business information");
     } finally {
       setIsLoading(false);
     }
