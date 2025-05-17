@@ -62,87 +62,112 @@ export const signUp = async (email: string, password: string, firstName: string,
 };
 
 export const fetchUserProfile = async (userId: string): Promise<Profile | null> => {
-  // Fetch the user profile from the profiles table
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
+  try {
+    // Fetch the user profile from the profiles table
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
 
-  if (error) {
-    if (error.code === 'PGRST116') {
-      // Profile doesn't exist yet, may need to create one
-      console.warn("User profile does not exist:", error);
-      return null;
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // Profile doesn't exist yet, may need to create one
+        console.warn("User profile does not exist:", error);
+        return null;
+      }
+      console.error("Error fetching user profile:", error);
+      throw error;
     }
-    console.error("Error fetching user profile:", error);
-    throw error;
-  }
 
-  return data as Profile;
+    return data as unknown as Profile;
+  } catch (error) {
+    console.error("Error in fetchUserProfile:", error);
+    return null;
+  }
 };
 
 export const fetchUserBusiness = async (businessId: string): Promise<Business | null> => {
-  // Fetch the business data
-  const { data, error } = await supabase
-    .from('businesses')
-    .select('*')
-    .eq('id', businessId)
-    .single();
+  try {
+    // Fetch the business data
+    const { data, error } = await supabase
+      .from('businesses')
+      .select('*')
+      .eq('id', businessId)
+      .single();
 
-  if (error) {
-    if (error.code === 'PGRST116') {
-      // Business doesn't exist
-      console.warn("Business does not exist:", error);
-      return null;
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // Business doesn't exist
+        console.warn("Business does not exist:", error);
+        return null;
+      }
+      console.error("Error fetching business data:", error);
+      throw error;
     }
-    console.error("Error fetching business data:", error);
-    throw error;
-  }
 
-  return data as Business;
+    return data as unknown as Business;
+  } catch (error) {
+    console.error("Error in fetchUserBusiness:", error);
+    return null;
+  }
 };
 
 export const updateProfile = async (userId: string, updatedProfile: Partial<Profile>) => {
-  const { error } = await supabase
-    .from('profiles')
-    .update(updatedProfile)
-    .eq('id', userId);
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update(updatedProfile)
+      .eq('id', userId);
 
-  if (error) {
-    console.error("Error updating profile:", error);
+    if (error) {
+      console.error("Error updating profile:", error);
+      throw error;
+    }
+  } catch (error) {
+    console.error("Error in updateProfile:", error);
     throw error;
   }
 };
 
 export const updateBusiness = async (businessId: string, updatedBusiness: Partial<Business>) => {
-  const { error } = await supabase
-    .from('businesses')
-    .update(updatedBusiness)
-    .eq('id', businessId);
+  try {
+    const { error } = await supabase
+      .from('businesses')
+      .update(updatedBusiness)
+      .eq('id', businessId);
 
-  if (error) {
-    console.error("Error updating business:", error);
+    if (error) {
+      console.error("Error updating business:", error);
+      throw error;
+    }
+  } catch (error) {
+    console.error("Error in updateBusiness:", error);
     throw error;
   }
 };
 
 export const createBusiness = async (userId: string, businessData: Partial<Business>) => {
-  const { data, error } = await supabase
-    .from('businesses')
-    .insert({
-      ...businessData,
-      owner_id: userId
-    })
-    .select()
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('businesses')
+      .insert({
+        ...businessData,
+        owner_id: userId
+      })
+      .select()
+      .single();
 
-  if (error) {
-    console.error("Error creating business:", error);
+    if (error) {
+      console.error("Error creating business:", error);
+      throw error;
+    }
+
+    return data as unknown as Business;
+  } catch (error) {
+    console.error("Error in createBusiness:", error);
     throw error;
   }
-
-  return data;
 };
 
 export const inviteUser = async (

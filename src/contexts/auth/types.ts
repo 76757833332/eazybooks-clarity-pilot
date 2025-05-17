@@ -1,3 +1,4 @@
+
 import { User, Session } from '@supabase/supabase-js';
 
 export type UserRole = 'business_owner' | 'employee' | 'client';
@@ -6,7 +7,7 @@ export type SubscriptionTier = 'free' | 'premium' | 'enterprise';
 
 export interface Profile {
   id: string;
-  user_id: string;
+  user_id?: string;
   first_name: string;
   last_name: string;
   role: UserRole;
@@ -20,7 +21,6 @@ export interface Profile {
   tenant_id?: string;
 }
 
-// Since we don't have a businesses table yet, we'll keep this interface for future implementation
 export interface Business {
   id: string;
   name: string;
@@ -55,9 +55,9 @@ export interface AuthContextType {
   profile: Profile | null;
   business: Business | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
-  signUp: (email: string, password: string, firstName: string, lastName: string, role: UserRole) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<any>;
+  signInWithGoogle: () => Promise<any>;
+  signUp: (email: string, password: string, firstName: string, lastName: string, role: UserRole) => Promise<any>;
   signOut: () => Promise<void>;
   updateProfile: (profile: Partial<Profile>) => Promise<void>;
   updateBusiness: (business: Partial<Business>) => Promise<void>;

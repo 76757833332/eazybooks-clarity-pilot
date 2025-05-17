@@ -51,6 +51,84 @@ export type Database = {
         }
         Relationships: []
       }
+      businesses: {
+        Row: {
+          address: string | null
+          business_type: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          currency: string | null
+          default_invoice_terms: string | null
+          default_tax_percentage: number | null
+          description: string | null
+          email: string | null
+          id: string
+          industry: string | null
+          legal_name: string | null
+          logo_url: string | null
+          name: string
+          owner_id: string
+          phone: string | null
+          postal_code: string | null
+          state: string | null
+          tax_id: string | null
+          type: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_type?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          currency?: string | null
+          default_invoice_terms?: string | null
+          default_tax_percentage?: number | null
+          description?: string | null
+          email?: string | null
+          id?: string
+          industry?: string | null
+          legal_name?: string | null
+          logo_url?: string | null
+          name: string
+          owner_id: string
+          phone?: string | null
+          postal_code?: string | null
+          state?: string | null
+          tax_id?: string | null
+          type?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_type?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          currency?: string | null
+          default_invoice_terms?: string | null
+          default_tax_percentage?: number | null
+          description?: string | null
+          email?: string | null
+          id?: string
+          industry?: string | null
+          legal_name?: string | null
+          logo_url?: string | null
+          name?: string
+          owner_id?: string
+          phone?: string | null
+          postal_code?: string | null
+          state?: string | null
+          tax_id?: string | null
+          type?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           address: string | null
@@ -578,6 +656,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          belongs_to_business_id: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          role: string
+          subscription_tier: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          belongs_to_business_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          role?: string
+          subscription_tier?: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          belongs_to_business_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          role?: string
+          subscription_tier?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       project_files: {
         Row: {

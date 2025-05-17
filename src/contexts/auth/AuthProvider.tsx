@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const profileData = await authService.fetchUserProfile(userId);
       
       if (profileData) {
-        setProfile(profileData as Profile);
+        setProfile(profileData);
 
         // If user has a business, fetch it
         if (profileData.belongs_to_business_id) {
@@ -49,8 +49,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const businessWithTenant = {
           ...businessData,
           tenant_id: businessData.id
-        };
-        setBusiness(businessWithTenant as Business);
+        } as Business;
+        setBusiness(businessWithTenant);
       }
     } catch (error) {
       console.error("Error fetching business:", error);
@@ -117,7 +117,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signOut = async () => {
-    return authService.signOut();
+    await authService.signOut();
   };
 
   const updateProfile = async (updatedProfile: Partial<Profile>) => {
