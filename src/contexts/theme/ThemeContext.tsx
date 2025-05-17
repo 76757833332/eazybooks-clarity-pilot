@@ -12,15 +12,17 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Try to get the theme from localStorage
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    
-    if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
-      return savedTheme;
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'system';
+    if (typeof window !== 'undefined') {
+      // Try to get the theme from localStorage
+      const savedTheme = localStorage.getItem('theme') as Theme;
+      
+      if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
+        return savedTheme;
+      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'system';
+      }
     }
     
     // Default to system theme if no preference is saved
@@ -28,10 +30,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
   
   // Determine the resolved theme based on system preference when 'system' is selected
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(
+    typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches 
+      ? 'dark' 
+      : 'light'
+  );
   
   // Update the document class when theme changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const root = window.document.documentElement;
     
     // Function to apply the theme
