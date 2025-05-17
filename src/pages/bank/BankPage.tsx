@@ -9,7 +9,7 @@ import ConnectBankTab from "@/components/bank/ConnectBankTab";
 import TransactionUpload from "@/components/bank/TransactionUpload";
 
 const BankPage = () => {
-  const { user, business } = useAuth();
+  const { user } = useAuth();
 
   return (
     <AppLayout title="Banking">
