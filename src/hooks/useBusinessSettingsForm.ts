@@ -6,10 +6,10 @@ import { Business } from "@/contexts/auth/types";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useBusinessSettingsForm = () => {
-  const { business, updateBusiness, createBusiness, user } = useAuth();
+  const { business, updateBusiness, createBusiness, user, loading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(business?.logo_url || null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   
   const [formData, setFormData] = useState<Partial<Business>>({
     name: "",
@@ -104,6 +104,12 @@ export const useBusinessSettingsForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.name) {
+      toast.error("Business name is required");
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -132,7 +138,7 @@ export const useBusinessSettingsForm = () => {
         await createBusiness(updatedBusinessData);
       }
       
-      toast.success(business?.id ? "Business information updated successfully" : "Business created successfully");
+      // No need for toast here as the functions have their own toast calls
     } catch (error) {
       console.error("Failed to save business information:", error);
       toast.error("Failed to save business information");

@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Profile, Business } from '@/contexts/auth/types';
 import * as authService from '@/services/authService';
 import { toast } from 'sonner';
-import { baseService } from '@/services/base/baseService';
 
 export const useProfileData = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -23,10 +22,31 @@ export const useProfileData = () => {
         // If user has a business, fetch it
         if (profileData.belongs_to_business_id) {
           fetchUserBusiness(profileData.belongs_to_business_id);
+        } else {
+          // No business to fetch, make sure to update loading state
+          setBusiness(null);
         }
       } else {
         console.warn('No profile found for user ID:', userId);
-        // Handle missing profile - could create a new profile here if needed
+        // For new users, we might want to create a profile automatically
+        const userData = await supabase.auth.getUser();
+        if (userData.data.user) {
+          const { email, user_metadata } = userData.data.user;
+          
+          // Create a basic profile for the user
+          await authService.updateProfile(userId, {
+            id: userId,
+            email: email || '',
+            first_name: user_metadata?.first_name || '',
+            last_name: user_metadata?.last_name || '',
+            role: user_metadata?.role || 'business_owner',
+            subscription_tier: 'free'
+          });
+          
+          // Fetch the newly created profile
+          const newProfile = await authService.fetchUserProfile(userId);
+          setProfile(newProfile);
+        }
       }
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -50,10 +70,11 @@ export const useProfileData = () => {
         setBusiness(businessWithTenant);
       } else {
         console.warn('No business found for business ID:', businessId);
+        setBusiness(null);
       }
     } catch (error) {
       console.error("Error fetching business:", error);
-      // Don't show toast for initial load
+      setBusiness(null);
     } finally {
       setBusinessLoading(false);
     }
@@ -66,9 +87,11 @@ export const useProfileData = () => {
       // Update local state
       setProfile(prev => prev ? { ...prev, ...updatedProfile } : null);
       toast.success("Profile updated successfully");
+      return true;
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Failed to update profile");
+      return false;
     }
   };
 
@@ -79,9 +102,11 @@ export const useProfileData = () => {
       // Update local state
       setBusiness(prev => prev ? { ...prev, ...updatedBusiness } : null);
       toast.success("Business updated successfully");
+      return true;
     } catch (error) {
       console.error("Error updating business:", error);
       toast.error("Failed to update business");
+      return false;
     }
   };
 
@@ -100,13 +125,18 @@ export const useProfileData = () => {
         setBusiness(businessWithTenant as Business);
         
         // After business creation, update user profile
-        await fetchUserProfile(userId);
+        await updateProfile(userId, {
+          belongs_to_business_id: newBusiness.id
+        });
         
         toast.success("Business created successfully");
+        return true;
       }
+      return false;
     } catch (error) {
       console.error("Error creating business:", error);
       toast.error("Failed to create business");
+      return false;
     }
   };
 
@@ -122,9 +152,11 @@ export const useProfileData = () => {
       await fetchUserBusiness(tenantId);
       
       toast.success('Switched to different business successfully');
+      return true;
     } catch (error) {
       console.error('Failed to switch tenant:', error);
       toast.error('Failed to switch business');
+      return false;
     }
   };
 
@@ -143,3 +175,6 @@ export const useProfileData = () => {
     businessLoading
   };
 };
+
+// Import for the user creation fallback
+import { supabase } from '@/integrations/supabase/client';

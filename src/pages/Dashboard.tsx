@@ -5,10 +5,12 @@ import BusinessOwnerDashboard from "@/pages/dashboard/BusinessOwnerDashboard";
 import EmployeeDashboard from "@/pages/dashboard/EmployeeDashboard";
 import ClientDashboard from "@/pages/dashboard/ClientDashboard";
 import { Spinner } from "@/components/ui/spinner";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { Settings } from "lucide-react";
 
 const Dashboard = () => {
-  const { profile, loading } = useAuth();
+  const { profile, loading, business } = useAuth();
 
   if (loading) {
     return (
@@ -21,14 +23,22 @@ const Dashboard = () => {
     );
   }
 
-  // If profile is still not available after loading, show a different message
+  // If profile is still not available after loading, show a setup message
   if (!profile) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="text-center p-8 border border-gray-200 rounded-lg shadow-sm bg-white">
+        <div className="text-center p-8 border border-gray-200 rounded-lg shadow-sm bg-white max-w-md">
           <h2 className="text-xl font-bold mb-4">Welcome to EazyBooks!</h2>
-          <p className="mb-4">Your profile is being set up. This might take a moment.</p>
-          <Spinner className="h-6 w-6 text-eazybooks-purple mx-auto" />
+          <p className="mb-6">It looks like your profile isn't fully set up yet. Let's get you started.</p>
+          <Button 
+            className="bg-eazybooks-purple hover:bg-eazybooks-purple/90"
+            asChild
+          >
+            <Link to="/settings/profile">
+              <Settings className="mr-2 h-4 w-4" />
+              Set Up Your Profile
+            </Link>
+          </Button>
         </div>
       </div>
     );
@@ -46,7 +56,10 @@ const Dashboard = () => {
       // If role is not determined yet, show generic loading
       return (
         <div className="flex h-screen items-center justify-center">
-          <p>Preparing your dashboard...</p>
+          <div className="text-center">
+            <p className="mb-4">Preparing your dashboard...</p>
+            <p className="text-sm text-muted-foreground">Role: {profile.role || "unknown"}</p>
+          </div>
         </div>
       );
   }
