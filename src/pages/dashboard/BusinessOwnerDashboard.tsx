@@ -13,7 +13,7 @@ import InviteUserModal from "@/components/invite/InviteUserModal";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { incomeService } from "@/services/incomeService";
+import * as incomeService from "@/services/incomeService";
 
 const BusinessOwnerDashboard = () => {
   const { user, profile, business } = useAuth();
