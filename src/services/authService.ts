@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from '@supabase/supabase-js';
 import { Profile, Business, UserRole, EmployeeRole } from '@/contexts/auth/types';
@@ -176,21 +175,6 @@ export const createBusiness = async (userId: string, businessData: Partial<Busin
   }
 };
 
-// Let's create the invitations table before using it
-// This would typically go in a SQL migration file
-export const createInvitationsTable = async () => {
-  try {
-    const { error } = await supabase.rpc('create_invitations_table');
-    if (error) {
-      console.error("Error creating invitations table:", error);
-      throw error;
-    }
-  } catch (error) {
-    console.error("Error in createInvitationsTable:", error);
-    throw error;
-  }
-};
-
 export const inviteUser = async (
   inviterId: string,
   businessId: string,
@@ -199,16 +183,16 @@ export const inviteUser = async (
   employeeRole?: EmployeeRole
 ) => {
   try {
-    // Instead of trying to insert directly to the invitations table,
-    // let's check if it exists first and use a more flexible approach
+    // Insert directly into the invitations table instead of using RPC
     const { error } = await supabase
-      .rpc('create_invitation', {
-        p_inviter_id: inviterId,
-        p_business_id: businessId,
-        p_email: email,
-        p_role: role,
-        p_employee_role: employeeRole || null,
-        p_status: 'pending'
+      .from('invitations')
+      .insert({
+        inviter_id: inviterId,
+        business_id: businessId,
+        email: email,
+        role: role,
+        employee_role: employeeRole || null,
+        status: 'pending'
       });
 
     if (error) {

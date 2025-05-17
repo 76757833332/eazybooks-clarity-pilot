@@ -354,6 +354,50 @@ export type Database = {
         }
         Relationships: []
       }
+      invitations: {
+        Row: {
+          business_id: string
+          created_at: string | null
+          email: string
+          employee_role: string | null
+          expires_at: string | null
+          id: string
+          inviter_id: string
+          role: string
+          status: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string | null
+          email: string
+          employee_role?: string | null
+          expires_at?: string | null
+          id?: string
+          inviter_id: string
+          role: string
+          status?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string | null
+          email?: string
+          employee_role?: string | null
+          expires_at?: string | null
+          id?: string
+          inviter_id?: string
+          role?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_items: {
         Row: {
           amount: number
@@ -1084,6 +1128,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_invitation: {
+        Args: {
+          p_inviter_id: string
+          p_business_id: string
+          p_email: string
+          p_role: string
+          p_employee_role: string
+          p_status: string
+        }
+        Returns: undefined
+      }
       employee_has_permission: {
         Args: { permission: string }
         Returns: boolean
