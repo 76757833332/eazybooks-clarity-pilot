@@ -13,24 +13,48 @@ const ProfileSettings = () => {
   const [firstName, setFirstName] = useState(profile?.first_name || "");
   const [lastName, setLastName] = useState(profile?.last_name || "");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Update form when profile changes (e.g., when it's loaded)
   useEffect(() => {
     if (profile) {
       setFirstName(profile.first_name || "");
       setLastName(profile.last_name || "");
+      console.log("Profile loaded in settings:", profile.id);
     }
   }, [profile]);
 
   const handleUpdateProfile = async () => {
     setIsUpdating(true);
+    setSaveSuccess(false);
+    
     try {
-      await updateProfile({
-        first_name: firstName,
-        last_name: lastName,
+      // Validate form data
+      if (!firstName.trim()) {
+        toast.error("First name is required.");
+        setIsUpdating(false);
+        return;
+      }
+      
+      if (!lastName.trim()) {
+        toast.error("Last name is required.");
+        setIsUpdating(false);
+        return;
+      }
+      
+      const success = await updateProfile({
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
       });
-      toast.success("Profile updated successfully!");
+      
+      if (success) {
+        toast.success("Profile updated successfully!");
+        setSaveSuccess(true);
+      } else {
+        toast.error("Failed to update profile. Please try again.");
+      }
     } catch (error: any) {
+      console.error("Error updating profile:", error);
       toast.error(error.message || "Failed to update profile.");
     } finally {
       setIsUpdating(false);
@@ -57,7 +81,7 @@ const ProfileSettings = () => {
       </CardHeader>
       <CardContent className="grid gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="firstName">First Name</Label>
+          <Label htmlFor="firstName">First Name <span className="text-red-500">*</span></Label>
           <Input
             id="firstName"
             value={firstName}
@@ -66,7 +90,7 @@ const ProfileSettings = () => {
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="lastName">Last Name</Label>
+          <Label htmlFor="lastName">Last Name <span className="text-red-500">*</span></Label>
           <Input
             id="lastName"
             value={lastName}
@@ -84,15 +108,41 @@ const ProfileSettings = () => {
             className="bg-secondary/20 border-border"
           />
         </div>
+        <div className="grid gap-2">
+          <Label htmlFor="role">Role</Label>
+          <Input
+            id="role"
+            value={profile?.role ? profile.role.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase()) : ""}
+            readOnly
+            disabled
+            className="bg-secondary/20 border-border"
+          />
+        </div>
+        {profile?.subscription_tier && (
+          <div className="grid gap-2">
+            <Label htmlFor="subscription">Subscription</Label>
+            <Input
+              id="subscription"
+              value={profile.subscription_tier.charAt(0).toUpperCase() + profile.subscription_tier.slice(1)}
+              readOnly
+              disabled
+              className="bg-secondary/20 border-border"
+            />
+          </div>
+        )}
       </CardContent>
       <div className="flex justify-end space-x-2 p-4">
-        <Button onClick={handleUpdateProfile} disabled={isUpdating} className="bg-eazybooks-purple hover:bg-eazybooks-purple-secondary">
+        <Button 
+          onClick={handleUpdateProfile} 
+          disabled={isUpdating || (!firstName.trim() || !lastName.trim())} 
+          className={`${saveSuccess ? 'bg-green-500 hover:bg-green-600' : 'bg-eazybooks-purple hover:bg-eazybooks-purple-secondary'}`}
+        >
           {isUpdating ? (
             <>
               <Spinner className="mr-2 h-4 w-4" />
               Updating...
             </>
-          ) : "Update Profile"}
+          ) : saveSuccess ? "Successfully Updated" : "Update Profile"}
         </Button>
       </div>
     </Card>
