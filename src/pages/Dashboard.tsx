@@ -44,6 +44,28 @@ const Dashboard = () => {
     );
   }
 
+  // Check if profile has first and last name set
+  const profileIncomplete = !profile.first_name || !profile.last_name;
+  if (profileIncomplete) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center p-8 border border-gray-200 rounded-lg shadow-sm bg-white max-w-md">
+          <h2 className="text-xl font-bold mb-4">Complete Your Profile</h2>
+          <p className="mb-6">Please complete your profile information to continue.</p>
+          <Button 
+            className="bg-eazybooks-purple hover:bg-eazybooks-purple/90"
+            asChild
+          >
+            <Link to="/settings/profile">
+              <Settings className="mr-2 h-4 w-4" />
+              Complete Profile
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   // Render different dashboard based on user role
   switch (profile.role) {
     case "business_owner":

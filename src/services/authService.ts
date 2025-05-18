@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from '@supabase/supabase-js';
 import { Profile, Business, UserRole, EmployeeRole } from '@/contexts/auth/types';
@@ -57,6 +58,25 @@ export const signUp = async (email: string, password: string, firstName: string,
     throw error;
   }
 
+  // Create profile for the new user
+  if (data.user) {
+    try {
+      await createProfile(data.user.id, {
+        id: data.user.id,
+        first_name: firstName,
+        last_name: lastName,
+        role: role,
+        email: email,
+        subscription_tier: 'free',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    } catch (profileError) {
+      console.error("Error creating profile during signup:", profileError);
+      // Continue anyway, as the profile creation will be retried on login
+    }
+  }
+
   return data;
 };
 
@@ -72,7 +92,7 @@ export const fetchUserProfile = async (userId: string): Promise<Profile | null> 
     if (error) {
       if (error.code === 'PGRST116') {
         // Profile doesn't exist yet, may need to create one
-        console.warn("User profile does not exist:", error);
+        console.warn("User profile does not exist, will need to create one");
         return null;
       }
       console.error("Error fetching user profile:", error);
@@ -83,6 +103,25 @@ export const fetchUserProfile = async (userId: string): Promise<Profile | null> 
   } catch (error) {
     console.error("Error in fetchUserProfile:", error);
     return null;
+  }
+};
+
+export const createProfile = async (userId: string, profileData: Partial<Profile>) => {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .insert({
+        ...profileData,
+        id: userId
+      });
+
+    if (error) {
+      console.error("Error creating profile:", error);
+      throw error;
+    }
+  } catch (error) {
+    console.error("Error in createProfile:", error);
+    throw error;
   }
 };
 
@@ -114,6 +153,19 @@ export const fetchUserBusiness = async (businessId: string): Promise<Business | 
 
 export const updateProfile = async (userId: string, updatedProfile: Partial<Profile>) => {
   try {
+    // Check if profile exists
+    const { data: existingProfile, error: checkError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .single();
+    
+    if (checkError && checkError.code === 'PGRST116') {
+      // Profile doesn't exist, create it
+      return createProfile(userId, updatedProfile);
+    }
+    
+    // Profile exists, update it
     const { error } = await supabase
       .from('profiles')
       .update(updatedProfile)

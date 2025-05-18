@@ -1,8 +1,9 @@
 
 import { useState } from 'react';
-import { Profile, Business } from '@/contexts/auth/types';
+import { Profile, Business, UserRole } from '@/contexts/auth/types';
 import * as authService from '@/services/authService';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useProfileData = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -27,25 +28,29 @@ export const useProfileData = () => {
           setBusiness(null);
         }
       } else {
-        console.warn('No profile found for user ID:', userId);
-        // For new users, we might want to create a profile automatically
+        console.log('No profile found for user ID:', userId);
+        // For new users, we'll create a profile automatically
         const userData = await supabase.auth.getUser();
         if (userData.data.user) {
           const { email, user_metadata } = userData.data.user;
           
-          // Create a basic profile for the user
-          await authService.updateProfile(userId, {
+          // Create a basic profile for the user using available metadata
+          const newProfile: Partial<Profile> = {
             id: userId,
             email: email || '',
             first_name: user_metadata?.first_name || '',
             last_name: user_metadata?.last_name || '',
-            role: user_metadata?.role || 'business_owner',
-            subscription_tier: 'free'
-          });
+            role: (user_metadata?.role as UserRole) || 'business_owner',
+            subscription_tier: 'free',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          
+          await authService.updateProfile(userId, newProfile);
           
           // Fetch the newly created profile
-          const newProfile = await authService.fetchUserProfile(userId);
-          setProfile(newProfile);
+          const createdProfile = await authService.fetchUserProfile(userId);
+          setProfile(createdProfile);
         }
       }
     } catch (error) {
@@ -175,6 +180,3 @@ export const useProfileData = () => {
     businessLoading
   };
 };
-
-// Import for the user creation fallback
-import { supabase } from '@/integrations/supabase/client';

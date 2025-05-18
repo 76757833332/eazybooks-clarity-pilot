@@ -1,16 +1,26 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 
 const ProfileSettings = () => {
-  const { user, profile, updateProfile } = useAuth();
+  const { user, profile, updateProfile, loading } = useAuth();
   const [firstName, setFirstName] = useState(profile?.first_name || "");
   const [lastName, setLastName] = useState(profile?.last_name || "");
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Update form when profile changes (e.g., when it's loaded)
+  useEffect(() => {
+    if (profile) {
+      setFirstName(profile.first_name || "");
+      setLastName(profile.last_name || "");
+    }
+  }, [profile]);
 
   const handleUpdateProfile = async () => {
     setIsUpdating(true);
@@ -26,6 +36,19 @@ const ProfileSettings = () => {
       setIsUpdating(false);
     }
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Information</CardTitle>
+        </CardHeader>
+        <CardContent className="flex justify-center py-8">
+          <Spinner className="h-8 w-8 text-eazybooks-purple" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -64,7 +87,12 @@ const ProfileSettings = () => {
       </CardContent>
       <div className="flex justify-end space-x-2 p-4">
         <Button onClick={handleUpdateProfile} disabled={isUpdating} className="bg-eazybooks-purple hover:bg-eazybooks-purple-secondary">
-          {isUpdating ? "Updating..." : "Update Profile"}
+          {isUpdating ? (
+            <>
+              <Spinner className="mr-2 h-4 w-4" />
+              Updating...
+            </>
+          ) : "Update Profile"}
         </Button>
       </div>
     </Card>
