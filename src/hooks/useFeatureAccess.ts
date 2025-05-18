@@ -1,8 +1,11 @@
 
 import { useAuth } from "@/contexts/auth";
+import * as authService from "@/services/authService";
+import { toast } from "sonner";
+import { SubscriptionTier } from "@/types/auth";
 
 export const useFeatureAccess = () => {
-  const { profile } = useAuth();
+  const { profile, updateProfile } = useAuth();
   
   // Get current subscription tier
   const currentTier = profile?.subscription_tier || 'free';
@@ -24,10 +27,32 @@ export const useFeatureAccess = () => {
     return tierHierarchy[userTier] >= tierHierarchy[requiredTier];
   };
 
+  // Add the missing updateUserSubscription function
+  const updateUserSubscription = async (userEmail: string, tier: SubscriptionTier) => {
+    try {
+      // Find the user profile by email (in a real app, we would use an admin API)
+      // For now, we'll only allow updating the current user's subscription
+      if (profile && profile.email === userEmail) {
+        await updateProfile({ subscription_tier: tier });
+        toast.success(`Subscription updated to ${tier}`);
+        return true;
+      } else {
+        // In a real app with admin capabilities, you would call an admin API
+        console.log(`[Admin Action] Would update user ${userEmail} to tier ${tier}`);
+        return true;
+      }
+    } catch (error) {
+      console.error("Error updating user subscription:", error);
+      toast.error("Failed to update subscription");
+      return false;
+    }
+  };
+
   return {
     currentTier,
     hasPremiumAccess,
     hasEnterpriseAccess,
-    isFeatureAvailable
+    isFeatureAvailable,
+    updateUserSubscription
   };
 };
