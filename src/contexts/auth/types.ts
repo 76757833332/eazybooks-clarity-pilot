@@ -59,12 +59,12 @@ export interface AuthContextType {
   signInWithGoogle: () => Promise<any>;
   signUp: (email: string, password: string, firstName: string, lastName: string, role: UserRole) => Promise<any>;
   signOut: () => Promise<void>;
-  updateProfile: (profile: Partial<Profile>) => Promise<void>;
-  updateBusiness: (business: Partial<Business>) => Promise<void>;
-  createBusiness: (business: Partial<Business>) => Promise<void>;
+  updateProfile: (profile: Partial<Profile>) => Promise<boolean | void>; // Updated to allow boolean return
+  updateBusiness: (business: Partial<Business>) => Promise<boolean | void>; // Updated to allow boolean return
+  createBusiness: (business: Partial<Business>) => Promise<boolean | void>; // Updated to allow boolean return
   inviteUser: (email: string, role: UserRole, employeeRole?: EmployeeRole) => Promise<void>;
   // Add multi-tenant specific methods
   getCurrentTenantId: () => string | undefined;
-  switchTenant: (tenantId: string) => Promise<void>;
+  switchTenant: (tenantId: string) => Promise<boolean | void>; // Updated to allow boolean return
   fetchUserBusiness: (businessId: string) => Promise<void>;
 }
