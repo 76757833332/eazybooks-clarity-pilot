@@ -55,41 +55,6 @@ export const useSubscriptionData = () => {
     setCurrentPage(1); // Reset to first page on filter change
   }, [users, tierFilter, searchQuery]);
 
-  useEffect(() => {
-    // Check if we need to make Lucky an enterprise user
-    const makeLuckyEnterprise = async () => {
-      const luckyEmail = "richndumbu@gmail.com";
-      
-      // Check if Lucky exists in our data
-      const luckyExists = users.some(user => user.email === luckyEmail);
-      
-      // If Lucky exists in our data but isn't enterprise, update them
-      if (luckyExists) {
-        const lucky = users.find(user => user.email === luckyEmail);
-        if (lucky && lucky.subscription_tier !== 'enterprise') {
-          await handleUpdateSubscription(lucky.id, 'enterprise');
-        }
-      } 
-      // If Lucky doesn't exist in our data yet, add them with enterprise tier
-      else {
-        const newLucky: UserSubscriptionData = {
-          id: "lucky-admin",
-          email: luckyEmail,
-          first_name: "Lucky",
-          last_name: "Ndumbu",
-          subscription_tier: "enterprise",
-          user_id: "lucky-admin"
-        };
-        setUsers(prev => [...prev, newLucky]);
-      }
-    };
-    
-    // If the component has loaded users, check for Lucky
-    if (!isLoading && users.length > 0) {
-      makeLuckyEnterprise();
-    }
-  }, [isLoading, users]);
-
   // Fetch users
   useEffect(() => {
     const fetchUsers = async () => {
@@ -99,25 +64,10 @@ export const useSubscriptionData = () => {
         // we'll simulate the data for now
         // In a real app, you would query the profiles table
         
-        // Mock data for users
+        // Updated mock data: Only include Lucky Ndumbu with enterprise tier
+        // Remove any duplicate free accounts
         const mockUsers: UserSubscriptionData[] = [
-          {
-            id: "1",
-            email: "user1@example.com",
-            first_name: "John",
-            last_name: "Doe",
-            subscription_tier: "premium",
-            user_id: "user-1"
-          },
-          {
-            id: "2",
-            email: "user2@example.com",
-            first_name: "Jane",
-            last_name: "Smith",
-            subscription_tier: "free",
-            user_id: "user-2"
-          },
-          // Add Lucky Ndumbu with enterprise tier
+          // Add Lucky Ndumbu with enterprise tier as the only user
           {
             id: "lucky-admin",
             email: "richndumbu@gmail.com",
@@ -125,50 +75,20 @@ export const useSubscriptionData = () => {
             last_name: "Ndumbu",
             subscription_tier: "enterprise",
             user_id: "lucky-admin"
-          },
-          // Add current user to the list for demonstration purposes
-          {
+          }
+        ];
+        
+        // Only add current user if it's not Lucky Ndumbu (to avoid duplicates)
+        if (user?.email !== "richndumbu@gmail.com") {
+          mockUsers.push({
             id: user?.id || "current-user",
             email: user?.email || "current@example.com",
             first_name: profile?.first_name || "Current",
             last_name: profile?.last_name || "User",
             subscription_tier: profile?.subscription_tier || "free",
             user_id: user?.id || "current-user"
-          },
-          // Add more mock users for pagination testing
-          {
-            id: "3",
-            email: "user3@example.com",
-            first_name: "Robert",
-            last_name: "Johnson",
-            subscription_tier: "premium",
-            user_id: "user-3"
-          },
-          {
-            id: "4",
-            email: "user4@example.com",
-            first_name: "Emily",
-            last_name: "Williams",
-            subscription_tier: "free",
-            user_id: "user-4"
-          },
-          {
-            id: "5",
-            email: "user5@example.com",
-            first_name: "Michael",
-            last_name: "Brown",
-            subscription_tier: "enterprise",
-            user_id: "user-5"
-          },
-          {
-            id: "6",
-            email: "user6@example.com",
-            first_name: "Sarah",
-            last_name: "Miller",
-            subscription_tier: "free",
-            user_id: "user-6"
-          }
-        ];
+          });
+        }
         
         setUsers(mockUsers);
         setFilteredUsers(mockUsers);
@@ -182,6 +102,31 @@ export const useSubscriptionData = () => {
 
     fetchUsers();
   }, [user, profile]);
+
+  // Keep Lucky as enterprise and remove duplicates
+  useEffect(() => {
+    if (!isLoading && users.length > 0) {
+      // Check for Lucky's email 
+      const luckyEmail = "richndumbu@gmail.com";
+      
+      // Find duplicates of Lucky's account
+      const luckyAccounts = users.filter(user => user.email === luckyEmail);
+      
+      // If we have duplicates, keep only the enterprise one
+      if (luckyAccounts.length > 1) {
+        const updatedUsers = users.filter(user => 
+          user.email !== luckyEmail || user.subscription_tier === "enterprise"
+        );
+        setUsers(updatedUsers);
+      }
+      
+      // If Lucky exists but isn't enterprise, update them
+      const lucky = users.find(user => user.email === luckyEmail);
+      if (lucky && lucky.subscription_tier !== 'enterprise') {
+        handleUpdateSubscription(lucky.id, 'enterprise');
+      }
+    }
+  }, [isLoading, users]);
 
   const confirmUpdateSubscription = (userId: string, tier: SubscriptionTier) => {
     setUserToUpdate({id: userId, tier});
