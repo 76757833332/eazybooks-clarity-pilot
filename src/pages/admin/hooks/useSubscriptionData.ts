@@ -133,6 +133,7 @@ export const useSubscriptionData = () => {
     setDialogOpen(true);
   };
 
+  // Modified handleUpdateSubscription to work with any user
   const handleUpdateSubscription = async (userId: string, tier: SubscriptionTier) => {
     setIsUpdating(true);
     try {
@@ -147,8 +148,7 @@ export const useSubscriptionData = () => {
           return;
         }
         
-        // In a real app, you would update the user's subscription in the database
-        // Try to update using our new function first
+        // Call the updateUserSubscription function with the user's email
         if (userToUpdate.email) {
           await updateUserSubscription(userToUpdate.email, tier);
         }
