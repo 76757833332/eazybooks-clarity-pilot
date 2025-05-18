@@ -10,11 +10,13 @@ interface WelcomeHeaderProps {
 }
 
 const WelcomeHeader = ({ firstName, email, subscriptionTier }: WelcomeHeaderProps) => {
+  const displayName = firstName || email?.split('@')[0] || 'User';
+  
   return (
     <div className="mb-6 flex flex-col gap-1">
       <div className="flex items-center gap-3">
         <h1 className="text-3xl font-bold">
-          Welcome back, {firstName || email}
+          Welcome back, {displayName}
         </h1>
         {subscriptionTier && (
           <Badge className={getSubscriptionBadgeColor(subscriptionTier)}>

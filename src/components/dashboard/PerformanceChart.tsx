@@ -46,7 +46,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 
 const PerformanceChart: React.FC = () => {
   return (
-    <div className="bg-white dark:bg-secondary/40 rounded-lg p-4 h-80 shadow-sm border border-gray-100 dark:border-transparent">
+    <div className="bg-white dark:bg-secondary/40 rounded-lg p-6 shadow-sm border border-gray-100 dark:border-transparent h-full">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-sm font-medium">Performance</h3>
         <div className="flex gap-6">
@@ -60,51 +60,53 @@ const PerformanceChart: React.FC = () => {
           </div>
         </div>
       </div>
-      <ResponsiveContainer width="100%" height="85%">
-        <LineChart
-          data={data}
-          margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
-        >
-          <defs>
-            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#A78BFF" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#A78BFF" stopOpacity={0} />
-            </linearGradient>
-            <linearGradient id="colorExpenditure" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#FF9F7A" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#FF9F7A" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" opacity={0.3} />
-          <XAxis
-            dataKey="name"
-            tickLine={false}
-            axisLine={false}
-            tick={{ fill: "#999", fontSize: 12 }}
-          />
-          <YAxis 
-            hide={true}
-            domain={['auto', 'auto']}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Line
-            type="monotone"
-            dataKey="revenue"
-            stroke="#A78BFF"
-            strokeWidth={3}
-            dot={false}
-            activeDot={{ r: 8, fill: "#A78BFF" }}
-          />
-          <Line
-            type="monotone"
-            dataKey="expenditure"
-            stroke="#FF9F7A"
-            strokeWidth={3}
-            dot={false}
-            activeDot={{ r: 8, fill: "#FF9F7A" }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <div className="h-[250px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={data}
+            margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+          >
+            <defs>
+              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#A78BFF" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#A78BFF" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="colorExpenditure" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#FF9F7A" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#FF9F7A" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" opacity={0.3} />
+            <XAxis
+              dataKey="name"
+              tickLine={false}
+              axisLine={false}
+              tick={{ fill: "#999", fontSize: 12 }}
+            />
+            <YAxis 
+              hide={true}
+              domain={['auto', 'auto']}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Line
+              type="monotone"
+              dataKey="revenue"
+              stroke="#A78BFF"
+              strokeWidth={3}
+              dot={false}
+              activeDot={{ r: 8, fill: "#A78BFF" }}
+            />
+            <Line
+              type="monotone"
+              dataKey="expenditure"
+              stroke="#FF9F7A"
+              strokeWidth={3}
+              dot={false}
+              activeDot={{ r: 8, fill: "#FF9F7A" }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };

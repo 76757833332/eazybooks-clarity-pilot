@@ -40,9 +40,9 @@ const QuickActions: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-white dark:bg-secondary/40 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-transparent">
+    <div className="bg-white dark:bg-secondary/40 rounded-lg p-6 shadow-sm border border-gray-100 dark:border-transparent h-full">
       <h3 className="text-sm font-medium mb-4">Quick Actions</h3>
-      <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
         <ActionButton
           icon={<PlusCircle size={20} />}
           label="New Transaction"
@@ -51,7 +51,7 @@ const QuickActions: React.FC = () => {
         <ActionButton
           icon={<ArrowDownLeft size={20} />}
           label="Record Income"
-          onClick={() => console.log("Record Income")}
+          onClick={() => navigate("/income/create")}
         />
         <ActionButton
           icon={<ArrowUpRight size={20} />}

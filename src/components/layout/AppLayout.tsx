@@ -21,7 +21,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, title }) => {
           </div>
         </header>
         
-        <main className="flex-1 p-6 overflow-y-auto bg-white/80 dark:bg-transparent">
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto bg-white/80 dark:bg-transparent">
           {children}
         </main>
       </div>

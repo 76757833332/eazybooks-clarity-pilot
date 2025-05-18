@@ -41,12 +41,14 @@ const SubscriptionApprovals = () => {
   } = useSubscriptionData();
 
   return (
-    <AppLayout title="Subscription Approvals">
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold">Subscription Approvals</h1>
-        <p className="text-muted-foreground">
-          Manage subscription tiers for users in your organization
-        </p>
+    <AppLayout title="Subscription Management">
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold">Subscription Management</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage subscription tiers for users in your organization
+          </p>
+        </div>
 
         {/* Filters and search */}
         <SubscriptionFilters
@@ -71,7 +73,7 @@ const SubscriptionApprovals = () => {
                 <p className="text-muted-foreground">No users found matching your filters</p>
                 <Button 
                   variant="outline" 
-                  className="mt-2"
+                  className="mt-4"
                   onClick={() => {
                     setTierFilter("all");
                     setSearchQuery("");

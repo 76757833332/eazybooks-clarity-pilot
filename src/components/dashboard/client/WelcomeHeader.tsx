@@ -12,6 +12,7 @@ interface WelcomeHeaderProps {
 
 const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ user, profile }) => {
   const { currentTier } = useFeatureAccess();
+  const displayName = profile?.first_name || user?.email?.split('@')[0] || 'User';
   
   // Function to get badge color based on subscription tier
   const getSubscriptionBadgeColor = () => {
@@ -29,7 +30,7 @@ const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ user, profile }) => {
     <div className="mb-6 flex flex-col gap-1">
       <div className="flex items-center gap-3">
         <h1 className="text-3xl font-bold">
-          Welcome back, {profile?.first_name || user?.email}
+          Welcome back, {displayName}
         </h1>
         <Badge className={getSubscriptionBadgeColor()}>
           {currentTier.charAt(0).toUpperCase() + currentTier.slice(1)}
