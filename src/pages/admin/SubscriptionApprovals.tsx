@@ -9,6 +9,7 @@ import SubscriptionFilters from "./components/SubscriptionFilters";
 import SubscriptionTable from "./components/SubscriptionTable";
 import SubscriptionPagination from "./components/SubscriptionPagination";
 import SubscriptionUpdateDialog from "./components/SubscriptionUpdateDialog";
+import DeleteUserDialog from "./components/DeleteUserDialog";
 
 const SubscriptionApprovals = () => {
   const {
@@ -29,7 +30,14 @@ const SubscriptionApprovals = () => {
     indexOfFirstItem,
     indexOfLastItem,
     confirmUpdateSubscription,
-    handleUpdateSubscription
+    handleUpdateSubscription,
+    // Delete user properties
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    userToDelete,
+    isDeleting,
+    confirmDeleteUser,
+    handleDeleteUser
   } = useSubscriptionData();
 
   return (
@@ -80,6 +88,7 @@ const SubscriptionApprovals = () => {
                   isUpdating={isUpdating}
                   userToUpdate={userToUpdate}
                   onConfirmUpdate={confirmUpdateSubscription}
+                  onDeleteClick={confirmDeleteUser}
                 />
                 
                 {/* Pagination */}
@@ -97,13 +106,22 @@ const SubscriptionApprovals = () => {
         </Card>
       </div>
       
-      {/* Confirmation Dialog */}
+      {/* Subscription Update Dialog */}
       <SubscriptionUpdateDialog
         dialogOpen={dialogOpen}
         setDialogOpen={setDialogOpen}
         userToUpdate={userToUpdate}
         isUpdating={isUpdating}
         onUpdateSubscription={handleUpdateSubscription}
+      />
+      
+      {/* Delete User Dialog */}
+      <DeleteUserDialog
+        isOpen={deleteDialogOpen}
+        setIsOpen={setDeleteDialogOpen}
+        userToDelete={userToDelete}
+        isDeleting={isDeleting}
+        onDeleteUser={handleDeleteUser}
       />
     </AppLayout>
   );

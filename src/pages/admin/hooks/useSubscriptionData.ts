@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth";
 import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 import { SubscriptionTier } from "@/contexts/auth/types";
 import { UserSubscriptionData } from "../types";
+import * as authService from "@/services/authService";
 
 export const useSubscriptionData = () => {
   const { user, profile } = useAuth();
@@ -18,6 +18,11 @@ export const useSubscriptionData = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [userToUpdate, setUserToUpdate] = useState<{id: string, tier: SubscriptionTier} | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Delete user state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{id: string, name: string} | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const itemsPerPage = 5;
   
@@ -221,6 +226,37 @@ export const useSubscriptionData = () => {
     }
   };
 
+  // Prepare to delete a user
+  const confirmDeleteUser = (userId: string, userName: string) => {
+    setUserToDelete({id: userId, name: userName});
+    setDeleteDialogOpen(true);
+  };
+
+  // Delete a user
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      // In a real app, call the API to delete the user
+      // For now, we'll simulate deletion by removing from local state
+      await authService.deleteUser(userToDelete.id);
+      
+      // Update local state after successful deletion
+      setUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
+      toast.success(`User ${userToDelete.name} has been deleted`);
+      
+      // Close the dialog
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("Failed to delete user");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return {
     users: currentItems,
     filteredUsers,
@@ -240,6 +276,14 @@ export const useSubscriptionData = () => {
     indexOfFirstItem,
     indexOfLastItem,
     confirmUpdateSubscription,
-    handleUpdateSubscription
+    handleUpdateSubscription,
+    // Delete user properties
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    userToDelete,
+    setUserToDelete,
+    isDeleting,
+    confirmDeleteUser,
+    handleDeleteUser
   };
 };

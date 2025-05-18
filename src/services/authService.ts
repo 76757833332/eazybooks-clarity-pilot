@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from '@supabase/supabase-js';
 import { Profile, Business, UserRole, EmployeeRole } from '@/contexts/auth/types';
@@ -255,6 +254,38 @@ export const inviteUser = async (
     return { success: true };
   } catch (error) {
     console.error("Error in inviteUser:", error);
+    throw error;
+  }
+};
+
+export const deleteUser = async (userId: string): Promise<boolean> => {
+  try {
+    // In a real app with admin capabilities, you would use admin functions to delete a user
+    // This requires admin privileges in Supabase
+    // Using service role key (Only for admin functions like this)
+    
+    // Since we don't have actual backend admin calls set up yet, we'll simulate success
+    // but log that this would require backend implementation
+    console.log(`[Admin Action] Would delete user with ID: ${userId}`);
+    
+    // For now, we'll just remove any profile data which is what we have access to
+    // First delete the profile
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
+      
+    if (profileError) {
+      console.error("Error deleting user profile:", profileError);
+      throw profileError;
+    }
+    
+    // In a real implementation, you would use the admin API to delete the auth user
+    // This would require a Supabase Edge Function with admin privileges
+    
+    return true;
+  } catch (error) {
+    console.error("Error in deleteUser:", error);
     throw error;
   }
 };
