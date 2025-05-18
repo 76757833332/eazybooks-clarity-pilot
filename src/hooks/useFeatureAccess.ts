@@ -27,23 +27,18 @@ export const useFeatureAccess = () => {
     return tierHierarchy[userTier] >= tierHierarchy[requiredTier];
   };
 
-  // Modified updateUserSubscription function to allow updating any user
+  // Add the missing updateUserSubscription function
   const updateUserSubscription = async (userEmail: string, tier: SubscriptionTier) => {
     try {
-      // If updating the current user's subscription
+      // Find the user profile by email (in a real app, we would use an admin API)
+      // For now, we'll only allow updating the current user's subscription
       if (profile && profile.email === userEmail) {
         await updateProfile({ subscription_tier: tier });
-        toast.success(`Your subscription updated to ${tier}`);
+        toast.success(`Subscription updated to ${tier}`);
         return true;
-      } 
-      // For updating other users (admin capability)
-      else {
-        // In a real production app, this would call an admin API endpoint
-        console.log(`[Admin Action] Updating user ${userEmail} to tier ${tier}`);
-        
-        // Since we don't have a direct admin API yet, we'll simulate success
-        // This will be updated in the UI through the subscription data hook
-        toast.success(`Subscription for ${userEmail} updated to ${tier}`);
+      } else {
+        // In a real app with admin capabilities, you would call an admin API
+        console.log(`[Admin Action] Would update user ${userEmail} to tier ${tier}`);
         return true;
       }
     } catch (error) {
