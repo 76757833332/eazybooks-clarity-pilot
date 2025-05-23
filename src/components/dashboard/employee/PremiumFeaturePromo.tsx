@@ -2,13 +2,15 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Lock } from "lucide-react";
+import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 
-interface PremiumFeaturePromoProps {
-  isVisible: boolean;
-}
+const PremiumFeaturePromo = () => {
+  const { isFeatureAvailable } = useFeatureAccess();
 
-const PremiumFeaturePromo = ({ isVisible }: PremiumFeaturePromoProps) => {
-  if (!isVisible) return null;
+  // Hide for premium and enterprise users
+  if (isFeatureAvailable('premium')) {
+    return null;
+  }
 
   return (
     <Card className="mt-6 border-amber-500/30 bg-amber-50/10">

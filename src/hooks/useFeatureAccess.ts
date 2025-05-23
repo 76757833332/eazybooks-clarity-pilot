@@ -4,6 +4,43 @@ import * as authService from "@/services/authService";
 import { toast } from "sonner";
 import { SubscriptionTier } from "@/types/auth";
 
+// Define features available for each subscription tier
+const TIER_FEATURES = {
+  free: [
+    'basic_dashboard',
+    'limited_invoices',
+    'customer_management',
+    'basic_reporting'
+  ],
+  premium: [
+    'basic_dashboard',
+    'limited_invoices',
+    'customer_management',
+    'basic_reporting',
+    'unlimited_invoices',
+    'advanced_reporting',
+    'project_management',
+    'bank_integration',
+    'tax_management'
+  ],
+  enterprise: [
+    'basic_dashboard',
+    'limited_invoices',
+    'customer_management', 
+    'basic_reporting',
+    'unlimited_invoices',
+    'advanced_reporting',
+    'project_management',
+    'bank_integration',
+    'tax_management',
+    'payroll_management',
+    'admin_capabilities',
+    'employee_management',
+    'multi_user_access',
+    'priority_support'
+  ]
+};
+
 export const useFeatureAccess = () => {
   const { profile, updateProfile } = useAuth();
   
@@ -25,6 +62,12 @@ export const useFeatureAccess = () => {
     const userTier = profile?.subscription_tier || 'free';
     
     return tierHierarchy[userTier] >= tierHierarchy[requiredTier];
+  };
+
+  // Check if a specific feature is available for the current user's tier
+  const hasFeature = (featureName: string): boolean => {
+    const userTier = profile?.subscription_tier || 'free';
+    return TIER_FEATURES[userTier]?.includes(featureName) || false;
   };
 
   // Modified updateUserSubscription function to allow updating any user
@@ -58,6 +101,7 @@ export const useFeatureAccess = () => {
     hasPremiumAccess,
     hasEnterpriseAccess,
     isFeatureAvailable,
+    hasFeature,
     updateUserSubscription
   };
 };
