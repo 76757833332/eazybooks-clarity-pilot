@@ -6,11 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Lock } from "lucide-react";
 import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 
-const PremiumFeaturesPromo: React.FC = () => {
+interface PremiumFeaturesPromoProps {
+  isVisible?: boolean;
+}
+
+const PremiumFeaturesPromo: React.FC<PremiumFeaturesPromoProps> = ({ isVisible }) => {
   const { isFeatureAvailable } = useFeatureAccess();
   
-  // Hide for premium and enterprise users
-  if (isFeatureAvailable('premium')) {
+  // Hide for premium and enterprise users or when isVisible is explicitly set to false
+  if (isFeatureAvailable('premium') || isVisible === false) {
     return null;
   }
   
