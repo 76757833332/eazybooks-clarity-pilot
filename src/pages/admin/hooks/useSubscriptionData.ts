@@ -5,6 +5,7 @@ import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 import { SubscriptionTier } from "@/contexts/auth/types";
 import { UserSubscriptionData } from "../types";
 import * as authService from "@/services/authService";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useSubscriptionData = () => {
   const { user, profile } = useAuth();
@@ -55,43 +56,32 @@ export const useSubscriptionData = () => {
     setCurrentPage(1); // Reset to first page on filter change
   }, [users, tierFilter, searchQuery]);
 
-  // Fetch users
+  // Fetch users from the database
   useEffect(() => {
     const fetchUsers = async () => {
       setIsLoading(true);
       try {
-        // Since we don't have a profiles table in the database yet,
-        // we'll simulate the data for now
-        // In a real app, you would query the profiles table
+        // Fetch all user profiles from the Supabase database
+        const { data: profiles, error } = await supabase
+          .from('profiles')
+          .select('*');
         
-        // Updated mock data: Only include Lucky Ndumbu with enterprise tier
-        // Remove any duplicate free accounts
-        const mockUsers: UserSubscriptionData[] = [
-          // Add Lucky Ndumbu with enterprise tier as the only user
-          {
-            id: "lucky-admin",
-            email: "richndumbu@gmail.com",
-            first_name: "Lucky",
-            last_name: "Ndumbu",
-            subscription_tier: "enterprise",
-            user_id: "lucky-admin"
-          }
-        ];
-        
-        // Only add current user if it's not Lucky Ndumbu (to avoid duplicates)
-        if (user?.email !== "richndumbu@gmail.com") {
-          mockUsers.push({
-            id: user?.id || "current-user",
-            email: user?.email || "current@example.com",
-            first_name: profile?.first_name || "Current",
-            last_name: profile?.last_name || "User",
-            subscription_tier: profile?.subscription_tier || "free",
-            user_id: user?.id || "current-user"
-          });
+        if (error) {
+          throw error;
         }
+
+        // Convert profiles to the UserSubscriptionData format
+        const usersList: UserSubscriptionData[] = profiles.map(profile => ({
+          id: profile.id,
+          email: profile.email || '',
+          first_name: profile.first_name || 'User',
+          last_name: profile.last_name || '',
+          subscription_tier: profile.subscription_tier || 'free',
+          user_id: profile.id
+        }));
         
-        setUsers(mockUsers);
-        setFilteredUsers(mockUsers);
+        setUsers(usersList);
+        setFilteredUsers(usersList);
       } catch (error) {
         console.error("Error fetching users:", error);
         toast.error("Failed to load users");
@@ -101,7 +91,7 @@ export const useSubscriptionData = () => {
     };
 
     fetchUsers();
-  }, [user, profile]);
+  }, []);
 
   // Keep Lucky as enterprise and remove duplicates
   useEffect(() => {
@@ -109,19 +99,10 @@ export const useSubscriptionData = () => {
       // Check for Lucky's email 
       const luckyEmail = "richndumbu@gmail.com";
       
-      // Find duplicates of Lucky's account
-      const luckyAccounts = users.filter(user => user.email === luckyEmail);
-      
-      // If we have duplicates, keep only the enterprise one
-      if (luckyAccounts.length > 1) {
-        const updatedUsers = users.filter(user => 
-          user.email !== luckyEmail || user.subscription_tier === "enterprise"
-        );
-        setUsers(updatedUsers);
-      }
+      // Find Lucky's account
+      const lucky = users.find(user => user.email === luckyEmail);
       
       // If Lucky exists but isn't enterprise, update them
-      const lucky = users.find(user => user.email === luckyEmail);
       if (lucky && lucky.subscription_tier !== 'enterprise') {
         handleUpdateSubscription(lucky.id, 'enterprise');
       }
@@ -133,7 +114,7 @@ export const useSubscriptionData = () => {
     setDialogOpen(true);
   };
 
-  // Modified handleUpdateSubscription to work with any user
+  // Modified handleUpdateSubscription to update the subscription in the database
   const handleUpdateSubscription = async (userId: string, tier: SubscriptionTier) => {
     setIsUpdating(true);
     try {
@@ -148,7 +129,17 @@ export const useSubscriptionData = () => {
           return;
         }
         
-        // Call the updateUserSubscription function with the user's email
+        // Update the subscription in the database
+        const { error } = await supabase
+          .from('profiles')
+          .update({ subscription_tier: tier })
+          .eq('id', userId);
+          
+        if (error) {
+          throw error;
+        }
+        
+        // Call the updateUserSubscription function for additional logic if needed
         if (userToUpdate.email) {
           await updateUserSubscription(userToUpdate.email, tier);
         }
@@ -184,7 +175,6 @@ export const useSubscriptionData = () => {
     setIsDeleting(true);
     try {
       // In a real app, call the API to delete the user
-      // For now, we'll simulate deletion by removing from local state
       await authService.deleteUser(userToDelete.id);
       
       // Update local state after successful deletion
