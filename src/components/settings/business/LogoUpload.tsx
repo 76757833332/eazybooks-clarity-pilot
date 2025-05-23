@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,11 @@ interface LogoUploadProps {
 export const LogoUpload = ({ initialLogo, businessName, onLogoChange }: LogoUploadProps) => {
   const [logoPreview, setLogoPreview] = useState<string | null>(initialLogo);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Update logo preview when initialLogo changes
+  useEffect(() => {
+    setLogoPreview(initialLogo);
+  }, [initialLogo]);
 
   // Generate initials for the avatar fallback
   const getBusinessInitials = () => {

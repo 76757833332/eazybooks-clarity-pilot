@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth";
 import { Business } from "@/contexts/auth/types";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase";
 
 export const useBusinessSettingsForm = () => {
   const { business, updateBusiness, createBusiness, user, loading: authLoading } = useAuth();
@@ -70,24 +70,58 @@ export const useBusinessSettingsForm = () => {
     }
   };
 
+  const createStorageBucketIfNeeded = async () => {
+    try {
+      // Check if bucket exists
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      
+      if (listError) {
+        console.error("Error listing buckets:", listError);
+        return false;
+      }
+      
+      const bucketExists = buckets?.some(bucket => bucket.name === 'business-logos');
+      
+      if (!bucketExists) {
+        const { error: createError } = await supabase.storage.createBucket('business-logos', { 
+          public: true,
+          fileSizeLimit: 2097152 // 2MB in bytes
+        });
+        
+        if (createError) {
+          console.error("Error creating bucket:", createError);
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error checking/creating bucket:", error);
+      return false;
+    }
+  }
+
   const uploadLogo = async (): Promise<string | null> => {
     if (!logoFile) return null;
     
     try {
       // Create business-logos bucket if it doesn't exist
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const bucketExists = buckets?.some(bucket => bucket.name === 'business-logos');
+      const bucketReady = await createStorageBucketIfNeeded();
       
-      if (!bucketExists) {
-        await supabase.storage.createBucket('business-logos', { public: true });
+      if (!bucketReady) {
+        throw new Error("Could not prepare storage for logo upload");
       }
       
       // Generate a unique file name using current timestamp and random string
-      const filePath = `businesses/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${logoFile.name.split('.').pop()}`;
+      const fileExt = logoFile.name.split('.').pop();
+      const filePath = `businesses/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('business-logos')
-        .upload(filePath, logoFile);
+        .upload(filePath, logoFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
       
       if (uploadError) {
         throw uploadError;
