@@ -21,9 +21,9 @@ const FeatureGuard: React.FC<FeatureGuardProps> = ({
   fallbackMessage,
   showUpgradeButton = true
 }) => {
-  const { hasFeature, currentTier } = useFeatureAccess();
+  const { isFeatureAvailable, currentTier } = useFeatureAccess();
   
-  const canAccessFeature = hasFeature(feature);
+  const canAccessFeature = isFeatureAvailable(feature);
   
   if (canAccessFeature) {
     return <>{children}</>;

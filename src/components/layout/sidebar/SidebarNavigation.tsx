@@ -29,7 +29,7 @@ const navigationFeatureMap: Record<string, string> = {
 
 const SidebarNavigation = ({ expandedItems, toggleExpand }: SidebarNavigationProps) => {
   const location = useLocation();
-  const { hasFeature } = useFeatureAccess();
+  const { isFeatureAvailable } = useFeatureAccess();
   
   // Filter sidebar links based on the user's subscription features
   const filteredLinks = sidebarLinks.filter(link => {
@@ -42,7 +42,7 @@ const SidebarNavigation = ({ expandedItems, toggleExpand }: SidebarNavigationPro
     const requiredFeature = navigationFeatureMap[link.path];
     if (!requiredFeature) return true; // If no feature requirement is defined, show by default
     
-    return hasFeature(requiredFeature);
+    return isFeatureAvailable(requiredFeature);
   });
   
   return (

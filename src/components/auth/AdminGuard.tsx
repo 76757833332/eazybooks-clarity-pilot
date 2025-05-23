@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
@@ -14,7 +15,7 @@ const AdminGuard: React.FC<AdminGuardProps> = ({
   fallbackPath = "/dashboard" 
 }) => {
   const { profile, loading } = useAuth();
-  const { hasFeature } = useFeatureAccess();
+  const { isFeatureAvailable } = useFeatureAccess();
 
   if (loading) {
     return (
@@ -26,7 +27,7 @@ const AdminGuard: React.FC<AdminGuardProps> = ({
   }
 
   // Check if user has admin capabilities
-  const isAdmin = hasFeature('admin_capabilities') || profile?.email === 'richndumbu@gmail.com';
+  const isAdmin = isFeatureAvailable('admin_capabilities') || profile?.email === 'richndumbu@gmail.com';
 
   // If user isn't an admin, redirect
   if (!profile || !isAdmin) {
