@@ -43,7 +43,7 @@ const BusinessOwnerDashboard = () => {
       <BusinessInfoCard business={business} />
       <BusinessMetricsSection />
       <BusinessChartsSection />
-      <PremiumFeaturesPromo />
+      <PremiumFeaturesPromo isVisible={!isFeatureAvailable('premium')} />
 
       <InviteUserModal 
         isOpen={isInviteModalOpen}

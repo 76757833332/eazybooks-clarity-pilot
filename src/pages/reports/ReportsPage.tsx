@@ -12,12 +12,9 @@ import { taxService } from "@/services/taxService";
 import TaxReportChart from "@/components/reports/TaxReportChart";
 import TaxReportTable from "@/components/reports/TaxReportTable";
 import { useToast } from "@/hooks/use-toast";
-import { useFeatureAccess } from "@/hooks/useFeatureAccess";
-import FeatureGuard from "@/components/feature-access/FeatureGuard";
 
 const ReportsPage = () => {
   const { toast } = useToast();
-  const { isFeatureAvailable } = useFeatureAccess();
   const { data: taxes, isLoading } = useQuery({
     queryKey: ["taxes"],
     queryFn: taxService.getTaxes,
@@ -59,122 +56,109 @@ const ReportsPage = () => {
     });
   };
 
-  // Use feature guard for advanced reporting
   return (
     <AppLayout title="Reports">
-      <FeatureGuard 
-        feature="basic_reporting"
-        requiredTier="free"
-        fallbackMessage="Access to reports requires a subscription. Please upgrade your plan to view financial reports."
-      >
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Financial Reports</h1>
-              <p className="text-muted-foreground">View and analyze your financial data</p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleExportCSV}>
-                <Download className="mr-2 h-4 w-4" />
-                Export CSV
-              </Button>
-            </div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Financial Reports</h1>
+            <p className="text-muted-foreground">View and analyze your financial data</p>
           </div>
-
-          <Tabs defaultValue="tax" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="tax">Tax Reports</TabsTrigger>
-              <TabsTrigger value="income" disabled>Income Reports</TabsTrigger>
-              <TabsTrigger value="expense" disabled>Expense Reports</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="tax" className="space-y-4">
-              {taxSummary && (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Total Tax Liabilities
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">${taxSummary.total.toFixed(2)}</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Pending
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">${taxSummary.pending.toFixed(2)}</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Paid
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">${taxSummary.paid.toFixed(2)}</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Overdue
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-destructive">${taxSummary.overdue.toFixed(2)}</div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-              
-              {isLoading ? (
-                <div className="h-64 flex items-center justify-center">
-                  <p>Loading tax data...</p>
-                </div>
-              ) : (
-                <FeatureGuard 
-                  feature="advanced_reporting"
-                  requiredTier="premium"
-                  fallbackMessage="Advanced reporting is only available on Premium and Enterprise plans. Upgrade to access detailed charts and analytics."
-                >
-                  <>
-                    <Card className="col-span-3">
-                      <CardHeader>
-                        <CardTitle>Tax Breakdown by Category</CardTitle>
-                        <CardDescription>
-                          Distribution of your tax liabilities by category
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="h-80">
-                        <TaxReportChart taxes={taxes || []} />
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Tax Records</CardTitle>
-                        <CardDescription>
-                          Complete listing of your tax records
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <TaxReportTable taxes={taxes || []} />
-                      </CardContent>
-                    </Card>
-                  </>
-                </FeatureGuard>
-              )}
-            </TabsContent>
-          </Tabs>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleExportCSV}>
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
         </div>
-      </FeatureGuard>
+
+        <Tabs defaultValue="tax" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="tax">Tax Reports</TabsTrigger>
+            <TabsTrigger value="income" disabled>Income Reports</TabsTrigger>
+            <TabsTrigger value="expense" disabled>Expense Reports</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="tax" className="space-y-4">
+            {taxSummary && (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Total Tax Liabilities
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">${taxSummary.total.toFixed(2)}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Pending
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">${taxSummary.pending.toFixed(2)}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Paid
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">${taxSummary.paid.toFixed(2)}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Overdue
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-destructive">${taxSummary.overdue.toFixed(2)}</div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+            
+            {isLoading ? (
+              <div className="h-64 flex items-center justify-center">
+                <p>Loading tax data...</p>
+              </div>
+            ) : (
+              <>
+                <Card className="col-span-3">
+                  <CardHeader>
+                    <CardTitle>Tax Breakdown by Category</CardTitle>
+                    <CardDescription>
+                      Distribution of your tax liabilities by category
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-80">
+                    <TaxReportChart taxes={taxes || []} />
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Tax Records</CardTitle>
+                    <CardDescription>
+                      Complete listing of your tax records
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <TaxReportTable taxes={taxes || []} />
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
     </AppLayout>
   );
 };

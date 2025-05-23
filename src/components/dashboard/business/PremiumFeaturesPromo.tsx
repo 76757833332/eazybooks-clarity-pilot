@@ -4,17 +4,13 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Lock } from "lucide-react";
-import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 
 interface PremiumFeaturesPromoProps {
-  isVisible?: boolean;
+  isVisible: boolean;
 }
 
 const PremiumFeaturesPromo: React.FC<PremiumFeaturesPromoProps> = ({ isVisible }) => {
-  const { isFeatureAvailable } = useFeatureAccess();
-  
-  // Hide for premium and enterprise users or when isVisible is explicitly set to false
-  if (isFeatureAvailable('premium') || isVisible === false) {
+  if (!isVisible) {
     return null;
   }
   

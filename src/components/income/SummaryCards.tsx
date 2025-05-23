@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/contexts/auth";
+import { formatCurrency } from "@/lib/utils";
 import { Income, IncomeSource } from "@/types/income";
 
 interface SummaryCardsProps {
@@ -9,8 +9,6 @@ interface SummaryCardsProps {
 }
 
 const SummaryCards: React.FC<SummaryCardsProps> = ({ incomes }) => {
-  const { formatCurrency } = useAuth();
-  
   // Calculate total income (received only)
   const totalReceivedIncome = incomes
     ?.filter(income => income.status === "received")

@@ -1,9 +1,5 @@
 
-// Re-export components from the auth context
-export { AuthContext } from './AuthContext';
-export type { AuthContextType } from './AuthContext';
-export { AuthProvider } from './AuthProvider';
+export * from './AuthContext';
+export * from './AuthProvider';
+export * from './useAuth';
 export * from './types';
-
-// Export the useAuth hook
-export { useAuth } from './AuthContext';

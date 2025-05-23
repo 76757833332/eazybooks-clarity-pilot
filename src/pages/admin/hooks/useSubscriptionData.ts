@@ -1,168 +1,201 @@
-
-import { useState, useEffect, useMemo } from 'react';
-import { useAuth } from '@/contexts/auth';
-import { useFeatureAccess } from '@/hooks/useFeatureAccess';
-import { SubscriptionData } from '../types';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { SubscriptionTier } from '@/contexts/auth/types';
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/auth";
+import { useFeatureAccess } from "@/hooks/useFeatureAccess";
+import { SubscriptionTier } from "@/contexts/auth/types";
+import { UserSubscriptionData } from "../types";
+import * as authService from "@/services/authService";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useSubscriptionData = () => {
-  const [subscriptions, setSubscriptions] = useState<SubscriptionData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [isUpdating, setIsUpdating] = useState<boolean>(false);
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [tierFilter, setTierFilter] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
-  const [userToUpdate, setUserToUpdate] = useState<{ id: string; tier: SubscriptionTier } | null>(null);
-  const [userToDelete, setUserToDelete] = useState<{ id: string; name: string } | null>(null);
-  
-  const { toast } = useToast();
+  const { user, profile } = useAuth();
   const { updateUserSubscription } = useFeatureAccess();
-
-  // Calculate filtered users based on search query and tier filter
-  const filteredUsers = useMemo(() => {
-    return subscriptions.filter(user => {
-      const matchesSearch = searchQuery === '' || 
-        `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesTier = tierFilter === 'all' || user.subscription_tier === tierFilter;
-      
-      return matchesSearch && matchesTier;
-    });
-  }, [subscriptions, searchQuery, tierFilter]);
-
-  // Pagination logic
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const [users, setUsers] = useState<UserSubscriptionData[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<UserSubscriptionData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [tierFilter, setTierFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [userToUpdate, setUserToUpdate] = useState<{id: string, tier: SubscriptionTier} | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Delete user state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{id: string, name: string} | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  const itemsPerPage = 5;
+  
+  // Calculate pagination values
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const users = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
-  // Function to update a user's subscription tier
-  const updateSubscription = async (email: string, tier: SubscriptionTier) => {
-    // Call the updateUserSubscription function from useFeatureAccess
-    const success = await updateUserSubscription(email, tier);
+  // Filter and search users
+  useEffect(() => {
+    let result = [...users];
     
-    if (success) {
-      toast({
-        title: 'Subscription updated',
-        description: `User ${email} has been upgraded to ${tier} tier.`,
-      });
-      
-      // Update the local state to reflect the change
-      setSubscriptions((prev) =>
-        prev.map((sub) =>
-          sub.email === email ? { ...sub, subscription_tier: tier } : sub
-        )
+    // Apply tier filter
+    if (tierFilter !== "all") {
+      result = result.filter(user => user.subscription_tier === tierFilter);
+    }
+    
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(user => 
+        user.first_name.toLowerCase().includes(query) || 
+        user.last_name.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
       );
-      
-      return true;
-    } else {
-      toast({
-        title: 'Error updating subscription',
-        description: 'Could not update the subscription. Please try again.',
-        variant: 'destructive',
-      });
-      
-      return false;
     }
-  };
+    
+    setFilteredUsers(result);
+    setCurrentPage(1); // Reset to first page on filter change
+  }, [users, tierFilter, searchQuery]);
 
-  // Function to handle the update of a subscription
-  const handleUpdateSubscription = async (userId: string, tier: SubscriptionTier) => {
-    setIsUpdating(true);
-    // Find the user email from the subscriptions array
-    const user = subscriptions.find(user => user.id === userId);
-    if (user) {
-      await updateSubscription(user.email, tier);
+  // Fetch users from the database
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch all user profiles from the Supabase database
+        const { data: profiles, error } = await supabase
+          .from('profiles')
+          .select('*');
+        
+        if (error) {
+          throw error;
+        }
+
+        // Convert profiles to the UserSubscriptionData format
+        const usersList: UserSubscriptionData[] = profiles.map(profile => ({
+          id: profile.id,
+          email: profile.email || '',
+          first_name: profile.first_name || 'User',
+          last_name: profile.last_name || '',
+          subscription_tier: profile.subscription_tier || 'free',
+          user_id: profile.id
+        }));
+        
+        setUsers(usersList);
+        setFilteredUsers(usersList);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        toast.error("Failed to load users");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  // Keep Lucky as enterprise and remove duplicates
+  useEffect(() => {
+    if (!isLoading && users.length > 0) {
+      // Check for Lucky's email 
+      const luckyEmail = "richndumbu@gmail.com";
+      
+      // Find Lucky's account
+      const lucky = users.find(user => user.email === luckyEmail);
+      
+      // If Lucky exists but isn't enterprise, update them
+      if (lucky && lucky.subscription_tier !== 'enterprise') {
+        handleUpdateSubscription(lucky.id, 'enterprise');
+      }
     }
-    setIsUpdating(false);
-    setDialogOpen(false);
-    setUserToUpdate(null);
-  };
+  }, [isLoading, users]);
 
-  // Function to confirm updating a subscription
   const confirmUpdateSubscription = (userId: string, tier: SubscriptionTier) => {
-    setUserToUpdate({ id: userId, tier });
+    setUserToUpdate({id: userId, tier});
     setDialogOpen(true);
   };
 
-  // Function to delete a user
-  const handleDeleteUser = async () => {
-    setIsDeleting(true);
-    // Implementation for deleting a user would go here
-    // This is a placeholder as the actual delete functionality isn't implemented
-    setTimeout(() => {
-      toast({
-        title: 'Not implemented',
-        description: 'User deletion functionality is not yet implemented.',
-      });
-      setIsDeleting(false);
-      setDeleteDialogOpen(false);
-      setUserToDelete(null);
-    }, 1000);
-  };
-
-  // Function to confirm deleting a user
-  const confirmDeleteUser = (userId: string, userName: string) => {
-    setUserToDelete({ id: userId, name: userName });
-    setDeleteDialogOpen(true);
-  };
-
-  // Function to fetch all subscription data
-  const fetchSubscriptions = async () => {
-    setLoading(true);
+  // Modified handleUpdateSubscription to update the subscription in the database
+  const handleUpdateSubscription = async (userId: string, tier: SubscriptionTier) => {
+    setIsUpdating(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, email, first_name, last_name, subscription_tier, created_at')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      // Find the user in our local state
+      const userToUpdate = users.find(u => u.id === userId);
       
-      setSubscriptions(data || []);
+      if (userToUpdate) {
+        // For the specific user we want to ensure is enterprise
+        if (userToUpdate.email === "richndumbu@gmail.com" && tier !== "enterprise") {
+          toast.error("This user must remain on the Enterprise plan");
+          setIsUpdating(false);
+          return;
+        }
+        
+        // Update the subscription in the database
+        const { error } = await supabase
+          .from('profiles')
+          .update({ subscription_tier: tier })
+          .eq('id', userId);
+          
+        if (error) {
+          throw error;
+        }
+        
+        // Call the updateUserSubscription function for additional logic if needed
+        if (userToUpdate.email) {
+          await updateUserSubscription(userToUpdate.email, tier);
+        }
+      }
+      
+      // Update subscription in local state
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.id === userId ? { ...u, subscription_tier: tier } : u
+        )
+      );
+      
+      toast.success(`Subscription updated to ${tier}`);
     } catch (error) {
-      console.error('Error fetching subscriptions:', error);
-      toast({
-        title: 'Error fetching data',
-        description: 'Could not load subscription data. Please try again.',
-        variant: 'destructive',
-      });
+      console.error("Error updating subscription:", error);
+      toast.error("Failed to update subscription");
     } finally {
-      setLoading(false);
+      setIsUpdating(false);
+      setDialogOpen(false);
     }
   };
 
-  // Function to approve a pending subscription
-  const approveSubscription = async (email: string, tier: SubscriptionTier) => {
-    return updateSubscription(email, tier);
+  // Prepare to delete a user
+  const confirmDeleteUser = (userId: string, userName: string) => {
+    setUserToDelete({id: userId, name: userName});
+    setDeleteDialogOpen(true);
   };
 
-  // Function to reject a subscription request
-  const rejectSubscription = async (email: string) => {
-    return updateSubscription(email, 'free');
+  // Delete a user
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      // In a real app, call the API to delete the user
+      await authService.deleteUser(userToDelete.id);
+      
+      // Update local state after successful deletion
+      setUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
+      toast.success(`User ${userToDelete.name} has been deleted`);
+      
+      // Close the dialog
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("Failed to delete user");
+    } finally {
+      setIsDeleting(false);
+    }
   };
-
-  // Fetch subscriptions on mount
-  useEffect(() => {
-    fetchSubscriptions();
-  }, []);
 
   return {
-    subscriptions,
-    users,
+    users: currentItems,
     filteredUsers,
-    loading,
-    isLoading: loading,
-    updateSubscription,
-    fetchSubscriptions,
-    approveSubscription,
-    rejectSubscription,
+    isLoading,
     searchQuery,
     setSearchQuery,
     tierFilter,
@@ -172,15 +205,18 @@ export const useSubscriptionData = () => {
     dialogOpen,
     setDialogOpen,
     userToUpdate,
+    setUserToUpdate,
     isUpdating,
     totalPages,
     indexOfFirstItem,
     indexOfLastItem,
     confirmUpdateSubscription,
     handleUpdateSubscription,
+    // Delete user properties
     deleteDialogOpen,
     setDeleteDialogOpen,
     userToDelete,
+    setUserToDelete,
     isDeleting,
     confirmDeleteUser,
     handleDeleteUser

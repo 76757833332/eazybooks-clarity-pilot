@@ -63,7 +63,7 @@ const EmployeeDashboard = () => {
         <EventList events={upcomingEvents} />
       </div>
 
-      <PremiumFeaturePromo />
+      <PremiumFeaturePromo isVisible={!isFeatureAvailable('premium', profile?.subscription_tier)} />
     </AppLayout>
   );
 };
