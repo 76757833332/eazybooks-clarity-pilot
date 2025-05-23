@@ -29,3 +29,13 @@ export function getCurrencySymbol(currencyCode: string): string {
     return currencyCode;
   }
 }
+
+// New hook for currency formatting that uses the business currency if available
+export function useCurrency() {
+  // This is a placeholder for a hook that would fetch the user's currency from context
+  // Will be implemented in the auth context
+  return {
+    formatCurrency,
+    getCurrencySymbol
+  };
+}

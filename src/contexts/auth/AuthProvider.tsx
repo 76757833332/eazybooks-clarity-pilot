@@ -1,4 +1,3 @@
-
 import React, { ReactNode, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +8,7 @@ import { AuthContext } from './AuthContext';
 import * as authService from '@/services/authService';
 import { useProfileData } from './hooks/useProfileData';
 import { inviteUser as inviteUserUtil, getCurrentTenantId } from './utils/authUtils';
+import { formatCurrency as formatCurrencyUtil, getCurrencySymbol as getCurrencySymbolUtil } from '@/lib/utils';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -126,6 +126,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return switchTenantData(user.id, tenantId);
   };
 
+  // Currency formatting functions that use the business currency
+  const formatCurrency = (amount: number) => {
+    const currencyCode = business?.currency || 'USD';
+    return formatCurrencyUtil(amount, currencyCode);
+  };
+
+  const getCurrencySymbol = () => {
+    const currencyCode = business?.currency || 'USD';
+    return getCurrencySymbolUtil(currencyCode);
+  };
+
   const isLoading = loading || profileLoading || businessLoading;
 
   const value = {
@@ -144,7 +155,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     inviteUser,
     getCurrentTenantId: () => getCurrentTenantId(business?.id, profile?.belongs_to_business_id),
     switchTenant,
-    fetchUserBusiness
+    fetchUserBusiness,
+    formatCurrency,
+    getCurrencySymbol
   };
 
   return (

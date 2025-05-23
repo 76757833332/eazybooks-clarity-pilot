@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Invoice } from "@/types/invoice";
-import { formatCurrency } from "@/lib/utils";
+import { useAuth } from "@/contexts/auth";
 
 interface CustomerInvoicesProps {
   invoices: Invoice[];
@@ -15,6 +15,7 @@ interface CustomerInvoicesProps {
 
 export const CustomerInvoices = ({ invoices, isLoading }: CustomerInvoicesProps) => {
   const navigate = useNavigate();
+  const { formatCurrency } = useAuth();
 
   return (
     <Card>
