@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth";
 import { Business } from "@/contexts/auth/types";
-import { supabase } from "@/integrations/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useBusinessSettingsForm = () => {
   const { business, updateBusiness, createBusiness, user, loading: authLoading } = useAuth();

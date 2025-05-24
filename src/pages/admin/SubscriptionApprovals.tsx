@@ -4,7 +4,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useSubscriptionData } from "./hooks/useSubscriptionData";
+import useSubscriptionData from "./hooks/useSubscriptionData";
 import SubscriptionFilters from "./components/SubscriptionFilters";
 import SubscriptionTable from "./components/SubscriptionTable";
 import SubscriptionPagination from "./components/SubscriptionPagination";
