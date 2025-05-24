@@ -64,11 +64,12 @@ export const invoiceCreateService = {
   /**
    * Generate a sequential invoice number
    */
-  generateInvoiceNumber: async () => {
+  generateInvoiceNumber: async (): Promise<string> => {
     try {
       const userId = await baseService.getCurrentUserId();
       console.log("Generating invoice number for user:", userId);
       
+      // Query the invoices table to get the latest invoice number for this user
       const { data, error } = await supabase
         .from("invoices")
         .select("invoice_number")
@@ -77,17 +78,24 @@ export const invoiceCreateService = {
         .limit(1);
         
       if (error) {
-        console.error("Error generating invoice number:", error);
-        throw error;
+        console.error("Error querying invoices for number generation:", error);
+        // Instead of throwing, generate a fallback number
+        const fallbackNumber = `INV-${Date.now().toString().slice(-6)}`;
+        console.log("Using fallback invoice number:", fallbackNumber);
+        return fallbackNumber;
       }
       
       let nextNumber = 1;
       const prefix = "INV-";
       
+      // If we have existing invoices, increment from the last one
       if (data && data.length > 0 && data[0].invoice_number) {
         const lastNumber = data[0].invoice_number;
+        console.log("Last invoice number found:", lastNumber);
+        
         if (lastNumber.startsWith(prefix)) {
-          const num = parseInt(lastNumber.substring(prefix.length), 10);
+          const numericPart = lastNumber.substring(prefix.length);
+          const num = parseInt(numericPart, 10);
           if (!isNaN(num)) {
             nextNumber = num + 1;
           }
@@ -99,7 +107,10 @@ export const invoiceCreateService = {
       return invoiceNumber;
     } catch (error) {
       console.error("Error in generateInvoiceNumber:", error);
-      throw error;
+      // Generate a timestamp-based fallback
+      const fallbackNumber = `INV-${Date.now().toString().slice(-6)}`;
+      console.log("Using fallback invoice number due to error:", fallbackNumber);
+      return fallbackNumber;
     }
   }
 };
