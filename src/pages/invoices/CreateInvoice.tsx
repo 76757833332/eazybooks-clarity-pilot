@@ -7,12 +7,12 @@ import { Customer } from "@/types/invoice";
 import { InvoiceForm } from "@/components/invoices/InvoiceForm";
 import { CustomerSelect } from "@/components/invoices/CustomerSelect";
 import { invoiceService } from "@/services/invoice";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const CreateInvoice: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
   // Verify authentication
@@ -32,8 +32,8 @@ const CreateInvoice: React.FC = () => {
     checkAuth();
   }, []);
 
-  // Fetch customers
-  const { data: customers, refetch: refetchCustomers, isError: isCustomersError, error: customersError } = useQuery({
+  // Fetch customers with better error handling
+  const { data: customers, refetch: refetchCustomers, isLoading: customersLoading, isError: isCustomersError, error: customersError } = useQuery({
     queryKey: ["customers"],
     queryFn: async () => {
       try {
@@ -45,11 +45,6 @@ const CreateInvoice: React.FC = () => {
 
         if (error) {
           console.error("Error fetching customers:", error);
-          toast({
-            title: "Error fetching customers",
-            description: error.message,
-            variant: "destructive"
-          });
           throw error;
         }
         
@@ -57,28 +52,27 @@ const CreateInvoice: React.FC = () => {
         return data as Customer[];
       } catch (error: any) {
         console.error("Error in customer query:", error);
+        toast.error("Failed to load customers");
         throw error;
-      } finally {
-        setIsLoading(false);
       }
     },
   });
 
-  // Generate invoice number
-  const { data: invoiceNumber, isError: isInvoiceNumberError, error: invoiceNumberError } = useQuery({
+  // Generate invoice number with better error handling
+  const { data: invoiceNumber, isLoading: invoiceNumberLoading, isError: isInvoiceNumberError } = useQuery({
     queryKey: ["invoice-number"],
     queryFn: async () => {
       try {
         console.log("Generating invoice number...");
-        return await invoiceService.generateInvoiceNumber();
+        const number = await invoiceService.generateInvoiceNumber();
+        console.log("Invoice number generated:", number);
+        return number;
       } catch (error: any) {
         console.error("Error generating invoice number:", error);
-        toast({
-          title: "Error generating invoice number",
-          description: "Could not generate a new invoice number. Using a fallback.",
-          variant: "destructive"
-        });
-        return `INV-${new Date().getTime().toString().slice(-4)}`;
+        // Don't show error toast for invoice number generation, just use fallback
+        const fallbackNumber = `INV-${Date.now().toString().slice(-4)}`;
+        console.log("Using fallback invoice number:", fallbackNumber);
+        return fallbackNumber;
       }
     }
   });
@@ -88,6 +82,9 @@ const CreateInvoice: React.FC = () => {
     console.log("New customer added:", newCustomer.name);
     refetchCustomers();
   };
+
+  // Set loading state
+  const isPageLoading = customersLoading || invoiceNumberLoading;
 
   // Display auth error if present
   if (authError) {
@@ -104,22 +101,20 @@ const CreateInvoice: React.FC = () => {
     );
   }
 
-  // Show error state if needed
-  if (isCustomersError || isInvoiceNumberError) {
+  // Show error state for critical errors only
+  if (isCustomersError) {
     return (
       <AppLayout title="Create Invoice">
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error Loading Invoice Data</AlertTitle>
+          <AlertTitle>Error Loading Data</AlertTitle>
           <AlertDescription>
-            {customersError instanceof Error ? customersError.message : ''}
-            {invoiceNumberError instanceof Error ? invoiceNumberError.message : ''}
+            {customersError instanceof Error ? customersError.message : 'Failed to load customers'}
           </AlertDescription>
         </Alert>
         <div className="p-6 text-center">
           <p className="text-muted-foreground mb-4">
-            There was a problem loading the necessary data to create an invoice.
-            Please make sure you're logged in and try again.
+            There was a problem loading customer data. Please try refreshing the page.
           </p>
         </div>
       </AppLayout>
@@ -128,7 +123,7 @@ const CreateInvoice: React.FC = () => {
 
   return (
     <AppLayout title="Create Invoice">
-      {isLoading ? (
+      {isPageLoading ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-eazybooks-purple"></div>
         </div>

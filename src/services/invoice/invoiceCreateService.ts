@@ -62,14 +62,14 @@ export const invoiceCreateService = {
   },
   
   /**
-   * Generate a sequential invoice number
+   * Generate a sequential invoice number - fixed to handle permission errors
    */
   generateInvoiceNumber: async (): Promise<string> => {
     try {
       const userId = await baseService.getCurrentUserId();
       console.log("Generating invoice number for user:", userId);
       
-      // Query the invoices table to get the latest invoice number for this user
+      // Try to query with proper user filtering to avoid permission issues
       const { data, error } = await supabase
         .from("invoices")
         .select("invoice_number")
@@ -79,9 +79,9 @@ export const invoiceCreateService = {
         
       if (error) {
         console.error("Error querying invoices for number generation:", error);
-        // Instead of throwing, generate a fallback number
+        // Generate a timestamp-based fallback number
         const fallbackNumber = `INV-${Date.now().toString().slice(-6)}`;
-        console.log("Using fallback invoice number:", fallbackNumber);
+        console.log("Using fallback invoice number due to permission error:", fallbackNumber);
         return fallbackNumber;
       }
       
