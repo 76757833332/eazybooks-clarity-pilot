@@ -2,108 +2,38 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Base service for common operations
+ * Base service with common functionality
  */
 export const baseService = {
   /**
-   * Get current user session
+   * Get the current authenticated user ID
    */
-  getCurrentSession: async () => {
-    try {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error("Session error:", error);
-        throw error;
-      }
-      if (!data.session) {
-        console.error("No active session found");
-        throw new Error("No active session found");
-      }
-      return data.session;
-    } catch (error) {
-      console.error("Failed to get current session:", error);
-      throw error;
+  getCurrentUserId: async (): Promise<string> => {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      console.error("Error getting current user:", error);
+      throw new Error("Authentication error: " + error.message);
     }
-  },
-  
-  /**
-   * Get current user ID safely without requiring direct users table access
-   */
-  getCurrentUserId: async () => {
-    try {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error("Session error:", error);
-        throw error;
-      }
-      if (!data.session?.user) {
-        console.error("No active user found");
-        throw new Error("No active user found");
-      }
-      return data.session.user.id;
-    } catch (error) {
-      console.error("Failed to get current user ID:", error);
-      throw error;
+    
+    if (!user) {
+      throw new Error("No authenticated user found");
     }
+    
+    return user.id;
   },
 
   /**
-   * Get current tenant ID (business ID for business owners/employees)
-   */
-  getCurrentTenantId: async () => {
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        throw new Error("No authenticated user found");
-      }
-      
-      // Check user metadata for belongs_to_business_id
-      const businessId = userData.user.user_metadata?.belongs_to_business_id;
-      if (businessId) {
-        return businessId;
-      }
-      
-      // If user is a business owner, fetch from businesses table
-      if (userData.user.user_metadata?.role === 'business_owner') {
-        const { data } = await supabase
-          .from('businesses')
-          .select('id')
-          .eq('owner_id', userData.user.id)
-          .single();
-          
-        if (data) {
-          return data.id;
-        }
-      }
-      
-      // For now, return undefined if no tenant ID is found
-      console.warn("No tenant ID found for user");
-      return undefined;
-    } catch (error) {
-      console.error("Failed to get current tenant ID:", error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get current user safely (compatibility method)
-   * @deprecated Use getCurrentUserId instead
+   * Get the current authenticated user
    */
   getCurrentUser: async () => {
-    try {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error("Session error:", error);
-        throw error;
-      }
-      if (!data.session?.user) {
-        console.error("No active user found");
-        throw new Error("No active user found");
-      }
-      return { id: data.session.user.id };
-    } catch (error) {
-      console.error("Failed to get current user:", error);
-      throw error;
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      console.error("Error getting current user:", error);
+      throw new Error("Authentication error: " + error.message);
     }
+    
+    return user;
   }
 };
