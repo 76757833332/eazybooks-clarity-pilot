@@ -2,6 +2,7 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Invoice, InvoiceItem } from "@/types/invoice";
+import { useAuth } from "@/contexts/auth";
 
 interface InvoiceContentProps {
   invoice: Invoice;
@@ -9,19 +10,47 @@ interface InvoiceContentProps {
 }
 
 export const InvoiceContent = ({ invoice, invoiceItems }: InvoiceContentProps) => {
+  const { business } = useAuth();
+
   return (
     <Card>
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-8">
           {/* Your Company Info */}
-          <div>
-            <h3 className="font-bold text-lg mb-1">Your Business</h3>
-            <p>Your Company Name</p>
-            <p className="text-sm text-muted-foreground">
-              123 Business Street<br />
-              City, State 12345<br />
-              contact@yourbusiness.com
-            </p>
+          <div className="flex items-start space-x-4">
+            {business?.logo_url && (
+              <div className="flex-shrink-0">
+                <img 
+                  src={business.logo_url} 
+                  alt={`${business.name} logo`}
+                  className="w-16 h-16 object-contain"
+                />
+              </div>
+            )}
+            <div>
+              <h3 className="font-bold text-lg mb-1">
+                {business?.name || "Your Business"}
+              </h3>
+              {business?.legal_name && business.legal_name !== business.name && (
+                <p className="text-sm text-muted-foreground mb-1">
+                  {business.legal_name}
+                </p>
+              )}
+              <div className="text-sm text-muted-foreground">
+                {business?.address && <p>{business.address}</p>}
+                {(business?.city || business?.state || business?.postal_code) && (
+                  <p>
+                    {[business?.city, business?.state, business?.postal_code]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </p>
+                )}
+                {business?.country && <p>{business.country}</p>}
+                {business?.email && <p className="mt-1">{business.email}</p>}
+                {business?.phone && <p>{business.phone}</p>}
+                {business?.website && <p>{business.website}</p>}
+              </div>
+            </div>
           </div>
 
           {/* Invoice Number & Dates */}
