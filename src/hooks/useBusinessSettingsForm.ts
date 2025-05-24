@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth";
@@ -69,53 +70,66 @@ export const useBusinessSettingsForm = () => {
     }
   };
 
-  const createStorageBucketIfNeeded = async () => {
+  const ensureStorageBucketExists = async () => {
     try {
-      // Check if bucket exists
-      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      // First, try to get the bucket to see if it exists
+      const { data: existingBucket, error: getBucketError } = await supabase.storage.getBucket('business-logos');
       
-      if (listError) {
-        console.error("Error listing buckets:", listError);
-        return false;
+      if (existingBucket) {
+        console.log('Bucket business-logos already exists');
+        return true;
       }
-      
-      const bucketExists = buckets?.some(bucket => bucket.name === 'business-logos');
-      
-      if (!bucketExists) {
+
+      // If bucket doesn't exist, create it
+      if (getBucketError?.message?.includes('not found') || getBucketError?.message?.includes('does not exist')) {
+        console.log('Creating business-logos bucket...');
         const { error: createError } = await supabase.storage.createBucket('business-logos', { 
           public: true,
-          fileSizeLimit: 2097152 // 2MB in bytes
+          fileSizeLimit: 5242880, // 5MB in bytes
+          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
         });
         
         if (createError) {
           console.error("Error creating bucket:", createError);
           return false;
         }
+        
+        console.log('Bucket business-logos created successfully');
+        return true;
       }
       
-      return true;
+      console.error("Error checking bucket:", getBucketError);
+      return false;
     } catch (error) {
-      console.error("Error checking/creating bucket:", error);
+      console.error("Error in ensureStorageBucketExists:", error);
       return false;
     }
-  }
+  };
 
   const uploadLogo = async (): Promise<string | null> => {
     if (!logoFile) return null;
     
     try {
-      // Create business-logos bucket if it doesn't exist
-      const bucketReady = await createStorageBucketIfNeeded();
+      console.log('Starting logo upload process...');
+      
+      // Ensure the bucket exists
+      const bucketReady = await ensureStorageBucketExists();
       
       if (!bucketReady) {
-        throw new Error("Could not prepare storage for logo upload");
+        console.error("Could not prepare storage bucket for logo upload");
+        toast.error("Could not prepare storage for logo upload");
+        return null;
       }
       
-      // Generate a unique file name using current timestamp and random string
+      // Generate a unique file name
       const fileExt = logoFile.name.split('.').pop();
-      const filePath = `businesses/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `businesses/${fileName}`;
       
-      const { error: uploadError } = await supabase.storage
+      console.log('Uploading file to path:', filePath);
+      
+      // Upload the file
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('business-logos')
         .upload(filePath, logoFile, {
           cacheControl: '3600',
@@ -123,14 +137,23 @@ export const useBusinessSettingsForm = () => {
         });
       
       if (uploadError) {
-        throw uploadError;
+        console.error('Upload error:', uploadError);
+        toast.error(`Failed to upload logo: ${uploadError.message}`);
+        return null;
       }
 
+      console.log('Upload successful:', uploadData);
+
       // Get the public URL for the uploaded image
-      const { data } = supabase.storage.from('business-logos').getPublicUrl(filePath);
-      return data.publicUrl;
+      const { data: urlData } = supabase.storage
+        .from('business-logos')
+        .getPublicUrl(filePath);
+      
+      console.log('Generated public URL:', urlData.publicUrl);
+      return urlData.publicUrl;
     } catch (error) {
       console.error('Error uploading logo:', error);
+      toast.error('Failed to upload logo due to an unexpected error');
       return null;
     }
   };
@@ -146,13 +169,17 @@ export const useBusinessSettingsForm = () => {
     setIsLoading(true);
 
     try {
+      console.log('Starting business information save...');
+      
       // If we have a logo file, upload it to Supabase storage
       let logoUrl = formData.logo_url;
       
       if (logoFile) {
+        console.log('Uploading new logo...');
         const uploadedUrl = await uploadLogo();
         if (uploadedUrl) {
           logoUrl = uploadedUrl;
+          console.log('Logo uploaded successfully:', logoUrl);
         } else {
           toast.error("Failed to upload logo. Other information will still be saved.");
         }
@@ -163,6 +190,8 @@ export const useBusinessSettingsForm = () => {
         logo_url: logoUrl,
       };
       
+      console.log('Saving business data:', updatedBusinessData);
+      
       if (business?.id) {
         // Update existing business
         await updateBusiness(updatedBusinessData);
@@ -171,7 +200,10 @@ export const useBusinessSettingsForm = () => {
         await createBusiness(updatedBusinessData);
       }
       
-      // No need for toast here as the functions have their own toast calls
+      // Clear the logo file after successful save
+      setLogoFile(null);
+      
+      console.log('Business information saved successfully');
     } catch (error) {
       console.error("Failed to save business information:", error);
       toast.error("Failed to save business information");
