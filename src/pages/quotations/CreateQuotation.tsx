@@ -83,12 +83,15 @@ const CreateQuotation: React.FC = () => {
     setIsLoading(true);
     
     try {
+      const totalAmount = calculateTotal();
+      
       const quotationData = {
         quotation_number: quotationNumber,
         customer_id: customerId || null,
         issue_date: issueDate,
         valid_until: validUntil,
         status: 'draft' as const,
+        total_amount: totalAmount,
         notes: notes.trim() || null,
       };
 
