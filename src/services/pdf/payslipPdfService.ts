@@ -1,4 +1,3 @@
-
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { Payroll } from "@/types/payroll";
@@ -254,7 +253,6 @@ export class PayslipPdfService extends BasePdfService {
         ["Net Amount", `$${payroll.net_amount.toFixed(2)}`],
       ],
       {
-        startX: 20,
         columnStyles: {
           0: { cellWidth: 120 },
           1: { halign: "right", cellWidth: 60 },
@@ -298,7 +296,6 @@ export class PayslipPdfService extends BasePdfService {
       ["Deduction Type", "Type", "Amount"],
       deductionsData,
       {
-        startX: 20,
         columnStyles: {
           0: { cellWidth: 80 },
           1: { cellWidth: 40, halign: "center" },
