@@ -27,12 +27,7 @@ export const pdfFormatUtils = {
     startY: number,
     headers: string[],
     data: (string | number)[][],
-    options: {
-      theme?: 'striped' | 'grid' | 'plain'; 
-      styles?: Partial<Styles>;
-      headStyles?: Partial<Styles>;
-      columnStyles?: { [key: number]: Partial<Styles> };
-    } = {}
+    options: UserOptions = {}
   ): any {
     return autoTable(doc, {
       startY,
@@ -51,6 +46,7 @@ export const pdfFormatUtils = {
         fontStyle: "bold",
       },
       columnStyles: options.columnStyles,
+      ...options // Spread all other options to support startX and other properties
     });
   },
 };
