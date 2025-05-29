@@ -66,7 +66,7 @@ const QuickActions: React.FC = () => {
         <ActionButton
           icon={<FileText size={20} />}
           label="Create Quote"
-          onClick={() => console.log("Create Quote")}
+          onClick={() => navigate("/quotations/create")}
         />
         <ActionButton
           icon={<CreditCard size={20} />}

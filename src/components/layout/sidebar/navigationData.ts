@@ -1,5 +1,4 @@
-
-import { BarChart3, CreditCard, FileCog, FileSpreadsheet, FolderKanban, Home, LucideIcon, Package, Receipt, Settings, Users, DollarSign, Calendar, Briefcase, FileCheck, MessageCircle, PanelLeft, Wallet, CreditCard as CreditCardIcon, Building2, Crown } from "lucide-react";
+import { BarChart3, CreditCard, FileCog, FileSpreadsheet, FolderKanban, Home, LucideIcon, Package, Receipt, Settings, Users, DollarSign, Calendar, Briefcase, FileCheck, MessageCircle, PanelLeft, Wallet, CreditCard as CreditCardIcon, Building2, Crown, FileText } from "lucide-react";
 
 export interface SidebarLinkGroup {
   label: string;
@@ -48,6 +47,23 @@ export const sidebarLinks: SidebarLink[] = [
         label: "Create Invoice",
         path: "/invoices/create",
         icon: FileSpreadsheet
+      }
+    ]
+  },
+  {
+    label: "Quotations",
+    path: "/quotations",
+    icon: FileText,
+    subItems: [
+      {
+        label: "All Quotations",
+        path: "/quotations",
+        icon: FileText
+      },
+      {
+        label: "Create Quotation",
+        path: "/quotations/create",
+        icon: FileText
       }
     ]
   },

@@ -1,4 +1,3 @@
-
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
@@ -22,6 +21,11 @@ import InviteAccept from "./pages/InviteAccept";
 import InvoicesPage from "./pages/invoices/InvoicesPage";
 import InvoiceDetails from "./pages/invoices/InvoiceDetails";
 import CreateInvoice from "./pages/invoices/CreateInvoice";
+
+// Quotation Pages
+import QuotationsPage from "./pages/quotations/QuotationsPage";
+import QuotationDetails from "./pages/quotations/QuotationDetails";
+import CreateQuotation from "./pages/quotations/CreateQuotation";
 
 // Customer Pages
 import CustomersPage from "./pages/customers/CustomersPage";
@@ -105,6 +109,10 @@ function App() {
                   <Route path="/invoices" element={<InvoicesPage />} />
                   <Route path="/invoices/:id" element={<InvoiceDetails />} />
                   <Route path="/invoices/create" element={<CreateInvoice />} />
+                  
+                  <Route path="/quotations" element={<QuotationsPage />} />
+                  <Route path="/quotations/:id" element={<QuotationDetails />} />
+                  <Route path="/quotations/create" element={<CreateQuotation />} />
                   
                   <Route path="/customers" element={<CustomersPage />} />
                   <Route path="/customers/:id" element={<CustomerDetails />} />

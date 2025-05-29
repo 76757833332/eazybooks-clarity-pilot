@@ -841,6 +841,97 @@ export type Database = {
           },
         ]
       }
+      quotation_items: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          id: string
+          price: number
+          quantity: number
+          quotation_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          description: string
+          id?: string
+          price?: number
+          quantity?: number
+          quotation_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          id?: string
+          price?: number
+          quantity?: number
+          quotation_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotation_items_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotations: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          id: string
+          issue_date: string
+          notes: string | null
+          quotation_number: string
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+          valid_until: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          issue_date?: string
+          notes?: string | null
+          quotation_number: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+          valid_until: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          issue_date?: string
+          notes?: string | null
+          quotation_number?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+          valid_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       services: {
         Row: {
           created_at: string
