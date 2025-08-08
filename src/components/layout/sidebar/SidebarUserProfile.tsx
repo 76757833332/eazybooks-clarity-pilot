@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 const SidebarUserProfile = () => {
   const navigate = useNavigate();
-  const { signOut, user } = useAuth();
+  const { signOut, user, business } = useAuth();
   
   const getInitials = () => {
     if (!user?.email) return "?";
@@ -30,11 +30,19 @@ const SidebarUserProfile = () => {
   return (
     <div className="border-t border-border p-3">
       <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-        <div className="h-8 w-8 rounded-full bg-eazybooks-gray-dark flex items-center justify-center text-xs text-white font-medium">
-          {getInitials()}
+        <div className="h-8 w-8 rounded-full bg-eazybooks-gray-dark flex items-center justify-center text-xs text-white font-medium overflow-hidden">
+          {business?.logo_url ? (
+            <img 
+              src={business.logo_url} 
+              alt={`${business?.name || 'Business'} logo`}
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          ) : (
+            getInitials()
+          )}
         </div>
         <div className="flex flex-col">
-          <span className="text-sm font-medium">{user?.email || 'User'}</span>
+          <span className="text-sm font-medium">{business?.name || user?.email || 'User'}</span>
           <span className="text-xs text-muted-foreground">Business account</span>
         </div>
         <div className="ml-auto flex gap-1">
