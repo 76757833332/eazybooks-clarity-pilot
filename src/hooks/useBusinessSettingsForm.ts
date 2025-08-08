@@ -180,6 +180,9 @@ export const useBusinessSettingsForm = () => {
         if (uploadedUrl) {
           logoUrl = uploadedUrl;
           console.log('Logo uploaded successfully:', logoUrl);
+          // Immediately reflect the uploaded URL in local state so it "sticks"
+          setFormData((prev) => ({ ...prev, logo_url: logoUrl || "" }));
+          setLogoPreview(logoUrl);
         } else {
           toast.error("Failed to upload logo. Other information will still be saved.");
         }
