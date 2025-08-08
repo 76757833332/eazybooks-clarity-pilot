@@ -23,7 +23,7 @@ const SidebarNavigation = ({ expandedItems, toggleExpand }: SidebarNavigationPro
         const showSubItems = hasSubItems && isExpanded;
         
         return (
-          <React.Fragment key={link.path}>
+          <div key={link.path}>
             {hasSubItems ? (
               <SidebarCollapsibleItem
                 label={link.label}
@@ -49,7 +49,7 @@ const SidebarNavigation = ({ expandedItems, toggleExpand }: SidebarNavigationPro
                 currentPath={location.pathname}
               />
             )}
-          </React.Fragment>
+          </div>
         );
       })}
     </nav>

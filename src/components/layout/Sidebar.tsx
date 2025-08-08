@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "@/components/Logo";
@@ -85,7 +84,7 @@ const Sidebar = () => {
           <DropdownMenuContent align="start" className={`w-56 ${resolvedTheme === 'light' ? 'bg-white border-gray-200' : 'bg-black/90 border-gray-700'} text-foreground`}>
             <div className="flex flex-col space-y-1 p-2">
               <p className="text-sm font-medium">{business?.name || user?.email || 'User'}</p>
-              <p className="text-xs text-muted-foreground">{business?.name ? 'Business account' : 'Business account'}</p>
+              <p className="text-xs text-muted-foreground">Business account</p>
             </div>
             <DropdownMenuSeparator className={resolvedTheme === 'light' ? 'bg-gray-200' : 'bg-gray-700'} />
             <DropdownMenuItem onClick={handleSettingsClick} className={`cursor-pointer ${resolvedTheme === 'light' ? 'hover:bg-gray-100' : 'hover:bg-gray-800'}`}>
