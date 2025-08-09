@@ -1,5 +1,6 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
@@ -19,6 +20,7 @@ export const InvoiceSidebar = ({
   onDelete,
   onDownload,
 }: InvoiceSidebarProps) => {
+  const navigate = useNavigate();
   return (
     <div className="space-y-6">
       {/* Status Card */}
@@ -141,7 +143,11 @@ export const InvoiceSidebar = ({
               Download PDF
             </Button>
             
-            <Button variant="outline" className="w-full justify-start">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => navigate(`/invoices/${invoice.id}/edit`)}
+            >
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
                 width="16" 

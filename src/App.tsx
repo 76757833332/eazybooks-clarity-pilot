@@ -21,6 +21,7 @@ import InviteAccept from "./pages/InviteAccept";
 import InvoicesPage from "./pages/invoices/InvoicesPage";
 import InvoiceDetails from "./pages/invoices/InvoiceDetails";
 import CreateInvoice from "./pages/invoices/CreateInvoice";
+import EditInvoice from "./pages/invoices/EditInvoice";
 
 // Quotation Pages
 import QuotationsPage from "./pages/quotations/QuotationsPage";
@@ -108,6 +109,7 @@ function App() {
                   
                   <Route path="/invoices" element={<InvoicesPage />} />
                   <Route path="/invoices/:id" element={<InvoiceDetails />} />
+                  <Route path="/invoices/:id/edit" element={<EditInvoice />} />
                   <Route path="/invoices/create" element={<CreateInvoice />} />
                   
                   <Route path="/quotations" element={<QuotationsPage />} />
