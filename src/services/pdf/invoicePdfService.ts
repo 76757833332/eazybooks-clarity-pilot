@@ -49,6 +49,57 @@ export class InvoicePdfService extends BasePdfService {
       doc.text(`Status: ${invoice.status.toUpperCase()}`, 130, cursorY);
       cursorY += 10;
 
+      // Business block (From)
+      doc.setFontSize(12);
+      doc.text("From:", 15, cursorY);
+      doc.setFontSize(10);
+      cursorY += 6;
+      const businessName = (business?.legal_name || business?.name || "Business") as string;
+      doc.text(businessName, 15, cursorY);
+      if (business?.email) {
+        cursorY += 5;
+        doc.text(String(business.email), 15, cursorY);
+      }
+      if (business?.phone) {
+        cursorY += 5;
+        doc.text(String(business.phone), 15, cursorY);
+      }
+      if (business?.website) {
+        cursorY += 5;
+        doc.text(String(business.website), 15, cursorY);
+      }
+      if (business?.tax_id) {
+        cursorY += 5;
+        doc.text(`Tax ID: ${String(business.tax_id)}`, 15, cursorY);
+      }
+      if (
+        business?.address ||
+        business?.city ||
+        business?.state ||
+        business?.postal_code ||
+        business?.country
+      ) {
+        cursorY += 5;
+        const cityState = [business?.city, business?.state].filter(Boolean).join(", ");
+        const addressCombined = [
+          business?.address,
+          cityState,
+          business?.postal_code,
+          business?.country,
+        ]
+          .filter(Boolean)
+          .join(" ");
+        if (addressCombined) {
+          const splitBizAddr = doc.splitTextToSize(String(addressCombined), width - 30);
+          doc.text(splitBizAddr, 15, cursorY);
+          cursorY += Array.isArray(splitBizAddr) ? splitBizAddr.length * 5 : 5;
+        }
+      } else {
+        cursorY += 5;
+      }
+
+      cursorY += 4;
+
       // Customer block
       if ((invoice as any).customer) {
         const customer = (invoice as any).customer as any;
