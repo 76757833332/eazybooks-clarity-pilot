@@ -11,13 +11,15 @@ interface InvoiceHeaderProps {
   onUpdateStatus: (newStatus: string) => Promise<void>;
   onDelete: () => void;
   isDeleting: boolean;
+  onDownload: () => void;
 }
 
 export const InvoiceHeader = ({ 
   invoice, 
   onUpdateStatus, 
   onDelete,
-  isDeleting 
+  isDeleting,
+  onDownload,
 }: InvoiceHeaderProps) => {
   const navigate = useNavigate();
 
@@ -95,7 +97,7 @@ export const InvoiceHeader = ({
           </Button>
         )}
         
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" onClick={onDownload}>
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
             width="16" 

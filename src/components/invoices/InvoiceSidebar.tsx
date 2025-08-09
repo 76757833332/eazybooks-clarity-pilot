@@ -10,12 +10,14 @@ interface InvoiceSidebarProps {
   invoice: Invoice;
   onUpdateStatus: (newStatus: string) => Promise<void>;
   onDelete: () => void;
+  onDownload: () => void;
 }
 
 export const InvoiceSidebar = ({ 
   invoice, 
   onUpdateStatus,
-  onDelete 
+  onDelete,
+  onDownload,
 }: InvoiceSidebarProps) => {
   return (
     <div className="space-y-6">
@@ -119,7 +121,7 @@ export const InvoiceSidebar = ({
               </Button>
             )}
             
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start" onClick={onDownload}>
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
                 width="16" 

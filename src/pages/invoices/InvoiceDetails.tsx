@@ -6,7 +6,8 @@ import { toast } from "@/components/ui/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { invoiceService } from "@/services/invoice";
-
+import { pdfService } from "@/services/pdf";
+import { useAuth } from "@/contexts/auth";
 // Import refactored components
 import { LoadingState } from "@/components/invoices/LoadingState";
 import { NotFoundState } from "@/components/invoices/NotFoundState";
@@ -19,7 +20,7 @@ const InvoiceDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
-
+  const { business } = useAuth();
   // Fetch invoice details
   const { data: invoice, isLoading: isLoadingInvoice } = useQuery({
     queryKey: ["invoice", id],
@@ -97,6 +98,20 @@ const InvoiceDetails: React.FC = () => {
 
   const isLoading = isLoadingInvoice || isLoadingItems;
 
+  const handleDownloadPDF = () => {
+    try {
+      if (invoice && invoiceItems) {
+        pdfService.generateInvoicePDF(invoice, invoiceItems, business);
+        toast({ title: "Invoice downloaded", description: "PDF generated successfully." });
+      } else {
+        toast({ variant: "destructive", title: "Download failed", description: "Invoice data not ready." });
+      }
+    } catch (error: any) {
+      console.error("Error downloading invoice PDF:", error);
+      toast({ variant: "destructive", title: "Failed to generate PDF", description: error?.message || "Unexpected error." });
+    }
+  };
+
   return (
     <AppLayout title="Invoice Details">
       {isLoading ? (
@@ -111,6 +126,7 @@ const InvoiceDetails: React.FC = () => {
             onUpdateStatus={handleUpdateStatus}
             onDelete={() => {}}  // Empty function since we use the dialog
             isDeleting={isDeleting}
+            onDownload={handleDownloadPDF}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -134,6 +150,7 @@ const InvoiceDetails: React.FC = () => {
                     deleteButton.click();
                   }
                 }}
+                onDownload={handleDownloadPDF}
               />
 
               {/* Hidden Delete Dialog Trigger */}
