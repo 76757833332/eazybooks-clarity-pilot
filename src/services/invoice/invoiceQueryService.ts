@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Invoice, InvoiceItem } from "@/types/invoice";
+import { Invoice, InvoiceItem, Customer } from "@/types/invoice";
 
 // Define the InvoiceWithItems type that was missing
 export type InvoiceWithItems = Invoice & {
@@ -40,6 +40,22 @@ export const fetchInvoiceById = async (
     return null;
   }
 
+  // Optionally fetch the customer details and attach to the invoice object
+  let customer: Customer | null = null;
+  if (invoice.customer_id) {
+    const { data: customerData, error: customerError } = await supabase
+      .from("customers")
+      .select("*")
+      .eq("id", invoice.customer_id)
+      .single();
+    if (customerError) {
+      // Don't throw here; allow invoice to load without customer if there's a permissions/data issue
+      console.warn("Failed to load customer for invoice:", customerError.message);
+    } else {
+      customer = (customerData as Customer) || null;
+    }
+  }
+
   // Then fetch the invoice items
   const { data: items, error: itemsError } = await supabase
     .from("invoice_items")
@@ -52,7 +68,8 @@ export const fetchInvoiceById = async (
 
   return {
     ...invoice,
-    items: items || [],
+    customer: customer, // attach so UI and PDF can display customer name/details
+    items: (items || []) as InvoiceItem[],
   } as InvoiceWithItems;
 };
 
