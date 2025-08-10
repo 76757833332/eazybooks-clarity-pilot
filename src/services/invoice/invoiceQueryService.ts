@@ -18,8 +18,33 @@ export const fetchInvoices = async (userId: string = ''): Promise<Invoice[]> => 
     throw new Error(error.message);
   }
 
-  // Add type assertion to ensure the data conforms to Invoice type
-  return (data || []) as Invoice[];
+  const invoices = (data || []) as Invoice[];
+
+  // Attach customer objects so list views and search can use customer.name
+  const customerIds = Array.from(
+    new Set(
+      invoices
+        .map((inv) => inv.customer_id)
+        .filter((id): id is string => !!id)
+    )
+  );
+
+  if (customerIds.length > 0) {
+    const { data: customers, error: customersError } = await supabase
+      .from("customers")
+      .select("*")
+      .in("id", customerIds);
+
+    if (!customersError && customers) {
+      const byId = new Map(customers.map((c) => [c.id as string, c as Customer]));
+      return invoices.map((inv) => ({
+        ...inv,
+        customer: inv.customer_id ? (byId.get(inv.customer_id) || null) : null,
+      }));
+    }
+  }
+
+  return invoices;
 };
 
 export const fetchInvoiceById = async (
