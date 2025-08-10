@@ -10,10 +10,13 @@ import { ArrowLeft, Edit, Trash2, FileDown } from "lucide-react";
 import { quotationService } from "@/services/quotation/quotationService";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { pdfService } from "@/services/pdf";
+import { useAuth } from "@/contexts/auth";
 
 const QuotationDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { business } = useAuth();
 
   const { data: quotation, isLoading } = useQuery({
     queryKey: ["quotation", id],
@@ -47,6 +50,20 @@ const QuotationDetails: React.FC = () => {
         console.error("Error deleting quotation:", error);
         toast.error("Failed to delete quotation");
       }
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    try {
+      if (quotation) {
+        pdfService.generateQuotationPDF(quotation as any, (quotation as any).items || [], business);
+        toast.success("Quotation downloaded");
+      } else {
+        toast.error("Quotation data not ready.");
+      }
+    } catch (error: any) {
+      console.error("Error downloading quotation PDF:", error);
+      toast.error(error?.message || "Failed to generate PDF");
     }
   };
 
@@ -138,9 +155,9 @@ const QuotationDetails: React.FC = () => {
                 </Button>
               </>
             )}
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
               <FileDown className="w-4 h-4 mr-2" />
-              Export PDF
+              Download PDF
             </Button>
             <Button
               variant="outline"
