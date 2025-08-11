@@ -50,6 +50,7 @@ import CreateProject from "./pages/projects/CreateProject";
 import ServicesPage from "./pages/projects/ServicesPage";
 import ServiceDetails from "./pages/projects/ServiceDetails";
 import CreateService from "./pages/projects/CreateService";
+import EditService from "./pages/projects/EditService";
 import TasksPage from "./pages/projects/TasksPage";
 import TaskDetails from "./pages/projects/TaskDetails";
 import CreateTask from "./pages/projects/CreateTask";
@@ -135,6 +136,7 @@ function App() {
                   <Route path="/projects/services" element={<ServicesPage />} />
                   <Route path="/projects/services/:id" element={<ServiceDetails />} />
                   <Route path="/projects/services/create" element={<CreateService />} />
+                  <Route path="/projects/services/edit/:id" element={<EditService />} />
                   
                   <Route path="/projects/tasks" element={<TasksPage />} />
                   <Route path="/projects/tasks/:id" element={<TaskDetails />} />

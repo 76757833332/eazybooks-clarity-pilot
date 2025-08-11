@@ -100,10 +100,11 @@ const CreateProject: React.FC = () => {
   });
 
   const onSubmit = (data: FormValues) => {
+    const clientId = data.client_id === "no-client" ? null : (data.client_id || null);
     createProjectMutation.mutate({
       name: data.name,
       description: data.description || null,
-      client_id: data.client_id || null,
+      client_id: clientId,
       start_date: data.start_date ? format(data.start_date, "yyyy-MM-dd") : null,
       due_date: data.due_date ? format(data.due_date, "yyyy-MM-dd") : null,
       budget: data.budget,

@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CalendarIcon,
   Clipboard,
@@ -37,6 +37,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
+import { ProjectTasksList } from "@/pages/projects/components/ProjectTasks";
 
 const ProjectDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -45,6 +46,7 @@ const ProjectDetails: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch project details
+  const queryClient = useQueryClient();
   const { data: project, isLoading } = useQuery({
     queryKey: ["project", id],
     queryFn: () => projectService.getProjectById(id as string),
@@ -60,6 +62,7 @@ const ProjectDetails: React.FC = () => {
         title: "Project updated",
         description: "Project status has been updated successfully.",
       });
+      queryClient.invalidateQueries({ queryKey: ["project", id] });
     },
     onError: (error) => {
       toast({
@@ -268,15 +271,7 @@ const ProjectDetails: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <h3 className="text-lg font-medium">No tasks yet</h3>
-                  <p className="text-muted-foreground mt-1">
-                    Add tasks to this project to track work and progress
-                  </p>
-                  <Button className="mt-4" onClick={() => navigate("/projects/tasks/create", { state: { projectId: project.id } })}>
-                    <Plus className="h-4 w-4 mr-1" /> Add First Task
-                  </Button>
-                </div>
+                <ProjectTasksList projectId={project.id} />
               </CardContent>
             </Card>
           </TabsContent>
