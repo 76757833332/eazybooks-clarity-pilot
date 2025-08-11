@@ -16,7 +16,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ incomeId, onDelete }) => 
     <div className="flex justify-between">
       <Button
         variant="outline"
-        onClick={() => navigate(`/income/edit/${incomeId}`)}
+        onClick={() => navigate(`/income/${incomeId}/edit`)}
       >
         <Edit className="mr-2 h-4 w-4" />
         Edit

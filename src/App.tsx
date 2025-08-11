@@ -42,6 +42,7 @@ import CreateExpense from "./pages/expenses/CreateExpense";
 import IncomePage from "./pages/income/IncomePage";
 import IncomeDetails from "./pages/income/IncomeDetails";
 import CreateIncome from "./pages/income/CreateIncome";
+import EditIncome from "./pages/income/EditIncome";
 
 // Project Pages
 import ProjectsPage from "./pages/projects/ProjectsPage";
@@ -126,9 +127,10 @@ function App() {
                   <Route path="/expenses/add" element={<CreateExpense />} />
                   
                   <Route path="/income" element={<IncomePage />} />
-                  <Route path="/income/:id" element={<IncomeDetails />} />
+                  <Route path="/income/create" element={<CreateIncome />} />
                   <Route path="/income/add" element={<CreateIncome />} />
-                  
+                  <Route path="/income/:id/edit" element={<EditIncome />} />
+                  <Route path="/income/:id" element={<IncomeDetails />} />
                   <Route path="/projects" element={<ProjectsPage />} />
                   <Route path="/projects/:id" element={<ProjectDetails />} />
                   <Route path="/projects/create" element={<CreateProject />} />
